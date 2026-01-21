@@ -1,0 +1,31 @@
+{
+  "spritesheets": {
+    "hero_sheet": {
+      "url": "res/sprite/sheets/hero_sheet.png",
+      "frames": {
+        "h_idle_1": { "x": 0, "y": 0, "w": 32, "h": 32 },
+        "h_idle_2": { "x": 32, "y": 0, "w": 32, "h": 32 }
+      },
+      "animations": {
+        "idle": ["h_idle_1", "h_idle_2"]
+      }
+    }
+  },
+  "images": {
+    "static_rock": "res/sprite/static/rock.png"
+  },
+  "audio": {
+    "bgm_level1": {
+      "url": "res/audio/ost/dungeon_ambient.wav",
+      "type": "ost",
+      "loop": true,
+      "volume": 0.8
+    },
+    "sfx_explosion": {
+      "url": "res/audio/sfx/bomb_explosion.wav",
+      "type": "sfx",
+      "loop": false,
+      "volume": 1.0
+    }
+  }
+}

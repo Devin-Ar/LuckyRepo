@@ -1,0 +1,76 @@
+// src/features/Game2/logic/Game2Logic.ts
+import {Game2LogicSchema} from '../model/Game2LogicSchema';
+import {BaseLogic} from '../../../core/templates/BaseLogic';
+import {BaseDispatcher} from '../../../core/templates/BaseDispatcher';
+import {Game2Commands} from './Game2Commands';
+import {Game2Config} from '../model/Game2Config';
+
+export class Game2Logic extends BaseLogic<Game2Config> {
+    protected dispatcher: BaseDispatcher<Game2Logic>;
+    private hp = 100;
+    private energy = 50;
+    private scrap = 0;
+    private currentFrame = 0;
+
+    constructor() {
+        super(Game2LogicSchema.REVISION);
+        this.dispatcher = new BaseDispatcher(this, Game2Commands, "Game2");
+    }
+
+    public applyConfig(config: Game2Config): void {
+        this.config = config;
+        this.hp = config.initialHP;
+        this.energy = config.initialEnergy;
+        this.scrap = config.initialScrap;
+    }
+
+    public modifyHp(amount: number) {
+        this.hp = Math.max(0, this.hp + amount);
+    }
+
+    public modifyEnergy(amount: number) {
+        if (!this.config) return;
+        this.energy = Math.max(0, this.energy + amount);
+    }
+
+    public addScrap(amount: number = 1) {
+        this.scrap += amount;
+    }
+
+    public override destroy(): void {
+        super.destroy();
+        this.hp = 100;
+        this.energy = 50;
+        this.scrap = 0;
+    }
+
+    public override getSnapshot(): any {
+        return {
+            hp: this.hp, energy: this.energy, scrap: this.scrap,
+            currentFrame: this.currentFrame, config: this.config
+        };
+    }
+
+    public override loadSnapshot(data: any): void {
+        if (!data) return;
+        this.config = data.config;
+        this.hp = data.hp ?? 100;
+        this.energy = data.energy ?? 50;
+        this.scrap = data.scrap ?? 0;
+        this.isInitialized = true;
+    }
+
+    protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
+        if (!this.config) return;
+        this.currentFrame = frameCount;
+
+        if (frameCount % this.config.regenRate === 0 && this.energy < this.config.maxEnergy) {
+            this.modifyEnergy(1);
+        }
+
+        sharedView[Game2LogicSchema.HERO_HP] = this.hp;
+        sharedView[Game2LogicSchema.ENERGY] = this.energy;
+        sharedView[Game2LogicSchema.SCRAP_COUNT] = this.scrap;
+        sharedView[Game2LogicSchema.TICK_COUNT] = frameCount;
+    }
+}
