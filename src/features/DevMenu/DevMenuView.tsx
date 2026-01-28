@@ -1,4 +1,3 @@
-// src/features/DevMenu/DevMenuView.tsx
 import React, {useState} from 'react';
 import {Game1State} from '../Game1/model/Game1State';
 import {Game1Level} from '../Game1/model/Game1Config';
@@ -8,15 +7,17 @@ import {StateManager} from '../../core/managers/StateManager';
 import {AudioManager} from '../../core/managers/AudioManager';
 import {SharedSession} from '../../core/session/SharedSession';
 import {SaveMenuState} from '../shared-menus/states/SaveMenuState';
+import {DemoLoadingView} from '../../components/loading/DemoLoadingView';
 
 interface DevBtnProps {
     label: string;
     onClick?: () => void;
     active?: boolean;
     color?: string;
+    subLabel?: string;
 }
 
-const DevButton = ({label, onClick, active, color = "#444"}: DevBtnProps) => (
+const DevButton = ({label, onClick, active, color = "#444", subLabel}: DevBtnProps) => (
     <button
         onClick={onClick}
         disabled={!onClick}
@@ -30,10 +31,15 @@ const DevButton = ({label, onClick, active, color = "#444"}: DevBtnProps) => (
             fontSize: '0.8cqw',
             fontWeight: 'bold',
             textAlign: 'center',
-            transition: 'all 0.1s'
+            transition: 'all 0.1s',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
         }}
     >
-        {label}
+        <span>{label}</span>
+        {subLabel && <span style={{fontSize: '0.6cqw', fontWeight: 'normal', opacity: 0.8}}>{subLabel}</span>}
     </button>
 );
 
@@ -97,122 +103,125 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
         }
     };
 
+    const handleNav = (StateClass: any, reset: boolean, level: any) => {
+        const target = new StateClass(reset, level);
+        const loadingConfig = StateClass === Game1State ? {view: DemoLoadingView} : {};
+        StateManager.getInstance().replace(target, loadingConfig);
+    };
+
     return (
         <div style={{
-            width: '100%', height: '100%', backgroundColor: '#0a0a0a', color: '#00ff00',
-            padding: '2cqw', boxSizing: 'border-box', fontFamily: 'monospace',
-            border: '0.2cqw solid #333', display: 'flex', gap: '2cqw'
+            position: 'absolute', inset: 0,
+            background: '#000', // External letterbox background
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden'
         }}>
-            <div style={{flex: 2}}>
-                <h2 style={{
-                    fontSize: '2cqw',
-                    letterSpacing: '0.2cqw',
-                    borderBottom: '0.1cqw solid #333',
-                    paddingBottom: '1cqw',
-                    margin: 0
-                }}>
-                    DEV_SWITCHBOARD_V1
-                </h2>
-
-                <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5cqw', marginTop: '2cqw'}}>
-
-                    {/* Game 1 Module - Clean Level Selector */}
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                        <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_01</div>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
-                            <DevButton
-                                label="LVL 1"
-                                onClick={() => onNavigate(Game1State, true, Game1Level.Level1)}
-                                color="#27ae60"
-                            />
-                            <DevButton
-                                label="LVL 2"
-                                onClick={() => onNavigate(Game1State, true, Game1Level.Level2)}
-                                color="#2980b9"
-                            />
-                            <DevButton
-                                label="LVL 3"
-                                onClick={() => onNavigate(Game1State, true, Game1Level.Level3)}
-                                color="#8e44ad"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Game 2 Module - Updated Level Selector */}
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                        <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_02</div>
-                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
-                            <DevButton
-                                label="LVL 1"
-                                onClick={() => onNavigate(Game2State, true, Game2Level.Level1)}
-                                color="#c0392b"
-                            />
-                            <DevButton
-                                label="LVL 2"
-                                onClick={() => onNavigate(Game2State, true, Game2Level.Level2)}
-                                color="#d35400"
-                            />
-                            <DevButton
-                                label="LVL 3"
-                                onClick={() => onNavigate(Game2State, true, Game2Level.Level3)}
-                                color="#f39c12"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Navigation Systems */}
-                    <div style={{gridColumn: 'span 2', marginTop: '1cqw'}}>
-                        <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>SYSTEM_NAVIGATION</div>
-                        <DevButton
-                            label="OPEN SAVE / LOAD MENU"
-                            onClick={openSaveMenu}
-                            color="#d35400"
-                        />
-                    </div>
-                </div>
-            </div>
-
+            {/* 16:9 Letterboxed Container */}
             <div style={{
-                flex: 1,
-                backgroundColor: '#111',
-                padding: '1.5cqw',
-                borderRadius: '0.4cqw',
-                borderLeft: '0.1cqw solid #333',
-                display: 'flex',
-                flexDirection: 'column'
+                position: 'relative',
+                width: '100%', height: '100%',
+                maxWidth: 'calc(100vh * (16 / 9))',
+                maxHeight: 'calc(100vw * (9 / 16))',
+                aspectRatio: '16 / 9',
+                backgroundColor: '#0a0a0a', color: '#00ff00',
+                padding: '2cqw', boxSizing: 'border-box', fontFamily: 'monospace',
+                border: '0.2cqw solid #333', display: 'flex', gap: '2cqw',
+                containerType: 'size' // Ensures cqw/cqh work correctly inside the box
             }}>
-                <h3 style={{
-                    fontSize: '1.2cqw',
-                    margin: '0 0 2cqw 0',
-                    borderBottom: '0.1cqw solid #333',
-                    paddingBottom: '0.5cqw'
-                }}>
-                    GLOBAL_CONFIG
-                </h3>
+                <div style={{flex: 2}}>
+                    <h2 style={{
+                        fontSize: '2cqw',
+                        letterSpacing: '0.2cqw',
+                        borderBottom: '0.1cqw solid #333',
+                        paddingBottom: '1cqw',
+                        margin: 0,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <span>DEV_SWITCHBOARD_V1</span>
+                    </h2>
 
-                <AudioSlider label="MASTER_VOLUME" value={vols.master} onChange={(v) => handleVolChange('master', v)}/>
-                <AudioSlider label="OST_VOLUME" value={vols.ost} onChange={(v) => handleVolChange('ost', v)}/>
-                <AudioSlider label="SFX_VOLUME" value={vols.sfx} onChange={(v) => handleVolChange('sfx', v)}/>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: '1.5cqw',
+                        marginTop: '2cqw'
+                    }}>
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_01
+                            </div>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                                <DevButton label="LVL 1" onClick={() => handleNav(Game1State, true, Game1Level.Level1)}
+                                           color="#27ae60"/>
+                                <DevButton label="LVL 2" onClick={() => handleNav(Game1State, true, Game1Level.Level2)}
+                                           color="#2980b9"/>
+                                <DevButton label="LVL 3" onClick={() => handleNav(Game1State, true, Game1Level.Level3)}
+                                           color="#8e44ad"/>
+                            </div>
+                        </div>
 
-                <div style={{marginTop: '1cqw', marginBottom: '1.5cqw'}}>
-                    <div style={{fontSize: '0.7cqw', color: '#888', marginBottom: '0.6cqw'}}>DISPLAY_RESOLUTION</div>
-                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4cqw'}}>
-                        {['540p', '720p', '1080p', '1440p', '4k', 'fit'].map(r => (
-                            <DevButton key={r} label={r.toUpperCase()} active={res === r}
-                                       onClick={() => handleResChange(r)}/>
-                        ))}
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_02
+                            </div>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                                <DevButton label="LVL 1" onClick={() => handleNav(Game2State, true, Game2Level.Level1)}
+                                           color="#c0392b"/>
+                                <DevButton label="LVL 2" onClick={() => handleNav(Game2State, true, Game2Level.Level2)}
+                                           color="#d35400"/>
+                                <DevButton label="LVL 3" onClick={() => handleNav(Game2State, true, Game2Level.Level3)}
+                                           color="#f39c12"/>
+                            </div>
+                        </div>
+
+                        <div style={{gridColumn: 'span 2', marginTop: '1cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>SYSTEM_NAVIGATION
+                            </div>
+                            <DevButton label="OPEN SAVE / LOAD MENU" onClick={openSaveMenu} color="#d35400"/>
+                        </div>
                     </div>
                 </div>
 
-                <div style={{marginBottom: '2cqw'}}>
-                    <div style={{fontSize: '0.7cqw', color: '#888', marginBottom: '0.6cqw'}}>WINDOW_MODE</div>
-                    <DevButton label="TOGGLE FULLSCREEN" onClick={toggleFullscreen} color="#b33939"/>
-                </div>
+                <div style={{
+                    flex: 1, backgroundColor: '#111', padding: '1.5cqw',
+                    borderRadius: '0.4cqw', borderLeft: '0.1cqw solid #333',
+                    display: 'flex', flexDirection: 'column'
+                }}>
+                    <h3 style={{
+                        fontSize: '1.2cqw',
+                        margin: '0 0 2cqw 0',
+                        borderBottom: '0.1cqw solid #333',
+                        paddingBottom: '0.5cqw'
+                    }}>
+                        GLOBAL_CONFIG
+                    </h3>
 
-                <div style={{marginTop: 'auto', fontSize: '0.7cqw', color: '#444', lineHeight: '1.4'}}>
-                    PERSISTENCE: ACTIVE<br/>
-                    SETTINGS_SYNC: LOCAL_STORAGE<br/>
-                    ACTIVE_RES: {res?.toUpperCase()}
+                    <AudioSlider label="MASTER_VOLUME" value={vols.master}
+                                 onChange={(v) => handleVolChange('master', v)}/>
+                    <AudioSlider label="OST_VOLUME" value={vols.ost} onChange={(v) => handleVolChange('ost', v)}/>
+                    <AudioSlider label="SFX_VOLUME" value={vols.sfx} onChange={(v) => handleVolChange('sfx', v)}/>
+
+                    <div style={{marginTop: '1cqw', marginBottom: '1.5cqw'}}>
+                        <div style={{fontSize: '0.7cqw', color: '#888', marginBottom: '0.6cqw'}}>DISPLAY_RESOLUTION
+                        </div>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4cqw'}}>
+                            {['540p', '720p', '1080p', '1440p', '4k', 'fit'].map(r => (
+                                <DevButton key={r} label={r.toUpperCase()} active={res === r}
+                                           onClick={() => handleResChange(r)}/>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={{marginBottom: '2cqw'}}>
+                        <div style={{fontSize: '0.7cqw', color: '#888', marginBottom: '0.6cqw'}}>WINDOW_MODE</div>
+                        <DevButton label="TOGGLE FULLSCREEN" onClick={toggleFullscreen} color="#b33939"/>
+                    </div>
+
+                    <div style={{marginTop: 'auto', fontSize: '0.7cqw', color: '#444', lineHeight: '1.4'}}>
+                        PERSISTENCE: ACTIVE<br/>
+                        SETTINGS_SYNC: LOCAL_STORAGE<br/>
+                        ACTIVE_RES: {res?.toUpperCase()}
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,3 @@
-// src/core/templates/BaseGameState.ts
 import React, {JSX} from 'react';
 import {State} from './State';
 import {WorkerManager} from '../managers/WorkerManager';
@@ -32,6 +31,12 @@ export abstract class BaseGameState<
     }
 
     public async init(): Promise<void> {
+        if (this.isInitialized) {
+            this.isUpdating = true;
+            this.isRendering = true;
+            return;
+        }
+
         const logicWorker = WorkerManager.getInstance();
         const viewWorker = ViewWorkerManager.getInstance();
         const session = SharedSession.getInstance();
@@ -61,6 +66,7 @@ export abstract class BaseGameState<
 
         session.unlock();
 
+        this.isInitialized = true;
         this.isUpdating = true;
         this.isRendering = true;
     }
@@ -87,6 +93,7 @@ export abstract class BaseGameState<
 
         this.isUpdating = false;
         this.isRendering = false;
+        this.isInitialized = false;
 
         this.syncGlobalsToSession(session);
 

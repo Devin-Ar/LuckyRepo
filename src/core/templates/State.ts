@@ -1,4 +1,3 @@
-// src/core/templates/State.ts
 import {JSX} from "react";
 import {IState} from "../interfaces/IState";
 
@@ -7,6 +6,7 @@ export abstract class State implements IState {
     public isUpdating = false;
     public isRendering = false;
     public priority = 0;
+    public isInitialized = false;
 
     abstract init(): Promise<void>;
 

@@ -1,7 +1,7 @@
 // src/features/shared-menus/views/SettingsViews.tsx
-import React, { useState } from 'react';
-import { SharedSession } from '../../../core/session/SharedSession';
-import { AudioManager } from '../../../core/managers/AudioManager';
+import React, {useState} from 'react';
+import {SharedSession} from '../../../core/session/SharedSession';
+import {AudioManager} from '../../../core/managers/AudioManager';
 
 interface SettingsViewProps {
     onBack: () => void;
@@ -9,12 +9,33 @@ interface SettingsViewProps {
     setRes?: (r: string) => void;
 }
 
-const controlGroupStyle = { display: 'flex', alignItems: 'center', gap: '1.5cqw', minWidth: '20cqw', justifyContent: 'flex-end' };
-const sliderStyle = { cursor: 'pointer', accentColor: '#00ff00', width: '12cqw' };
-const inputStyle = { backgroundColor: '#000', color: '#00ff00', border: '1px solid #00ff00', padding: '0.5cqw', fontFamily: 'monospace', outline: 'none' };
-const btnStyle = { padding: '0.8cqw 2cqw', cursor: 'pointer', border: '1px solid #00ff00', background: '#000', color: '#00ff00', fontWeight: 'bold' as const, fontFamily: 'monospace' };
+const controlGroupStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1.5cqw',
+    minWidth: '20cqw',
+    justifyContent: 'flex-end'
+};
+const sliderStyle = {cursor: 'pointer', accentColor: '#00ff00', width: '12cqw'};
+const inputStyle = {
+    backgroundColor: '#000',
+    color: '#00ff00',
+    border: '1px solid #00ff00',
+    padding: '0.5cqw',
+    fontFamily: 'monospace',
+    outline: 'none'
+};
+const btnStyle = {
+    padding: '0.8cqw 2cqw',
+    cursor: 'pointer',
+    border: '1px solid #00ff00',
+    background: '#000',
+    color: '#00ff00',
+    fontWeight: 'bold' as const,
+    fontFamily: 'monospace'
+};
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({onBack, res, setRes}) => {
     const session = SharedSession.getInstance();
     const audio = AudioManager.getInstance();
 
@@ -27,7 +48,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
     const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
 
     const handleVolumeChange = (cat: 'master' | 'ost' | 'sfx', val: number) => {
-        setVols(prev => ({ ...prev, [cat]: val }));
+        setVols(prev => ({...prev, [cat]: val}));
         session.set(`${cat}_volume`, val);
         audio.setVolume(cat, val);
     };
@@ -39,7 +60,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
 
     const toggleFullscreen = async () => {
         if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen().catch(() => {});
+            await document.documentElement.requestFullscreen().catch(() => {
+            });
             setIsFullscreen(true);
         } else {
             if (document.exitFullscreen) {
@@ -50,11 +72,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
     };
 
     const containerStyle: React.CSSProperties = {
-        width: '100%', height: '100%', backgroundColor: 'rgba(5, 5, 5, 0.98)',
+        width: '100%', height: '100%',
+        maxWidth: 'calc(100vh * (16 / 9))',
+        maxHeight: 'calc(100vw * (9 / 16))',
+        aspectRatio: '16 / 9',
+        backgroundColor: 'rgba(5, 5, 5, 0.98)',
         color: '#00ff00', fontFamily: 'monospace', display: 'flex',
         flexDirection: 'column', padding: '4cqw', boxSizing: 'border-box',
-        position: 'absolute', top: 0, left: 0, zIndex: 1200,
-        textShadow: '0 0 5px rgba(0, 255, 0, 0.3)'
+        position: 'relative', zIndex: 1200,
+        textShadow: '0 0 5px rgba(0, 255, 0, 0.3)',
+        containerType: 'size'
     };
 
     const rowStyle: React.CSSProperties = {
@@ -63,68 +90,76 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
     };
 
     return (
-        <div style={containerStyle}>
-        <h2 style={{ borderBottom: '2px solid #00ff00', paddingBottom: '1cqw', letterSpacing: '0.2cqw' }}>
-    SYSTEM_CONFIGURATION
-    </h2>
+        <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200
+        }}>
+            <div style={containerStyle}>
+                <h2 style={{borderBottom: '2px solid #00ff00', paddingBottom: '1cqw', letterSpacing: '0.2cqw'}}>
+                    SYSTEM_CONFIGURATION
+                </h2>
 
-    <div style={{ marginTop: '1cqw' }}>
-    <div style={rowStyle}>
-        <span>MASTER_OUTPUT_LEVEL</span>
-        <div style={controlGroupStyle}>
-        <span>{Math.round(vols.master * 100)}%</span>
-        <input type="range" min="0" max="1" step="0.01" value={vols.master}
-    onChange={(e) => handleVolumeChange('master', parseFloat(e.target.value))}
-    style={sliderStyle} />
-    </div>
-    </div>
+                <div style={{marginTop: '1cqw'}}>
+                    <div style={rowStyle}>
+                        <span>MASTER_OUTPUT_LEVEL</span>
+                        <div style={controlGroupStyle}>
+                            <span>{Math.round(vols.master * 100)}%</span>
+                            <input type="range" min="0" max="1" step="0.01" value={vols.master}
+                                   onChange={(e) => handleVolumeChange('master', parseFloat(e.target.value))}
+                                   style={sliderStyle}/>
+                        </div>
+                    </div>
 
-    <div style={rowStyle}>
-        <span>OST_SEQUENCE_LEVEL</span>
-        <div style={controlGroupStyle}>
-        <span>{Math.round(vols.ost * 100)}%</span>
-        <input type="range" min="0" max="1" step="0.01" value={vols.ost}
-    onChange={(e) => handleVolumeChange('ost', parseFloat(e.target.value))}
-    style={sliderStyle} />
-    </div>
-    </div>
+                    <div style={rowStyle}>
+                        <span>OST_SEQUENCE_LEVEL</span>
+                        <div style={controlGroupStyle}>
+                            <span>{Math.round(vols.ost * 100)}%</span>
+                            <input type="range" min="0" max="1" step="0.01" value={vols.ost}
+                                   onChange={(e) => handleVolumeChange('ost', parseFloat(e.target.value))}
+                                   style={sliderStyle}/>
+                        </div>
+                    </div>
 
-    <div style={rowStyle}>
-        <span>SFX_IMPULSE_LEVEL</span>
-        <div style={controlGroupStyle}>
-        <span>{Math.round(vols.sfx * 100)}%</span>
-        <input type="range" min="0" max="1" step="0.01" value={vols.sfx}
-    onChange={(e) => handleVolumeChange('sfx', parseFloat(e.target.value))}
-    style={sliderStyle} />
-    </div>
-    </div>
+                    <div style={rowStyle}>
+                        <span>SFX_IMPULSE_LEVEL</span>
+                        <div style={controlGroupStyle}>
+                            <span>{Math.round(vols.sfx * 100)}%</span>
+                            <input type="range" min="0" max="1" step="0.01" value={vols.sfx}
+                                   onChange={(e) => handleVolumeChange('sfx', parseFloat(e.target.value))}
+                                   style={sliderStyle}/>
+                        </div>
+                    </div>
 
-    <div style={rowStyle}>
-        <span>DISPLAY_RESOLUTION</span>
-        <select
-    value={res}
-    onChange={(e) => handleResChange(e.target.value)}
-    style={inputStyle}
-        >
-        {['540p', '720p', '1080p', '1440p', '4k', 'fit'].map(r => (
-        <option key={r} value={r}>{r.toUpperCase()}</option>
-))}
-    </select>
-    </div>
+                    <div style={rowStyle}>
+                        <span>DISPLAY_RESOLUTION</span>
+                        <select
+                            value={res}
+                            onChange={(e) => handleResChange(e.target.value)}
+                            style={inputStyle}
+                        >
+                            {['540p', '720p', '1080p', '1440p', '4k', 'fit'].map(r => (
+                                <option key={r} value={r}>{r.toUpperCase()}</option>
+                            ))}
+                        </select>
+                    </div>
 
-    <div style={rowStyle}>
-        <span>WINDOW_MODE</span>
-        <button onClick={toggleFullscreen} style={btnStyle}>
-        {isFullscreen ? '[ FULLSCREEN ]' : '[ WINDOWED ]'}
-        </button>
+                    <div style={rowStyle}>
+                        <span>WINDOW_MODE</span>
+                        <button onClick={toggleFullscreen} style={btnStyle}>
+                            {isFullscreen ? '[ FULLSCREEN ]' : '[ WINDOWED ]'}
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    style={{marginTop: 'auto', textAlign: 'right', borderTop: '1px solid #00ff00', paddingTop: '1cqw'}}>
+                    <button onClick={onBack}
+                            style={{...btnStyle, background: '#111', color: '#888', borderColor: '#444'}}>
+                        EXIT_CONFIG
+                    </button>
+                </div>
+            </div>
         </div>
-        </div>
 
-        <div style={{ marginTop: 'auto', textAlign: 'right', borderTop: '1px solid #00ff00', paddingTop: '1cqw' }}>
-    <button onClick={onBack} style={{ ...btnStyle, background: '#111', color: '#888', borderColor: '#444' }}>
-    EXIT_CONFIG
-    </button>
-    </div>
-    </div>
-);
+    );
 };

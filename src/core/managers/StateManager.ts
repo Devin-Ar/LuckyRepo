@@ -2,6 +2,8 @@
 import {JSX} from "react";
 import {IState} from '../interfaces/IState';
 import {Engine} from '../Engine';
+import {ILoadingConfig} from "../interfaces/ILoadingConfig";
+import {LoadingState} from "../templates/LoadingState";
 
 type StackListener = (views: JSX.Element[]) => void;
 
@@ -47,15 +49,17 @@ export class StateManager {
         this.notify();
     }
 
-    public async replace(state: IState) {
+    public async replace(state: IState, loadingConfig?: ILoadingConfig) {
         this.stack.forEach(s => s.destroy());
         this.stack = [];
 
         this.notify();
 
-        await state.init();
+        const stateToLoad = loadingConfig ? new LoadingState(state, loadingConfig) : state;
 
-        this.stack.push(state);
+        await stateToLoad.init();
+
+        this.stack.push(stateToLoad);
         this.notify();
 
         Engine.getInstance().start();

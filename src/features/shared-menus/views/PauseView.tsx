@@ -8,7 +8,7 @@ interface PauseViewProps {
     onQuit: () => void;
 }
 
-export const PauseView: React.FC<PauseViewProps> = ({ onResume, onSaveMenu, onSettings, onQuit }) => {
+export const PauseView: React.FC<PauseViewProps> = ({onResume, onSaveMenu, onSettings, onQuit}) => {
     const buttonBaseStyle: React.CSSProperties = {
         padding: '1.2cqw 3cqw',
         fontSize: '1.2cqw',
@@ -25,6 +25,9 @@ export const PauseView: React.FC<PauseViewProps> = ({ onResume, onSaveMenu, onSe
     const containerStyle: React.CSSProperties = {
         width: '100%',
         height: '100%',
+        maxWidth: 'calc(100vh * (16 / 9))',
+        maxHeight: 'calc(100vw * (9 / 16))',
+        aspectRatio: '16 / 9',
         backgroundColor: 'rgba(0,0,0,0.85)',
         display: 'flex',
         flexDirection: 'column',
@@ -32,46 +35,50 @@ export const PauseView: React.FC<PauseViewProps> = ({ onResume, onSaveMenu, onSe
         alignItems: 'center',
         color: 'white',
         zIndex: 1000,
-        position: 'absolute',
-        top: 0,
-        left: 0,
+        position: 'relative',
         fontFamily: 'monospace',
-        userSelect: 'none'
+        userSelect: 'none',
+        containerType: 'size'
     };
 
     return (
-        <div style={containerStyle}>
-            <h1 style={{ fontSize: '6cqw', marginBottom: '2cqw', letterSpacing: '0.5cqw' }}>
-                PAUSED
-            </h1>
+        <div style={{
+            position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+            <div style={containerStyle}>
+                <h1 style={{fontSize: '6cqw', marginBottom: '2cqw', letterSpacing: '0.5cqw'}}>
+                    PAUSED
+                </h1>
 
-            <button
-                onClick={onResume}
-                style={{ ...buttonBaseStyle, fontSize: '1.5cqw', backgroundColor: '#27ae60' }}
-            >
-                RESUME
-            </button>
+                <button
+                    onClick={onResume}
+                    style={{...buttonBaseStyle, fontSize: '1.5cqw', backgroundColor: '#27ae60'}}
+                >
+                    RESUME
+                </button>
 
-            <button
-                onClick={onSaveMenu}
-                style={{ ...buttonBaseStyle, backgroundColor: '#8e44ad' }}
-            >
-                SAVE / LOAD GAME
-            </button>
+                <button
+                    onClick={onSaveMenu}
+                    style={{...buttonBaseStyle, backgroundColor: '#8e44ad'}}
+                >
+                    SAVE / LOAD GAME
+                </button>
 
-            <button
-                onClick={onSettings}
-                style={{ ...buttonBaseStyle, backgroundColor: '#7f8c8d' }}
-            >
-                SYSTEM SETTINGS
-            </button>
+                <button
+                    onClick={onSettings}
+                    style={{...buttonBaseStyle, backgroundColor: '#7f8c8d'}}
+                >
+                    SYSTEM SETTINGS
+                </button>
 
-            <button
-                onClick={onQuit}
-                style={{ ...buttonBaseStyle, backgroundColor: '#c0392b' }}
-            >
-                QUIT TO SWITCHBOARD
-            </button>
+                <button
+                    onClick={onQuit}
+                    style={{...buttonBaseStyle, backgroundColor: '#c0392b'}}
+                >
+                    QUIT TO SWITCHBOARD
+                </button>
+            </div>
         </div>
     );
 };

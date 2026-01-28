@@ -5,7 +5,9 @@ export interface IState {
     name: string;
     isUpdating: boolean;
     isRendering: boolean;
-    priority: number; // Useful for draw order in stacks
+    priority: number;
+    isInitialized: boolean;
+
     init(): Promise<void>;
 
     update(dt: number, frameCount: number): void;
