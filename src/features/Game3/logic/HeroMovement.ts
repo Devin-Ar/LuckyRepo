@@ -1,74 +1,49 @@
 // src/features/Game3/logic/HeroMovement.ts
-
 export class HeroMovement {
-    // Mario-esque movement parameters
-    private maxSpeed = 4.5;
-    private groundAcceleration = 0.6;
-    private groundFriction = 0.5;
-    private airAcceleration = 0.25;
-    private airFriction = 0.05;
-    private jumpForce = -11;
-    private gravity = 0.6;
+    private speed = 4.5;       // Increased for 1:1 pixel logic
+    private jumpPower = -9.0;  // More "oomph" for 32x64 hero
+    private gravity = 0.45;    // Snappier gravity
+    private friction = 0.8;
 
-    /**
-     * Configures the movement parameters.
-     */
-    public configure(params: { speed?: number, jumpSpeed?: number, gravity?: number }): void {
-        if (params.speed !== undefined) this.maxSpeed = params.speed * 4; // Scale speed if needed, or use directly
-        if (params.jumpSpeed !== undefined) this.jumpForce = -params.jumpSpeed;
-        if (params.gravity !== undefined) this.gravity = params.gravity;
-        
-        // Adjust other params proportionally if needed
-        this.groundAcceleration = this.maxSpeed * 0.13;
-        this.groundFriction = this.groundAcceleration * 0.8;
-        this.airAcceleration = this.groundAcceleration * 0.4;
-        this.airFriction = this.groundFriction * 0.1;
+    public configure(params: { speed?: number; jumpSpeed?: number; gravity?: number }) {
+        if (params.speed) this.speed = params.speed;
+        if (params.jumpSpeed) this.jumpPower = -Math.abs(params.jumpSpeed);
+        if (params.gravity) this.gravity = params.gravity;
     }
 
     /**
-     * Updates the hero's velocity based on input and state.
-     * @param hero The hero object containing vx and vy.
-     * @param keys Currently pressed keys.
-     * @param isOnGround Whether the hero is currently on the ground.
+     * @param keys Expects uppercase strings (e.g., 'A', 'ARROWLEFT')
      */
-    public update(
-        hero: { vx: number; vy: number },
-        keys: string[],
-        isOnGround: boolean
-    ): void {
-        // --- Horizontal Movement ---
+    public update(hero: { vx: number; vy: number }, keys: string[], isOnGround: boolean) {
+        if (!keys) return;
+
+        // 1. Horizontal Movement
         let moveDir = 0;
+
+        // Check for both standardized uppercase and common fallbacks
         if (keys.includes('A') || keys.includes('ARROWLEFT')) moveDir -= 1;
         if (keys.includes('D') || keys.includes('ARROWRIGHT')) moveDir += 1;
 
-        const acceleration = isOnGround ? this.groundAcceleration : this.airAcceleration;
-        const friction = isOnGround ? this.groundFriction : (moveDir === 0 ? this.maxSpeed * 0.1 : this.airFriction);
-
         if (moveDir !== 0) {
-            // Apply acceleration
-            hero.vx += moveDir * acceleration;
-            // Clamp to max speed
-            if (Math.abs(hero.vx) > this.maxSpeed) {
-                hero.vx = Math.sign(hero.vx) * this.maxSpeed;
-            }
+            hero.vx = moveDir * this.speed;
         } else {
-            // No input: apply friction/braking
-            if (Math.abs(hero.vx) < friction) {
-                hero.vx = 0;
-            } else {
-                hero.vx -= Math.sign(hero.vx) * friction;
-            }
+            // Apply friction when no keys are pressed
+            hero.vx *= this.friction;
+            if (Math.abs(hero.vx) < 0.1) hero.vx = 0;
         }
 
-        // --- Vertical Movement ---
-        // Apply gravity
+        // 2. Vertical Movement (Gravity)
+        // Only apply gravity if we aren't "locked" to a floor (handled by resolution)
         hero.vy += this.gravity;
 
-        // Jump logic
-        // We check for Space, W, and ArrowUp as requested (with Space specifically highlighted)
-        const wantsToJump = keys.includes(' ') || keys.includes('W') || keys.includes('ARROWUP');
-        if (isOnGround && wantsToJump) {
-            hero.vy = this.jumpForce;
+        // 3. Jump Logic
+        const isJumping = keys.includes(' ') || keys.includes('W') || keys.includes('ARROWUP');
+
+        if (isOnGround && isJumping) {
+            hero.vy = this.jumpPower;
         }
+
+        // 4. Terminal Velocity (Prevents falling through floors at high speed)
+        if (hero.vy > 12) hero.vy = 12;
     }
 }

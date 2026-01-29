@@ -1,83 +1,68 @@
 // src/features/Game3/view/Game3View.tsx
-import React, {useMemo} from 'react';
-import {Stage} from '@pixi/react';
-import {Game3Presenter} from './Game3Presenter';
-import {Game3Controller} from './Game3Controller';
-import {Game3HUD} from './ui-components/Game3HUD';
-import {Game3Simulation} from './ui-components/Game3Simulation';
-import {Game3Level} from '../model/Game3Config';
-
-import {IGameViewProps} from '../../../core/interfaces/IViewProps';
+import React from 'react';
+import { Stage } from '@pixi/react';
+import { Game3Presenter } from './Game3Presenter';
+import { Game3Controller } from './Game3Controller';
+import { Game3HUD } from './ui-components/Game3HUD';
+import { Game3Simulation } from './ui-components/Game3Simulation';
+import { Game3Level } from '../model/Game3Config';
+import { IGameViewProps } from '../../../core/interfaces/IViewProps';
 
 export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>> = ({
-                                                                                         vm,
-                                                                                         controller,
-                                                                                         width = 960,
-                                                                                         height = 540
+                                                                                         vm, controller
                                                                                      }) => {
     const [tick, setTick] = React.useState(0);
-
     React.useEffect(() => {
-        const unsubscribe = vm.subscribe(() => {
-            setTick(t => t + 1);
-        });
+        const unsubscribe = vm.subscribe(() => setTick(t => t + 1));
         return () => unsubscribe();
     }, [vm]);
 
     const stats = vm.stats;
     const visuals = vm.visualEffects;
 
+    // We define a fixed internal resolution for the simulation.
+    // CSS handle the scaling/letterboxing.
+    const VIRTUAL_W = 1920;
+    const VIRTUAL_H = 1080;
+
     return (
         <div style={{
-            position: 'absolute', inset: 0,
-            background: '#000',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            overflow: 'hidden'
+            position: 'absolute', inset: 0, background: '#000',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
         }}>
-            {/* The 16:9 Container to match Game1 and Game2 style */}
             <div style={{
                 position: 'relative',
                 width: '100%', height: '100%',
                 maxWidth: 'calc(100vh * (16 / 9))',
                 maxHeight: 'calc(100vw * (9 / 16))',
                 aspectRatio: '16 / 9',
-                background: '#0a0a0c',
-                overflow: 'hidden'
+                background: '#050508',
+                overflow: 'hidden',
+                boxShadow: '0 0 50px rgba(0,0,0,0.5)'
             }}>
                 {/* Background Layer */}
                 <div style={{
                     position: 'absolute', inset: 0,
-                    background: 'radial-gradient(circle, #1a1a2e 0%, #0f0f1a 100%)',
-                    opacity: 0.8
+                    background: 'radial-gradient(circle at center, #1a1a2e 0%, #050508 100%)',
+                    opacity: 0.6
                 }}/>
 
-                {/* Simulation Layer (PIXI) */}
+                {/* PixiJS Simulation: Set to 1080p internal resolution */}
                 <Stage
-                    width={width}
-                    height={height}
-                    options={{backgroundColor: 0x000000, backgroundAlpha: 0, antialias: true}}
+                    width={VIRTUAL_W}
+                    height={VIRTUAL_H}
+                    options={{ backgroundColor: 0x000000, backgroundAlpha: 0, antialias: true }}
                     style={{
                         position: 'absolute', inset: 0,
                         width: '100%', height: '100%',
-                        objectFit: 'contain',
                         imageRendering: 'pixelated'
                     }}
                 >
-                    <Game3Simulation vm={vm} width={width} height={height}/>
+                    <Game3Simulation vm={vm} width={VIRTUAL_W} height={VIRTUAL_H}/>
                 </Stage>
 
                 {/* UI Layer */}
-                <div style={{position: 'absolute', inset: 0, pointerEvents: 'none'}}>
-                    <div style={{
-                        position: 'absolute', inset: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#050505', fontSize: '10cqw', fontWeight: 'bold',
-                        transform: `translateY(${visuals.uiOffset}px)`,
-                        opacity: 0.3 + (visuals.glitchIntensity * 0.7)
-                    }}>
-                        GAME_03
-                    </div>
-
+                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
                     <Game3HUD
                         stats={stats}
                         onAction={(type, val) => controller.modifyStat(type as any, val)}
@@ -89,10 +74,10 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     />
                 </div>
 
-                {/* Post-processing overlays */}
+                {/* Cinematic Overlays */}
                 <div style={{
                     position: 'absolute', inset: 0, pointerEvents: 'none',
-                    boxShadow: `inset 0 0 ${100 + visuals.vignettePulse * 50}px rgba(0,0,0,0.8)`,
+                    boxShadow: `inset 0 0 ${120 + visuals.vignettePulse * 40}px rgba(0,0,0,0.9)`,
                     mixBlendMode: 'multiply'
                 }}/>
             </div>

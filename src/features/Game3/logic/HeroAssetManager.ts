@@ -1,83 +1,41 @@
-
-export enum HeroAnimationState {
-    IDLE = 'IDLE',
-    WALKING = 'WALKING',
-    JUMPING = 'JUMPING'
-}
-
-export interface HeroAnimationUpdate {
-    assetKey: string;
-    frame: number;
-    flipX: boolean;
-}
-
+// src/features/Game3/logic/HeroAssetManager.ts
 export class HeroAssetManager {
-    private static readonly ASSET_IDLE = 'hero_idle';
-    private static readonly ASSET_WALKING = 'hero_walk';
-    
-    // Assuming frame counts from standard assets if not specified. 
-    // Usually these are 4-8 frames. Let's assume some defaults.
-    private static readonly FRAMES_IDLE = 12;
-    private static readonly FRAMES_WALKING = 9;
+    private frame = 0;
+    private frameTimer = 0;
+    private currentSheet = 'hero_idle';
+    private flipX = false;
 
-    private currentState: HeroAnimationState = HeroAnimationState.IDLE;
-    private currentFrame: number = 0;
-    private flipX: boolean = false;
-    private animationTick: number = 0;
-    private readonly frameDelay: number = 10; // Change frame every 10 ticks
+    public update(vx: number, vy: number, isOnGround: boolean) {
+        const prevSheet = this.currentSheet;
 
-    public update(vx: number, vy: number, isOnGround: boolean): HeroAnimationUpdate {
-        let newState = HeroAnimationState.IDLE;
+        // 1. Determine Direction
+        if (vx > 0.1) this.flipX = false;
+        else if (vx < -0.1) this.flipX = true;
 
+        // 2. Determine State
         if (!isOnGround) {
-            newState = HeroAnimationState.JUMPING;
+            this.currentSheet = 'hero_jump'; // Example key
         } else if (Math.abs(vx) > 0.1) {
-            newState = HeroAnimationState.WALKING;
+            this.currentSheet = 'hero_walk';
+        } else {
+            this.currentSheet = 'hero_idle';
         }
 
-        // Handle direction
-        if (vx > 0.1) {
-            this.flipX = false;
-        } else if (vx < -0.1) {
-            this.flipX = true;
+        // 3. Handle Animation Ticking
+        if (prevSheet !== this.currentSheet) {
+            this.frame = 0;
+            this.frameTimer = 0;
         }
 
-        // Handle state transition
-        if (newState !== this.currentState) {
-            this.currentState = newState;
-            this.currentFrame = 0;
-            this.animationTick = 0;
-        }
-
-        // Update animation frame
-        this.animationTick++;
-        if (this.animationTick >= this.frameDelay) {
-            this.animationTick = 0;
-            this.currentFrame++;
-        }
-
-        let assetKey = HeroAssetManager.ASSET_IDLE;
-        let frame = 0;
-
-        switch (this.currentState) {
-            case HeroAnimationState.IDLE:
-                assetKey = HeroAssetManager.ASSET_IDLE;
-                frame = this.currentFrame % HeroAssetManager.FRAMES_IDLE;
-                break;
-            case HeroAnimationState.WALKING:
-                assetKey = HeroAssetManager.ASSET_WALKING;
-                frame = this.currentFrame % HeroAssetManager.FRAMES_WALKING;
-                break;
-            case HeroAnimationState.JUMPING:
-                // Use the last movement frame of the spritesheet applicable in the direction
-                assetKey = HeroAssetManager.ASSET_WALKING;
-                frame = HeroAssetManager.FRAMES_WALKING - 1;
-                break;
+        this.frameTimer++;
+        if (this.frameTimer > 6) { // Every 6 logic ticks, advance frame
+            this.frame = (this.frame + 1) % 4; // Assuming 4-frame animations
+            this.frameTimer = 0;
         }
 
         return {
-            assetKey,
-            frame,
+            assetKey: this.currentSheet,
+            frame: this.frame,
             flipX: this.flipX
         };
     }

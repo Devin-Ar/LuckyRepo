@@ -4,7 +4,7 @@ import {BaseLogic} from '../../../core/templates/BaseLogic';
 import {BaseDispatcher} from '../../../core/templates/BaseDispatcher';
 import {Game2Commands} from './Game2Commands';
 import {Game2Config} from '../model/Game2Config';
-import {TerrainDataPlatformer} from '../../Game3/data/Terrain Data Platformer';
+import {TerrainDataPlatformer} from '../../Game3/data/TerrainDataPlatformer';
 
 export class Game2Logic extends BaseLogic<Game2Config> {
     protected dispatcher: BaseDispatcher<Game2Logic>;

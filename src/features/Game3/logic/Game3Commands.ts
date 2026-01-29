@@ -1,6 +1,6 @@
-// src/features/Game3/logic/Game3Commands.ts
-import {ICommand} from '../../../core/interfaces/ICommand';
-import {Game3Config} from '../model/Game3Config';
+import { ICommand } from '../../../core/interfaces/ICommand';
+import { Game3Config } from '../model/Game3Config';
+import { ParsedMapData } from '../data/Game3MapData';
 
 export const Game3Commands: Record<string, ICommand> = {
     INITIALIZE: {
@@ -9,24 +9,19 @@ export const Game3Commands: Record<string, ICommand> = {
             logic.setInitialized(true);
         }
     },
-    MOD_HP: {
-        execute(logic, payload) {
-            logic.modifyHp(payload.amount);
+    SET_MAP_DATA: {
+        execute(logic, payload: ParsedMapData) {
+            // Logic now receives pure data, no parsing needed here
+            logic.setMapData(payload);
         }
+    },
+    MOD_HP: {
+        execute(logic, payload) { logic.modifyHp(payload.amount); }
     },
     MOD_ENERGY: {
-        execute(logic, payload) {
-            logic.modifyEnergy(payload.amount);
-        }
+        execute(logic, payload) { logic.modifyEnergy(payload.amount); }
     },
     ADD_SCRAP: {
-        execute(logic) {
-            logic.addScrap(1);
-        }
-    },
-    LOAD_MAP: {
-        async execute(logic, payload: { mapPath: string }) {
-            await logic.loadMap(payload.mapPath);
-        }
+        execute(logic) { logic.addScrap(1); }
     }
 };

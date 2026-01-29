@@ -7,7 +7,7 @@
     "regenRate": 60,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "/res/sprite/Maps/Map Test Level.png"
+    "mapPath": "res/sprite/maps/map_test_level.png"
   },
   "Level 2": {
     "initialHP": 80,
@@ -17,7 +17,7 @@
     "regenRate": 90,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "/res/sprite/Maps/Map Test Level.png"
+    "mapPath": "res/sprite/maps/map_test_level.png"
   },
   "Level 3": {
     "initialHP": 50,
@@ -27,6 +27,6 @@
     "regenRate": 120,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "/res/sprite/Maps/Map Test Level.png"
+    "mapPath": "res/sprite/maps/map_test_level.png"
   }
 }

@@ -1,32 +1,33 @@
-import { Jimp } from 'jimp';
-import { MapParser, ParsedMap } from '../logic/MapParser';
+// src/features/Game3/utils/Map_Generation.ts
+import { MapParser } from '../logic/MapParser';
+import { ParsedMapData } from '../data/Game3MapData';
 
 export class Map_Generation {
-    public static async generateLevel(mapPath: string): Promise<ParsedMap> {
-        console.log(`[Map_Generation] Generating level from: ${mapPath}`);
+    /**
+     * Entry point for level creation.
+     * Runs on Main Thread to avoid Jimp/DOM issues in Worker.
+     */
+    public static async generateLevel(mapPath: string): Promise<ParsedMapData> {
+        console.log(`[Map_Generation] Processing: ${mapPath}`);
+
+        // 1. Raw parsing of the pixel data
         const parsedMap = await MapParser.parseMap(mapPath);
-        
-        // Here we could add more post-processing if needed
-        // For example, refining platform asset keys based on neighbors
+
+        // 2. Visual refinement (e.g., choosing specific textures for edges)
         this.refinePlatformAssets(parsedMap);
-        
+
         return parsedMap;
     }
 
-    private static refinePlatformAssets(map: ParsedMap): void {
-        for (const platform of map.platforms) {
-            if (platform.isFloor) continue;
+    private static refinePlatformAssets(map: ParsedMapData): void {
+        map.platforms.forEach(platform => {
+            // Logic: If a platform is thin, use a specific texture
+            if (!platform.isFloor && platform.height < 10) {
+                platform.assetKey = 'Platform Thin';
+            }
 
-            // Simple logic: if it's a single pixel wide platform, maybe it's special
-            // Or if it's the start/end of a long platform.
-            // But MapParser.findRectangle already grouped them.
-            
-            // If we wanted to use 'Platform Length Left Side End' and 'Platform Length Right Side End'
-            // we would need to know if there are other platforms to its left/right.
-            // However, findRectangle finds the WHOLE rectangle.
-            // So a platform of width > 1 could have a left end, middle parts, and a right end.
-            // This suggests our Platform interface might need to be split or handled in view.
-        }
+            // Further refinement (e.g., checking neighbors) could be added here
+            // to support 'Edge' vs 'Center' tiling sprites.
+        });
     }
 }
-

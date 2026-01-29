@@ -1,7 +1,6 @@
-// src/features/Game3/view/Game3ViewLogic.ts
-import {Game3LogicSchema} from '../model/Game3LogicSchema';
-import {Game3ViewSchema} from '../model/Game3ViewSchema';
-import {BaseViewLogic} from '../../../core/templates/BaseViewLogic';
+import { Game3LogicSchema } from '../model/Game3LogicSchema';
+import { Game3ViewSchema } from '../model/Game3ViewSchema';
+import { BaseViewLogic } from '../../../core/templates/BaseViewLogic';
 
 export class Game3ViewLogic extends BaseViewLogic {
     private uiBounce: number = 0;
@@ -11,31 +10,36 @@ export class Game3ViewLogic extends BaseViewLogic {
     public update(dt: number, frameCount: number) {
         if (!this.hasBuffers()) return;
 
+        // Read from Logic Buffer
         const currentHp = this.logicView[Game3LogicSchema.HERO_HP];
         const currentEnergy = this.logicView[Game3LogicSchema.ENERGY];
 
+        // Detect HP drop for visual effect
         if (this.lastHp !== -1 && currentHp < this.lastHp) {
             this.glitchIntensity = 1.0;
         }
         this.lastHp = currentHp;
+        this.glitchIntensity *= 0.92; // Decay
 
-        this.glitchIntensity *= 0.92;
-
+        // Write to View Buffer (Interpolation target)
         this.outputView[Game3ViewSchema.HERO_HP_DISPLAY] = currentHp;
         this.outputView[Game3ViewSchema.ENERGY_DISPLAY] = currentEnergy;
         this.outputView[Game3ViewSchema.SCRAP_DISPLAY] = this.logicView[Game3LogicSchema.SCRAP_COUNT];
 
+        // Pass through coordinates (add Lerp here if smoother movement desired)
         this.outputView[Game3ViewSchema.HERO_X] = this.logicView[Game3LogicSchema.HERO_X];
         this.outputView[Game3ViewSchema.HERO_Y] = this.logicView[Game3LogicSchema.HERO_Y];
+
+        // Pass through animation states
         this.outputView[Game3ViewSchema.HERO_ANIM_FRAME] = this.logicView[Game3LogicSchema.HERO_ANIM_FRAME];
         this.outputView[Game3ViewSchema.HERO_FLIP] = this.logicView[Game3LogicSchema.HERO_FLIP];
         this.outputView[Game3ViewSchema.HERO_WIDTH] = this.logicView[Game3LogicSchema.HERO_WIDTH];
         this.outputView[Game3ViewSchema.HERO_HEIGHT] = this.logicView[Game3LogicSchema.HERO_HEIGHT];
         this.outputView[Game3ViewSchema.HERO_ANIM_STATE] = this.logicView[Game3LogicSchema.HERO_ANIM_STATE];
 
+        // Calculate Visual Effects
         const timeFactor = dt / 16.67;
         this.uiBounce += 0.05 * timeFactor;
-
         const pulseSpeed = currentEnergy < 20 ? 0.15 : 0.05;
         const vignettePulse = 0.5 + Math.sin(frameCount * pulseSpeed) * 0.2;
 
@@ -45,11 +49,7 @@ export class Game3ViewLogic extends BaseViewLogic {
     }
 
     public override getSnapshot() {
-        return {
-            uiBounce: this.uiBounce,
-            glitchIntensity: this.glitchIntensity,
-            lastHp: this.lastHp
-        };
+        return { uiBounce: this.uiBounce, glitchIntensity: this.glitchIntensity, lastHp: this.lastHp };
     }
 
     public override loadSnapshot(data: any) {
