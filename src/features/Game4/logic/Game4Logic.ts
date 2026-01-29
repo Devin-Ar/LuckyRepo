@@ -1,9 +1,10 @@
-// src/features/Game1/logic/Game1Logic.ts
-import {Game1LogicSchema} from '../model/Game1LogicSchema';
+// src/features/Game4/logic/Game4Logic.ts
+import {Game4LogicSchema} from '../model/Game4LogicSchema';
 import {BaseLogic} from '../../../core/templates/BaseLogic';
 import {BaseDispatcher} from '../../../core/templates/BaseDispatcher';
-import {Game1Commands} from './Game1Commands';
-import {Game1Config} from '../model/Game1Config';
+import {Game4Commands} from './Game4Commands';
+import {Game4Config} from '../model/Game4Config';
+import {TerrainDataTopdown} from '../data/Terrain Data Topdown';
 
 interface Rock {
     x: number;
@@ -13,19 +14,20 @@ interface Rock {
     seed: number;
 }
 
-export class Game1Logic extends BaseLogic<Game1Config> {
-    protected dispatcher: BaseDispatcher<Game1Logic>;
+export class Game4Logic extends BaseLogic<Game4Config> {
+    protected dispatcher: BaseDispatcher<Game4Logic>;
     private hero = {x: 0, y: 0, vx: 0, vy: 0, hp: 100};
     private rocks: Rock[] = [];
     private currentFrame: number = 0;
     private lastHitFrame: number = 0;
+    private terrainData: TerrainDataTopdown = new TerrainDataTopdown();
 
     constructor() {
-        super(Game1LogicSchema.REVISION);
-        this.dispatcher = new BaseDispatcher(this, Game1Commands, "Game1");
+        super(Game4LogicSchema.REVISION);
+        this.dispatcher = new BaseDispatcher(this, Game4Commands, "Game4");
     }
 
-    public applyConfig(config: Game1Config): void {
+    public applyConfig(config: Game4Config): void {
         this.config = config;
         this.hero.hp = config.initialHP;
         this.hero.x = config.heroStartX;
@@ -99,12 +101,21 @@ export class Game1Logic extends BaseLogic<Game1Config> {
         const newX = this.hero.x + this.hero.vx;
         const newY = this.hero.y + this.hero.vy;
 
+        const adjustedPos = this.terrainData.resolveMovement(
+            this.hero.x, this.hero.y,
+            newX, newY,
+            32, 32
+        );
+
+        this.hero.x = Math.max(0, Math.min(this.config.width, adjustedPos.x));
+        this.hero.y = Math.max(0, Math.min(this.config.height, adjustedPos.y));
+
         this.processRocks(frameCount);
         this.syncToSAB(sharedView, frameCount, fps);
     }
 
     private spawnRock(): void {
-        if (!this.config || this.rocks.length >= Game1LogicSchema.MAX_ROCKS) return;
+        if (!this.config || this.rocks.length >= Game4LogicSchema.MAX_ROCKS) return;
         this.rocks.push({
             x: Math.random() * this.config.width,
             y: Math.random() * this.config.height,
@@ -145,13 +156,13 @@ export class Game1Logic extends BaseLogic<Game1Config> {
     }
 
     private syncToSAB(sharedView: Float32Array, frameCount: number, fps: number): void {
-        sharedView[Game1LogicSchema.HERO_HP] = this.hero.hp;
-        sharedView[Game1LogicSchema.HERO_X] = this.hero.x;
-        sharedView[Game1LogicSchema.HERO_Y] = this.hero.y;
-        sharedView[Game1LogicSchema.ENTITY_COUNT] = this.rocks.length;
+        sharedView[Game4LogicSchema.HERO_HP] = this.hero.hp;
+        sharedView[Game4LogicSchema.HERO_X] = this.hero.x;
+        sharedView[Game4LogicSchema.HERO_Y] = this.hero.y;
+        sharedView[Game4LogicSchema.ENTITY_COUNT] = this.rocks.length;
 
         this.rocks.forEach((r, i) => {
-            const base = Game1LogicSchema.ROCKS_START_INDEX + (i * Game1LogicSchema.ROCK_STRIDE);
+            const base = Game4LogicSchema.ROCKS_START_INDEX + (i * Game4LogicSchema.ROCK_STRIDE);
             sharedView[base] = r.x;
             sharedView[base + 1] = r.y;
             sharedView[base + 2] = r.seed;

@@ -3,6 +3,8 @@ import {Game1State} from '../Game1/model/Game1State';
 import {Game1Level} from '../Game1/model/Game1Config';
 import {Game2State} from '../Game2/model/Game2State';
 import {Game2Level} from '../Game2/model/Game2Config';
+import {Game3State} from '../Game3/model/Game3State';
+import {Game3Level} from '../Game3/model/Game3Config';
 import {StateManager} from '../../core/managers/StateManager';
 import {AudioManager} from '../../core/managers/AudioManager';
 import {SharedSession} from '../../core/session/SharedSession';
@@ -171,6 +173,19 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                                            color="#d35400"/>
                                 <DevButton label="LVL 3" onClick={() => handleNav(Game2State, true, Game2Level.Level3)}
                                            color="#f39c12"/>
+                            </div>
+                        </div>
+
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_03
+                            </div>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                                <DevButton label="LVL 1" onClick={() => handleNav(Game3State, true, Game3Level.Level1)}
+                                           color="#16a085"/>
+                                <DevButton label="LVL 2" onClick={() => handleNav(Game3State, true, Game3Level.Level2)}
+                                           color="#1abc9c"/>
+                                <DevButton label="LVL 3" onClick={() => handleNav(Game3State, true, Game3Level.Level3)}
+                                           color="#2ecc71"/>
                             </div>
                         </div>
 

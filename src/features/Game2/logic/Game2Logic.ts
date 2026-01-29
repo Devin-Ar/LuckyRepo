@@ -4,6 +4,7 @@ import {BaseLogic} from '../../../core/templates/BaseLogic';
 import {BaseDispatcher} from '../../../core/templates/BaseDispatcher';
 import {Game2Commands} from './Game2Commands';
 import {Game2Config} from '../model/Game2Config';
+import {TerrainDataPlatformer} from '../../Game3/data/Terrain Data Platformer';
 
 export class Game2Logic extends BaseLogic<Game2Config> {
     protected dispatcher: BaseDispatcher<Game2Logic>;
@@ -11,6 +12,8 @@ export class Game2Logic extends BaseLogic<Game2Config> {
     private energy = 50;
     private scrap = 0;
     private currentFrame = 0;
+    private hero = { x: 100, y: 100, vx: 0, vy: 0 };
+    private terrainData: TerrainDataPlatformer = new TerrainDataPlatformer();
 
     constructor() {
         super(Game2LogicSchema.REVISION);
@@ -63,6 +66,40 @@ export class Game2Logic extends BaseLogic<Game2Config> {
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
         if (!this.config) return;
         this.currentFrame = frameCount;
+
+        const keys = this.inputState.keys;
+        const moveSpeed = 4;
+        const gravity = 0.5;
+        const jumpForce = -10;
+
+        // Horizontal movement
+        this.hero.vx = 0;
+        if (keys.includes('A') || keys.includes('ARROWLEFT')) this.hero.vx = -moveSpeed;
+        if (keys.includes('D') || keys.includes('ARROWRIGHT')) this.hero.vx = moveSpeed;
+
+        const newHeroX = this.hero.x + this.hero.vx;
+        const horizontalResolution = this.terrainData.resolveHorizontalMovement(
+            this.hero.x, newHeroX, this.hero.y, 32, 64
+        );
+        this.hero.x = horizontalResolution.x;
+
+        // Vertical movement (Gravity)
+        this.hero.vy += gravity;
+        const newHeroY = this.hero.y + this.hero.vy;
+
+        const verticalResolution = this.terrainData.resolveVerticalMovement(
+            this.hero.x, this.hero.y, newHeroY, 32, 64
+        );
+
+        this.hero.y = verticalResolution.y;
+        if (verticalResolution.collided) {
+            this.hero.vy = 0;
+        }
+
+        // Jump
+        if ((keys.includes('W') || keys.includes('ARROWUP') || keys.includes(' ')) && verticalResolution.collided) {
+            this.hero.vy = jumpForce;
+        }
 
         if (frameCount % this.config.regenRate === 0 && this.energy < this.config.maxEnergy) {
             this.modifyEnergy(1);

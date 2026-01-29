@@ -1,0 +1,10 @@
+{
+  "hero": {
+    "width": 3,
+    "height": 3,
+    "speed": 1,
+    "jumpSpeed": 10,
+    "gravity": 1,
+    "health": 100
+  }
+}
