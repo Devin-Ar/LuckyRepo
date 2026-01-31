@@ -1,6 +1,7 @@
 // src/workers/view.worker.ts
 import {Game1ViewLogic} from '../features/Game1/view/Game1ViewLogic';
 import {Game2ViewLogic} from '../features/Game2/view/Game2ViewLogic';
+import {BHViewLogic} from '../features/BulletTest/view/BHViewLogic';
 
 let logicView: Float32Array;
 let logicIntView: Int32Array;
@@ -37,6 +38,7 @@ self.onmessage = (e: MessageEvent) => {
 
                 if (stateName === 'Game1') instance = new Game1ViewLogic();
                 if (stateName === 'Game2') instance = new Game2ViewLogic();
+                if (stateName === 'BHTest') instance = new BHViewLogic();
 
                 if (instance) {
                     states.set(stateName, instance);

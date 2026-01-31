@@ -1,6 +1,7 @@
 // src/workers/logic.worker.ts
 import {Game1Logic} from '../features/Game1/logic/Game1Logic';
 import {Game2Logic} from '../features/Game2/logic/Game2Logic';
+import {BHTestLogic} from '../features/BulletTest/logic/BHTestLogic';
 
 let sharedBuffer: SharedArrayBuffer;
 let sharedView: Float32Array;
@@ -37,6 +38,7 @@ self.onmessage = (e: MessageEvent) => {
                 let instance;
                 if (stateName === 'Game1') instance = new Game1Logic();
                 if (stateName === 'Game2') instance = new Game2Logic();
+                if (stateName === 'BHTest') instance = new BHTestLogic();
 
                 if (instance) {
                     states.set(stateName, instance);

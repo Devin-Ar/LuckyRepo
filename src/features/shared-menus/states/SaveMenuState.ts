@@ -11,7 +11,7 @@ export class SaveMenuState extends MenuState {
     public name = "SaveMenu";
 
     private stateRegistry: Record<string, any> = {
-        "Game1": Game1State,
+        "BHTest": Game1State,
         "Game2": Game2State
     };
 
