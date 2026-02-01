@@ -6,6 +6,10 @@ export interface GameSave {
     stateName: string;
     timestamp: number;
     preview: string;
+
+    campaignId?: string;
+    campaignIndex?: number;
+
     sessionData: any;
     logicSnapshot: any;
     viewSnapshot: any;

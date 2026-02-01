@@ -5,6 +5,7 @@ import {StateManager} from "../../../core/managers/StateManager";
 import {AudioManager} from "../../../core/managers/AudioManager";
 import {Game1Level} from "../model/Game1Config";
 import {SaveManager} from "../../../core/managers/SaveManager";
+import {CampaignManager} from "../../../core/managers/CampaignManager";
 
 export class Game1Controller extends BaseController<Game1Presenter> {
     constructor(vm: Game1Presenter) {
@@ -23,6 +24,14 @@ export class Game1Controller extends BaseController<Game1Presenter> {
     public async loadLevel(level: Game1Level) {
         const {Game1State} = await import("../model/Game1State");
         await StateManager.getInstance().replace(new Game1State(false, level));
+    }
+
+    public nextLevel() {
+        CampaignManager.getInstance().completeCurrentStep();
+    }
+
+    public failLevel() {
+        CampaignManager.getInstance().failCurrentStep();
     }
 
     public async resetLevel() {

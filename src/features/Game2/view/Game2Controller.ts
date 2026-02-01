@@ -4,6 +4,7 @@ import {Game2Presenter} from "./Game2Presenter";
 import {StateManager} from "../../../core/managers/StateManager";
 import {Game2Level} from "../model/Game2Config";
 import {SaveManager} from "../../../core/managers/SaveManager";
+import {CampaignManager} from "../../../core/managers/CampaignManager";
 
 export class Game2Controller extends BaseController<Game2Presenter> {
     constructor(vm: Game2Presenter) {
@@ -43,5 +44,13 @@ export class Game2Controller extends BaseController<Game2Presenter> {
     private async handleEscape() {
         const {PauseMenuState} = await import("../../shared-menus/states/PauseMenuState");
         StateManager.getInstance().push(new PauseMenuState());
+    }
+
+    public nextLevel() {
+        CampaignManager.getInstance().completeCurrentStep();
+    }
+
+    public failLevel() {
+        CampaignManager.getInstance().failCurrentStep();
     }
 }

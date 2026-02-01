@@ -101,6 +101,8 @@ export const Game1View: React.FC<IGameViewProps<Game1Presenter, Game1Controller>
                 onLevel2={() => controller.loadLevel(Game1Level.Level2)}
                 onLevel3={() => controller.loadLevel(Game1Level.Level3)}
                 onResetG1={() => controller.resetLevel()}
+                onNextLevel={() => controller.nextLevel()}
+                onFailLevel={() => controller.failLevel()}
             />
         </div>
     );

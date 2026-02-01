@@ -1,3 +1,5 @@
+// src/features/shared-menus/view/DevMenuView.tsx
+
 import React, {useState} from 'react';
 import {Game1State} from '../Game1/model/Game1State';
 import {Game1Level} from '../Game1/model/Game1Config';
@@ -8,6 +10,7 @@ import {AudioManager} from '../../core/managers/AudioManager';
 import {SharedSession} from '../../core/session/SharedSession';
 import {SaveMenuState} from '../shared-menus/states/SaveMenuState';
 import {DemoLoadingView} from '../../components/loading/DemoLoadingView';
+import {CampaignManager} from "../../core/managers/CampaignManager";
 
 interface DevBtnProps {
     label: string;
@@ -103,20 +106,29 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
         }
     };
 
-    const handleNav = (StateClass: any, reset: boolean, level: any) => {
-        const target = new StateClass(reset, level);
+    const handleNav = (StateClass: any, level: any) => {
+        // Clear campaign data so this acts as a "Single Game" load
+        session.clearSavableKeys();
+        session.set('campaign_id', null);
+        session.set('campaign_step_index', 0);
+
+        const target = new StateClass(false, level);
         const loadingConfig = StateClass === Game1State ? {view: DemoLoadingView} : {};
         StateManager.getInstance().replace(target, loadingConfig);
+    };
+
+    // New handler for Campaigns
+    const startCampaign = (id: string) => {
+        CampaignManager.getInstance().startCampaign(id);
     };
 
     return (
         <div style={{
             position: 'absolute', inset: 0,
-            background: '#000', // External letterbox background
+            background: '#000',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             overflow: 'hidden'
         }}>
-            {/* 16:9 Letterboxed Container */}
             <div style={{
                 position: 'relative',
                 width: '100%', height: '100%',
@@ -126,7 +138,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                 backgroundColor: '#0a0a0a', color: '#00ff00',
                 padding: '2cqw', boxSizing: 'border-box', fontFamily: 'monospace',
                 border: '0.2cqw solid #333', display: 'flex', gap: '2cqw',
-                containerType: 'size' // Ensures cqw/cqh work correctly inside the box
+                containerType: 'size'
             }}>
                 <div style={{flex: 2}}>
                     <h2 style={{
@@ -148,28 +160,49 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                         gap: '1.5cqw',
                         marginTop: '2cqw'
                     }}>
-                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_01
+                        {/* New Campaign Section */}
+                        <div style={{gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#e74c3c', marginBottom: '0.5cqw'}}>CAMPAIGN_MODES</div>
+                            <div style={{display: 'flex', gap: '1cqw'}}>
+                                <div style={{flex:1}}>
+                                    <DevButton
+                                        label="STORY MODE"
+                                        subLabel="Full Progression"
+                                        onClick={() => startCampaign('story_mode')}
+                                        color="#e74c3c"
+                                    />
+                                </div>
+                                <div style={{flex:1}}>
+                                    <DevButton
+                                        label="ARCADE MODE"
+                                        subLabel="Quick Action"
+                                        onClick={() => startCampaign('arcade_mode')}
+                                        color="#f39c12"
+                                    />
+                                </div>
                             </div>
+                        </div>
+
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_01</div>
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
-                                <DevButton label="LVL 1" onClick={() => handleNav(Game1State, true, Game1Level.Level1)}
+                                <DevButton label="LVL 1" onClick={() => handleNav(Game1State, Game1Level.Level1)}
                                            color="#27ae60"/>
-                                <DevButton label="LVL 2" onClick={() => handleNav(Game1State, true, Game1Level.Level2)}
+                                <DevButton label="LVL 2" onClick={() => handleNav(Game1State, Game1Level.Level2)}
                                            color="#2980b9"/>
-                                <DevButton label="LVL 3" onClick={() => handleNav(Game1State, true, Game1Level.Level3)}
+                                <DevButton label="LVL 3" onClick={() => handleNav(Game1State, Game1Level.Level3)}
                                            color="#8e44ad"/>
                             </div>
                         </div>
 
                         <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_02
-                            </div>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_02</div>
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
-                                <DevButton label="LVL 1" onClick={() => handleNav(Game2State, true, Game2Level.Level1)}
+                                <DevButton label="LVL 1" onClick={() => handleNav(Game2State, Game2Level.Level1)}
                                            color="#c0392b"/>
-                                <DevButton label="LVL 2" onClick={() => handleNav(Game2State, true, Game2Level.Level2)}
+                                <DevButton label="LVL 2" onClick={() => handleNav(Game2State, Game2Level.Level2)}
                                            color="#d35400"/>
-                                <DevButton label="LVL 3" onClick={() => handleNav(Game2State, true, Game2Level.Level3)}
+                                <DevButton label="LVL 3" onClick={() => handleNav(Game2State, Game2Level.Level3)}
                                            color="#f39c12"/>
                             </div>
                         </div>

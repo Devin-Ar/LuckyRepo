@@ -2,7 +2,6 @@
 import {db, GameSave} from '../session/SaveDatabase';
 import {WorkerManager} from './WorkerManager';
 import {SharedSession} from '../session/SharedSession';
-
 import {ViewWorkerManager} from "./ViewWorkerManager";
 
 export class SaveManager {
@@ -22,11 +21,18 @@ export class SaveManager {
 
         const viewSnapshot = await this.requestSnapshot(viewWorker.worker, stateName);
 
+        const campaignId = session.get<string>('campaign_id');
+        const campaignIndex = session.get<number>('campaign_step_index');
+
         const saveData: GameSave = {
             id: slotId,
             stateName,
             timestamp: Date.now(),
             preview: `Save ${new Date().toLocaleTimeString()}`,
+
+            campaignId: campaignId || undefined,
+            campaignIndex: campaignIndex !== undefined ? campaignIndex : undefined,
+
             sessionData: session.exportSaveData(),
             logicSnapshot: logicSnapshot,
             viewSnapshot: viewSnapshot

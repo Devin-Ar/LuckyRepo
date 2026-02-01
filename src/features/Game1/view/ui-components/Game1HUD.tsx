@@ -13,11 +13,13 @@ interface HUDProps {
     onLevel2: () => void;
     onLevel3: () => void;
     onResetG1: () => void;
+    onNextLevel: () => void;
+    onFailLevel: () => void;
 }
 
 export const Game1HUD: React.FC<HUDProps> = ({
                                                  hp, rockCount, shieldBarRef, shieldTextRef, damageBtnRef,
-                                                 onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onResetG1
+                                                 onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onResetG1, onNextLevel, onFailLevel
                                              }) => {
     const btnStyle: React.CSSProperties = {
         padding: '0.6cqw 1cqw',
@@ -93,6 +95,18 @@ export const Game1HUD: React.FC<HUDProps> = ({
                     <button onClick={onLevel1} style={{...btnStyle, background: '#408240', flex: 1}}>LVL 1</button>
                     <button onClick={onLevel2} style={{...btnStyle, background: '#C29F19', flex: 1}}>LVL 2</button>
                     <button onClick={onLevel3} style={{...btnStyle, background: '#C21919', flex: 1}}>LVL 3</button>
+                </div>
+
+                <div style={{display: 'flex', gap: '0.5cqw'}}>
+                    <button onClick={onNextLevel} style={{...btnStyle, background: '#67ad44', flex: 2}}>
+                        Next Level (Campaign)
+                    </button>
+                </div>
+
+                <div style={{display: 'flex', gap: '0.5cqw'}}>
+                    <button onClick={onFailLevel} style={{...btnStyle, background: '#ad4444', flex: 2}}>
+                        Fail Level (Campaign)
+                    </button>
                 </div>
 
                 <button onClick={onJumpToG2} style={{...btnStyle, background: '#2980b9'}}>

@@ -9,10 +9,12 @@ interface HUDProps {
     onLevel2: () => void;
     onLevel3: () => void;
     onQuickLoad: () => void;
+    onNextLevel: () => void;
+    onFailLevel: () => void;
 }
 
 export const Game2HUD: React.FC<HUDProps> = ({
-                                                 stats, onAction, onJumpG1, onLevel1, onLevel2, onLevel3, onQuickLoad
+                                                 stats, onAction, onJumpG1, onLevel1, onLevel2, onLevel3, onQuickLoad, onNextLevel, onFailLevel
                                              }) => {
     const cardStyle: React.CSSProperties = {
         padding: '1.5cqw', border: '0.1cqw solid', borderRadius: '0.5cqw',
@@ -38,6 +40,8 @@ export const Game2HUD: React.FC<HUDProps> = ({
                     </div>
                     {/* Control Row */}
                     <div style={{display: 'flex', gap: '0.5cqw'}}>
+                        <button onClick={onNextLevel} style={{...btnStyle, borderColor: '#8e44ad', color: '#67ad44'}}>NEXT_STEP</button>
+                        <button onClick={onFailLevel} style={{...btnStyle, borderColor: '#8e44ad', color: '#ad4444'}}>FAIL_STEP</button>
                         <button onClick={onJumpG1} style={{...btnStyle, borderColor: '#3498db'}}>GOTO_G1</button>
                         <button onClick={onQuickLoad} style={{...btnStyle, borderColor: '#c0392b'}}>RELOAD</button>
                     </div>

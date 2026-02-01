@@ -3,6 +3,7 @@ import {cloneElement, JSX, useEffect, useMemo, useRef, useState} from "react";
 import {StateManager} from "./core/managers/StateManager";
 import {DebugOverlay} from "./components/DebugOverlay";
 import {DevMenuState} from "./features/DevMenu/DevMenuState";
+import {initializeCampaigns, initializeGameRegistry} from "./config/CampaignDefinitions";
 
 type Resolution = '540p' | '720p' | '1080p' | '1440p' | '4k' | 'fit';
 
@@ -35,6 +36,8 @@ const App = () => {
 
         if (!isInitialized.current) {
             manager.replace(new DevMenuState());
+            initializeGameRegistry();
+            initializeCampaigns();
             isInitialized.current = true;
         }
 
