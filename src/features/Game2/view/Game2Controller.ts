@@ -5,6 +5,7 @@ import {StateManager} from "../../../core/managers/StateManager";
 import {Game2Level} from "../model/Game2Config";
 import {SaveManager} from "../../../core/managers/SaveManager";
 import {CampaignManager} from "../../../core/managers/CampaignManager";
+import {InputManager} from "../../../core/managers/InputManager";
 
 export class Game2Controller extends BaseController<Game2Presenter> {
     constructor(vm: Game2Presenter) {
@@ -33,7 +34,9 @@ export class Game2Controller extends BaseController<Game2Presenter> {
     }
 
     protected onKeyDown(e: KeyboardEvent): void {
-        if (e.key === 'Escape') {
+        const input = InputManager.getInstance();
+
+        if (input.isKeyAction(e.key, 'PAUSE')) {
             this.handleEscape();
         }
     }

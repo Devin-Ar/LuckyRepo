@@ -4,3 +4,5 @@ export interface IBuffer {
 
     [key: string]: number;
 }
+
+export type BufferMap = Record<string, IBuffer>;

@@ -1,26 +1,52 @@
-// src/workers/logic.worker.ts
 import {Game1Logic} from '../features/Game1/logic/Game1Logic';
 import {Game2Logic} from '../features/Game2/logic/Game2Logic';
 
-let sharedBuffer: SharedArrayBuffer;
-let sharedView: Float32Array;
-let intView: Int32Array;
+const sharedBuffers: Map<string, SharedArrayBuffer> = new Map();
+const sharedViews: Map<string, Float32Array> = new Map();
+const intViews: Map<string, Int32Array> = new Map();
+
 const states: Map<string, any> = new Map();
 
 self.onmessage = (e: MessageEvent) => {
     const {type, stateName, payload, frameCount, fps} = e.data;
 
     switch (type) {
-        case 'INIT_SAB':
-            console.log(`[Worker] Initializing SharedArrayBuffer for ${stateName || 'global'}`);
-            sharedBuffer = payload.buffer;
-            sharedView = new Float32Array(sharedBuffer);
-            intView = new Int32Array(sharedBuffer);
+        case 'INIT_SABS':
+            console.log(`[Worker] Initializing Buffer Map`);
+
+            sharedBuffers.clear();
+            sharedViews.clear();
+            intViews.clear();
+
+            if (payload.buffers) {
+                Object.entries(payload.buffers as Record<string, SharedArrayBuffer>).forEach(([name, buffer]) => {
+                    sharedBuffers.set(name, buffer);
+                    sharedViews.set(name, new Float32Array(buffer));
+                    intViews.set(name, new Int32Array(buffer));
+                });
+            }
 
             states.forEach((state, name) => {
-                if (typeof state.setBuffer === 'function') {
+                if (typeof state.setBuffers === 'function') {
+                    const bufferRecord: Record<string, SharedArrayBuffer> = {};
+                    sharedBuffers.forEach((buf, key) => bufferRecord[key] = buf);
+                    state.setBuffers(bufferRecord);
+                }
+            });
+            break;
+
+        case 'UPDATE_BUFFER':
+            const { name, buffer } = payload;
+            sharedBuffers.set(name, buffer);
+            sharedViews.set(name, new Float32Array(buffer));
+            intViews.set(name, new Int32Array(buffer));
+
+            states.forEach((state) => {
+                if (typeof state.setBuffers === 'function') {
                     console.log(`[Worker] Updating buffer views for existing state: ${name}`);
-                    state.setBuffer(sharedBuffer);
+                    const bufferRecord: Record<string, SharedArrayBuffer> = {};
+                    sharedBuffers.forEach((buf, key) => bufferRecord[key] = buf);
+                    state.setBuffers(bufferRecord);
                 }
             });
             break;
@@ -40,7 +66,11 @@ self.onmessage = (e: MessageEvent) => {
 
                 if (instance) {
                     states.set(stateName, instance);
-                    if (sharedBuffer) instance.setBuffer(sharedBuffer);
+                    if (sharedBuffers.size > 0) {
+                        const bufferRecord: Record<string, SharedArrayBuffer> = {};
+                        sharedBuffers.forEach((buf, key) => bufferRecord[key] = buf);
+                        instance.setBuffers(bufferRecord);
+                    }
                 } else {
                     console.error(`[Worker] Failed to create logic instance for: ${stateName}`);
                 }
@@ -86,8 +116,8 @@ self.onmessage = (e: MessageEvent) => {
 
         case 'TICK':
             const logic = states.get(stateName);
-            if (logic && sharedView && intView) {
-                logic.update(sharedView, intView, frameCount, fps);
+            if (logic && sharedViews.size > 0) {
+                logic.update(sharedViews, intViews, frameCount, fps);
             }
             break;
 

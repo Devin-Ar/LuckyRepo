@@ -9,6 +9,7 @@ import {StateManager} from '../../core/managers/StateManager';
 import {AudioManager} from '../../core/managers/AudioManager';
 import {SharedSession} from '../../core/session/SharedSession';
 import {SaveMenuState} from '../shared-menus/states/SaveMenuState';
+import {SettingsMenuState} from '../shared-menus/states/SettingsMenuState'; // Import the new state
 import {DemoLoadingView} from '../../components/loading/DemoLoadingView';
 import {CampaignManager} from "../../core/managers/CampaignManager";
 
@@ -87,6 +88,10 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
         StateManager.getInstance().push(new SaveMenuState());
     };
 
+    const openSettingsMenu = () => {
+        StateManager.getInstance().push(new SettingsMenuState({ res, setRes }));
+    };
+
     const handleVolChange = (cat: 'master' | 'ost' | 'sfx', val: number) => {
         audio.setVolume(cat, val);
         session.set(`${cat}_volume`, val);
@@ -107,7 +112,6 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
     };
 
     const handleNav = (StateClass: any, level: any) => {
-        // Clear campaign data so this acts as a "Single Game" load
         session.clearSavableKeys();
         session.set('campaign_id', null);
         session.set('campaign_step_index', 0);
@@ -117,7 +121,6 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
         StateManager.getInstance().replace(target, loadingConfig);
     };
 
-    // New handler for Campaigns
     const startCampaign = (id: string) => {
         CampaignManager.getInstance().startCampaign(id);
     };
@@ -160,7 +163,6 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                         gap: '1.5cqw',
                         marginTop: '2cqw'
                     }}>
-                        {/* New Campaign Section */}
                         <div style={{gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
                             <div style={{fontSize: '0.8cqw', color: '#e74c3c', marginBottom: '0.5cqw'}}>CAMPAIGN_MODES</div>
                             <div style={{display: 'flex', gap: '1cqw'}}>
@@ -245,9 +247,19 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                         </div>
                     </div>
 
-                    <div style={{marginBottom: '2cqw'}}>
+                    <div style={{marginBottom: '1.5cqw'}}>
                         <div style={{fontSize: '0.7cqw', color: '#888', marginBottom: '0.6cqw'}}>WINDOW_MODE</div>
                         <DevButton label="TOGGLE FULLSCREEN" onClick={toggleFullscreen} color="#b33939"/>
+                    </div>
+
+                    {/* QUICK ACCESS IN SIDE PANEL */}
+                    <div style={{marginTop: '0.5cqw'}}>
+                        <DevButton
+                            label="[ SETTINGS_PANEL ]"
+                            subLabel="INPUTS & OVERRIDES"
+                            onClick={openSettingsMenu}
+                            color="#000"
+                        />
                     </div>
 
                     <div style={{marginTop: 'auto', fontSize: '0.7cqw', color: '#444', lineHeight: '1.4'}}>

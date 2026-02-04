@@ -1,13 +1,32 @@
 // src/core/templates/BaseViewLogic.ts
 export abstract class BaseViewLogic {
-    protected logicView!: Float32Array;
-    protected logicIntView!: Int32Array;
-    protected outputView!: Float32Array;
+    protected logicViews: Map<string, Float32Array> = new Map();
+    protected logicIntViews: Map<string, Int32Array> = new Map();
+    protected outputViews: Map<string, Float32Array> = new Map();
 
-    public setBuffers(logic: Float32Array, logicInt: Int32Array, output: Float32Array) {
-        this.logicView = logic;
-        this.logicIntView = logicInt;
-        this.outputView = output;
+    public setBuffers(
+        logic: Map<string, Float32Array>,
+        logicInt: Map<string, Int32Array>,
+        output: Map<string, Float32Array>
+    ) {
+        this.logicViews = logic;
+        this.logicIntViews = logicInt;
+        this.outputViews = output;
+    }
+
+    protected get logicView(): Float32Array {
+        const view = this.logicViews.get('main') || this.logicViews.values().next().value;
+        return view ?? new Float32Array(0);
+    }
+
+    protected get logicIntView(): Int32Array {
+        const view = this.logicIntViews.get('main') || this.logicIntViews.values().next().value;
+        return view ?? new Int32Array(0);
+    }
+
+    protected get outputView(): Float32Array {
+        const view = this.outputViews.get('main') || this.outputViews.values().next().value;
+        return view ?? new Float32Array(0);
     }
 
     public abstract update(dt: number, frameCount: number): void;
@@ -23,6 +42,6 @@ export abstract class BaseViewLogic {
     }
 
     protected hasBuffers(): boolean {
-        return !!(this.logicView && this.outputView);
+        return this.logicViews.size > 0 && this.outputViews.size > 0;
     }
 }

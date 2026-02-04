@@ -1,4 +1,3 @@
-// src/features/Game1/view/Game1View.ts
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Stage} from '@pixi/react';
 import {Game1Presenter} from './Game1Presenter';
@@ -47,6 +46,23 @@ export const Game1View: React.FC<IGameViewProps<Game1Presenter, Game1Controller>
 
     const scaleFactor = useMemo(() => width / 960, [width]);
 
+    // FIX: Memoize options to prevent Stage destruction on re-renders
+    const stageOptions = useMemo(() => ({
+        backgroundColor: 0x000,
+        antialias: true,
+        resolution: 1,
+        autoDensity: false
+    }), []);
+
+    // FIX: Memoize style object
+    const stageStyle = useMemo(() => ({
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        objectFit: 'contain',
+        imageRendering: 'pixelated'
+    } as React.CSSProperties), []);
+
     return (
         <div style={{
             position: 'absolute',
@@ -67,15 +83,10 @@ export const Game1View: React.FC<IGameViewProps<Game1Presenter, Game1Controller>
             }}>
                 <Stage
                     key={`stage-${width}-${height}`}
-                    width={width} height={height}
-                    options={{backgroundColor: 0x000, antialias: true, resolution: 1, autoDensity: false}}
-                    style={{
-                        display: 'block',
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        imageRendering: 'pixelated'
-                    }}
+                    width={width}
+                    height={height}
+                    options={stageOptions}
+                    style={stageStyle}
                 >
                     <Game1Simulation
                         vm={vm}

@@ -50,7 +50,7 @@ export class SharedSession {
     public importSaveData(saveData: Record<string, any>): void {
         this.SAVABLE_KEYS.forEach(key => {
             if (saveData[key] !== undefined) {
-                this.forceSet(key, saveData[key]); // Use forceSet here
+                this.forceSet(key, saveData[key]);
             }
         });
     }
@@ -63,7 +63,7 @@ export class SharedSession {
 
         this.data.set(key, value);
 
-        if (this.PERSISTENT_KEYS.includes(key)) {
+        if (this.PERSISTENT_KEYS.includes(key) || key.startsWith('bind_')) {
             this.saveToLocalStorage();
         }
     }
@@ -96,7 +96,7 @@ export class SharedSession {
             if (saved) {
                 const parsed = JSON.parse(saved);
                 Object.entries(parsed).forEach(([k, v]) => {
-                    if (this.PERSISTENT_KEYS.includes(k)) {
+                    if (this.PERSISTENT_KEYS.includes(k) || k.startsWith('bind_')) {
                         this.data.set(k, v);
                     }
                 });
@@ -108,8 +108,10 @@ export class SharedSession {
 
     private saveToLocalStorage(): void {
         const toSave: Record<string, any> = {};
-        this.PERSISTENT_KEYS.forEach(key => {
-            if (this.data.has(key)) toSave[key] = this.data.get(key);
+        this.data.forEach((val, key) => {
+            if (this.PERSISTENT_KEYS.includes(key) || key.startsWith('bind_')) {
+                toSave[key] = val;
+            }
         });
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toSave));
     }

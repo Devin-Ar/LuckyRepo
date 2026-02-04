@@ -1,7 +1,7 @@
 // src/features/Game1/model/Game1LogicSchema.ts
-import {IBuffer} from "../../../core/interfaces/IBuffer";
+import {IBuffer, BufferMap} from "../../../core/interfaces/IBuffer";
 
-export const Game1LogicSchema: IBuffer = {
+export const Game1MainSchema: IBuffer = {
     HERO_HP: 0,
     HERO_X: 1,
     HERO_Y: 2,
@@ -13,9 +13,17 @@ export const Game1LogicSchema: IBuffer = {
     LAST_HIT_FRAME: 7,
     ENTITY_COUNT: 8,
 
-    ROCKS_START_INDEX: 10,
-    ROCK_STRIDE: 3,
-    MAX_ROCKS: 1000,
+    BUFFER_SIZE: 128
+};
 
-    BUFFER_SIZE: 4096
+export const Game1RocksSchema: IBuffer = {
+    START_INDEX: 0,
+    STRIDE: 3,
+
+    BUFFER_SIZE: 3000
+};
+
+export const Game1LogicSchema: BufferMap = {
+    main: Game1MainSchema,
+    rocks: Game1RocksSchema
 };

@@ -1,4 +1,3 @@
-// src/features/Game1/view/ui-components/Game1Simulation.tsx
 import React, {useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, Graphics, useApp, useTick} from '@pixi/react';
@@ -128,8 +127,9 @@ export const Game1Simulation: React.FC<{
         heroPos.current.x = visuals.x;
         heroPos.current.y = visuals.y;
 
-        // Sync local state for frame rendering
-        setHeroVisuals(visuals);
+        if (heroVisuals.currentFrame !== visuals.currentFrame) {
+            setHeroVisuals(visuals);
+        }
     });
 
     return (

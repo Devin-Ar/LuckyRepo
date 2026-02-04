@@ -1,13 +1,13 @@
 // src/core/managers/ViewWorkerManager.ts
 import ViewWorker from '../../workers/view.worker?worker';
-import {IBuffer} from '../interfaces/IBuffer';
+import {IBuffer, BufferMap} from '../interfaces/IBuffer';
 
 export class ViewWorkerManager {
     private static instance: ViewWorkerManager;
     public worker: Worker;
 
-    public sharedBuffer!: SharedArrayBuffer;
-    public sharedView!: Float32Array;
+    public sharedBuffers: Map<string, SharedArrayBuffer> = new Map();
+    public sharedViews: Map<string, Float32Array> = new Map();
 
     public isInitialized: boolean = false;
     private activeStateName: string | null = null;
@@ -16,6 +16,12 @@ export class ViewWorkerManager {
     private constructor() {
         this.worker = new ViewWorker();
         this.worker.onerror = (e) => console.error('View Worker Error:', e);
+
+        this.worker.onmessage = (e) => {
+            if (e.data.type === 'REQUEST_RESIZE_OUTPUT') {
+                this.resizeOutputBuffer(e.data.payload.bufferName, e.data.payload.newSize);
+            }
+        };
     }
 
     public static getInstance(): ViewWorkerManager {
@@ -23,21 +29,54 @@ export class ViewWorkerManager {
         return ViewWorkerManager.instance;
     }
 
-    public setupBuffers(inputBuffer: SharedArrayBuffer, outputSchema: IBuffer) {
+    public updateInputBuffer(bufferName: string, buffer: SharedArrayBuffer) {
+        this.worker.postMessage({
+            type: 'UPDATE_BUFFER',
+            payload: { name: bufferName, buffer, isInput: true }
+        });
+    }
+
+    public resizeOutputBuffer(bufferName: string, newSize: number) {
+        const oldView = this.sharedViews.get(bufferName);
+        const bytesNeeded = newSize * 4;
+        const sab = new SharedArrayBuffer(bytesNeeded);
+        const newView = new Float32Array(sab);
+
+        if (oldView) {
+            newView.set(oldView);
+        }
+
+        this.sharedBuffers.set(bufferName, sab);
+        this.sharedViews.set(bufferName, newView);
+
+        this.worker.postMessage({
+            type: 'UPDATE_BUFFER',
+            payload: { name: bufferName, buffer: sab, isInput: false }
+        });
+    }
+
+    public setupBuffers(inputBuffers: Record<string, SharedArrayBuffer>, outputSchema: IBuffer | BufferMap) {
         this.isInitialized = false;
+        this.sharedBuffers.clear();
+        this.sharedViews.clear();
 
-        const bytesNeeded = outputSchema.BUFFER_SIZE * 4;
-        this.sharedBuffer = new SharedArrayBuffer(bytesNeeded);
-        this.sharedView = new Float32Array(this.sharedBuffer);
+        const schemas: BufferMap = ('BUFFER_SIZE' in outputSchema)
+            ? { main: outputSchema as IBuffer }
+            : outputSchema as BufferMap;
 
-        this.sharedView.fill(0);
+        const payloadOutputBuffers: Record<string, SharedArrayBuffer> = {};
+
+        Object.entries(schemas).forEach(([name, config]) => {
+            const bytesNeeded = config.BUFFER_SIZE * 4;
+            const sab = new SharedArrayBuffer(bytesNeeded);
+            this.sharedBuffers.set(name, sab);
+            this.sharedViews.set(name, new Float32Array(sab));
+            payloadOutputBuffers[name] = sab;
+        });
 
         this.worker.postMessage({
             type: 'INIT_SABS',
-            payload: {
-                inputBuffer: inputBuffer,
-                outputBuffer: this.sharedBuffer
-            }
+            payload: { inputBuffers, outputBuffers: payloadOutputBuffers }
         });
 
         this.isInitialized = true;
@@ -45,24 +84,18 @@ export class ViewWorkerManager {
 
     public prepareForState(newStateName: string): string {
         const instanceId = crypto.randomUUID();
-        if (this.activeStateName !== newStateName) {
-            this.isInitialized = false;
-        }
+        if (this.activeStateName !== newStateName) this.isInitialized = false;
         this.activeInstanceId = instanceId;
         this.activeStateName = newStateName;
         return instanceId;
     }
 
     public createState(stateName: string) {
-        this.worker.postMessage({
-            type: 'CREATE_STATE',
-            stateName
-        });
+        this.worker.postMessage({ type: 'CREATE_STATE', stateName });
     }
 
     public terminateState(stateName: string, instanceId?: string) {
         if (instanceId && instanceId !== this.activeInstanceId) return;
-
         if (this.activeStateName === stateName) {
             this.activeStateName = null;
             this.activeInstanceId = null;
@@ -72,9 +105,7 @@ export class ViewWorkerManager {
     }
 
     public tick(stateName: string, dt: number, frameCount: number) {
-        if (!this.isInitialized || !this.sharedView || stateName !== this.activeStateName) {
-            return;
-        }
+        if (!this.isInitialized || this.sharedViews.size === 0 || stateName !== this.activeStateName) return;
         this.worker.postMessage({type: 'TICK', stateName, dt, frameCount});
     }
 

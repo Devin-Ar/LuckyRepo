@@ -2,11 +2,9 @@
 import {Game1ViewLogic} from '../features/Game1/view/Game1ViewLogic';
 import {Game2ViewLogic} from '../features/Game2/view/Game2ViewLogic';
 
-let logicView: Float32Array;
-let logicIntView: Int32Array;
-
-let outputView: Float32Array;
-
+const logicViews: Map<string, Float32Array> = new Map();
+const logicIntViews: Map<string, Int32Array> = new Map();
+const outputViews: Map<string, Float32Array> = new Map();
 const states: Map<string, any> = new Map();
 
 self.onmessage = (e: MessageEvent) => {
@@ -14,21 +12,36 @@ self.onmessage = (e: MessageEvent) => {
 
     switch (type) {
         case 'INIT_SABS':
-            console.log(`[ViewWorker] Initializing Buffers`);
+            logicViews.clear();
+            logicIntViews.clear();
+            outputViews.clear();
 
-            const inputBuffer = payload.inputBuffer;
-            logicView = new Float32Array(inputBuffer);
-            logicIntView = new Int32Array(inputBuffer);
+            if (payload.inputBuffers) {
+                Object.entries(payload.inputBuffers).forEach(([key, buffer]) => {
+                    logicViews.set(key, new Float32Array(buffer as SharedArrayBuffer));
+                    logicIntViews.set(key, new Int32Array(buffer as SharedArrayBuffer));
+                });
+            }
+            if (payload.outputBuffers) {
+                Object.entries(payload.outputBuffers).forEach(([key, buffer]) => {
+                    outputViews.set(key, new Float32Array(buffer as SharedArrayBuffer));
+                });
+            }
 
-            const outputBuffer = payload.outputBuffer;
-            outputView = new Float32Array(outputBuffer);
-
-            states.forEach((state) => {
-                if (typeof state.setBuffers === 'function') {
-                    state.setBuffers(logicView, logicIntView, outputView);
-                }
-            });
+            states.forEach(s => s.setBuffers?.(logicViews, logicIntViews, outputViews));
             break;
+
+        case 'UPDATE_BUFFER': {
+            const { name, buffer, isInput } = payload;
+            if (isInput) {
+                logicViews.set(name, new Float32Array(buffer));
+                logicIntViews.set(name, new Int32Array(buffer));
+            } else {
+                outputViews.set(name, new Float32Array(buffer));
+            }
+            states.forEach(s => s.setBuffers?.(logicViews, logicIntViews, outputViews));
+            break;
+        }
 
         case 'CREATE_STATE':
             if (!states.has(stateName)) {
@@ -40,10 +53,15 @@ self.onmessage = (e: MessageEvent) => {
 
                 if (instance) {
                     states.set(stateName, instance);
-                    if (logicView && outputView) {
-                        instance.setBuffers(logicView, logicIntView, outputView);
-                    }
+                    instance.setBuffers(logicViews, logicIntViews, outputViews);
                 }
+            }
+            break;
+
+        case 'TICK':
+            const logic = states.get(stateName);
+            if (logic && logicViews.size > 0 && outputViews.size > 0) {
+                logic.update(dt, frameCount);
             }
             break;
 
@@ -57,13 +75,6 @@ self.onmessage = (e: MessageEvent) => {
         case 'TERMINATE_ALL':
             states.forEach(s => s.destroy?.());
             states.clear();
-            break;
-
-        case 'TICK':
-            const logic = states.get(stateName);
-            if (logic && logicView && outputView) {
-                logic.update(dt, frameCount);
-            }
             break;
 
         case 'INPUT':

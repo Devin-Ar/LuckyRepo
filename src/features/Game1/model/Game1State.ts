@@ -8,10 +8,10 @@ import {Game1ViewSchema} from "./Game1ViewSchema";
 import {Game1Config, Game1Level, getGame1Config} from './Game1Config';
 import {SharedSession} from '../../../core/session/SharedSession';
 import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
+import {InputManager} from '../../../core/managers/InputManager';
 
 export class Game1State extends BaseGameState<Game1Presenter, Game1Controller, Game1Config> {
     public name = "Game1";
-
     protected logicSchema = Game1LogicSchema;
     protected viewSchema = Game1ViewSchema;
     protected viewComponent = Game1View;
@@ -28,9 +28,14 @@ export class Game1State extends BaseGameState<Game1Presenter, Game1Controller, G
         const hp = session.get<number>(GLOBAL_SESSION_MAP.hp);
         return hp !== undefined ? {initialHP: hp} : {};
     }
-
     protected initMVC(): void {
         this.vm = new Game1Presenter();
         this.controller = new Game1Controller(this.vm);
+    }
+
+    public async init(): Promise<void> {
+        InputManager.getInstance().refreshBindings(this.name);
+
+        await super.init();
     }
 }

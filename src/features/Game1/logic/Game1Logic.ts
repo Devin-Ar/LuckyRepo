@@ -1,5 +1,5 @@
 // src/features/Game1/logic/Game1Logic.ts
-import {Game1LogicSchema} from '../model/Game1LogicSchema';
+import {Game1MainSchema, Game1RocksSchema} from '../model/Game1LogicSchema';
 import {BaseLogic} from '../../../core/templates/BaseLogic';
 import {BaseDispatcher} from '../../../core/templates/BaseDispatcher';
 import {Game1Commands} from './Game1Commands';
@@ -20,8 +20,10 @@ export class Game1Logic extends BaseLogic<Game1Config> {
     private currentFrame: number = 0;
     private lastHitFrame: number = 0;
 
+    private wasMouseDown: boolean = false;
+
     constructor() {
-        super(Game1LogicSchema.REVISION);
+        super(Game1MainSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game1Commands, "Game1");
     }
 
@@ -79,18 +81,26 @@ export class Game1Logic extends BaseLogic<Game1Config> {
         if (!this.config) return;
         this.currentFrame = frameCount;
 
-        const keys = this.inputState.keys;
+        const actions = this.inputState.actions;
         const moveSpeed = this.config.moveSpeed;
 
         let targetVx = 0;
         let targetVy = 0;
 
-        if (keys.includes('W') || keys.includes('ARROWUP')) targetVy = -moveSpeed;
-        if (keys.includes('S') || keys.includes('ARROWDOWN')) targetVy = moveSpeed;
-        if (keys.includes('A') || keys.includes('ARROWLEFT')) targetVx = -moveSpeed;
-        if (keys.includes('D') || keys.includes('ARROWRIGHT')) targetVx = moveSpeed;
+        if (actions.includes('MOVE_UP')) targetVy = -moveSpeed;
+        if (actions.includes('MOVE_DOWN')) targetVy = moveSpeed;
+        if (actions.includes('MOVE_LEFT')) targetVx = -moveSpeed;
+        if (actions.includes('MOVE_RIGHT')) targetVx = moveSpeed;
 
         this.setMovement(targetVx, targetVy);
+
+        if (this.inputState.isMouseDown && !this.wasMouseDown) {
+            const worldMouseX = this.inputState.mouseX * this.config.width;
+            const worldMouseY = this.inputState.mouseY * this.config.height;
+
+            this.spawnRock(worldMouseX, worldMouseY);
+        }
+        this.wasMouseDown = this.inputState.isMouseDown;
 
         if (this.currentFrame - this.lastHitFrame > 120 && this.hero.hp < 100) {
             this.hero.hp = Math.min(100, this.hero.hp + (this.hero.hp < 25 ? 0.3 : 0.1));
@@ -103,11 +113,33 @@ export class Game1Logic extends BaseLogic<Game1Config> {
         this.syncToSAB(sharedView, frameCount, fps);
     }
 
-    private spawnRock(): void {
-        if (!this.config || this.rocks.length >= Game1LogicSchema.MAX_ROCKS) return;
+    private spawnRock(x?: number, y?: number): void {
+        if (!this.config) return;
+
+        const rocksView = this.sharedViews.get('rocks');
+        if (!rocksView) return;
+
+        const currentCapacity = Math.floor(rocksView.length / Game1RocksSchema.STRIDE);
+
+        if (this.rocks.length >= currentCapacity) {
+            const newSize = rocksView.length + (1000 * Game1RocksSchema.STRIDE); // Expand by ~1000 rocks
+
+            if ((this as any)._resizeRequested !== newSize) {
+                console.log(`[Game1Logic] Requesting Resize. Current: ${rocksView.length}, New: ${newSize}`);
+                self.postMessage({
+                    type: 'REQUEST_RESIZE',
+                    payload: { bufferName: 'rocks', newSize: newSize }
+                });
+                (this as any)._resizeRequested = newSize;
+            }
+            return;
+        }
+
+        (this as any)._resizeRequested = 0;
+
         this.rocks.push({
-            x: Math.random() * this.config.width,
-            y: Math.random() * this.config.height,
+            x: x ?? Math.random() * this.config.width,
+            y: y ?? Math.random() * this.config.height,
             vx: (Math.random() - 0.5) * 8,
             vy: (Math.random() - 0.5) * 8,
             seed: Math.random() * 1000
@@ -145,16 +177,25 @@ export class Game1Logic extends BaseLogic<Game1Config> {
     }
 
     private syncToSAB(sharedView: Float32Array, frameCount: number, fps: number): void {
-        sharedView[Game1LogicSchema.HERO_HP] = this.hero.hp;
-        sharedView[Game1LogicSchema.HERO_X] = this.hero.x;
-        sharedView[Game1LogicSchema.HERO_Y] = this.hero.y;
-        sharedView[Game1LogicSchema.ENTITY_COUNT] = this.rocks.length;
+        const mainView = this.sharedViews.get('main');
+        const rocksView = this.sharedViews.get('rocks');
 
-        this.rocks.forEach((r, i) => {
-            const base = Game1LogicSchema.ROCKS_START_INDEX + (i * Game1LogicSchema.ROCK_STRIDE);
-            sharedView[base] = r.x;
-            sharedView[base + 1] = r.y;
-            sharedView[base + 2] = r.seed;
-        });
+        if (mainView) {
+            mainView[Game1MainSchema.HERO_HP] = this.hero.hp;
+            mainView[Game1MainSchema.HERO_X] = this.hero.x;
+            mainView[Game1MainSchema.HERO_Y] = this.hero.y;
+            mainView[Game1MainSchema.ENTITY_COUNT] = this.rocks.length;
+        }
+
+        if (rocksView) {
+            this.rocks.forEach((r, i) => {
+                const base = i * Game1RocksSchema.STRIDE;
+                if (base + 2 < rocksView.length) {
+                    rocksView[base] = r.x;
+                    rocksView[base + 1] = r.y;
+                    rocksView[base + 2] = r.seed;
+                }
+            });
+        }
     }
 }

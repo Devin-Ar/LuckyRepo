@@ -6,6 +6,7 @@ import {AudioManager} from "../../../core/managers/AudioManager";
 import {Game1Level} from "../model/Game1Config";
 import {SaveManager} from "../../../core/managers/SaveManager";
 import {CampaignManager} from "../../../core/managers/CampaignManager";
+import {InputManager} from "../../../core/managers/InputManager";
 
 export class Game1Controller extends BaseController<Game1Presenter> {
     constructor(vm: Game1Presenter) {
@@ -42,7 +43,9 @@ export class Game1Controller extends BaseController<Game1Presenter> {
     }
 
     protected onKeyDown(e: KeyboardEvent): void {
-        if (e.key === 'Escape') {
+        const input = InputManager.getInstance();
+
+        if (input.isKeyAction(e.key, 'PAUSE')) {
             this.openPauseMenu();
         }
     }

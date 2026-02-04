@@ -5,13 +5,16 @@ import {ILogic} from '../interfaces/ILogic';
 export abstract class BaseLogic<TConfig = any> implements ILogic {
     protected isInitialized: boolean = false;
     protected abstract dispatcher: IDispatcher;
-    protected sharedView!: Float32Array;
-    protected intView!: Int32Array;
+
+    protected sharedViews: Map<string, Float32Array> = new Map();
+    protected intViews: Map<string, Int32Array> = new Map();
 
     protected config: TConfig | null = null;
 
     protected inputState = {
-        keys: [] as string[],
+        actions: [] as string[],
+        mouseX: 0,
+        mouseY: 0,
         isMouseDown: false,
         isHovering: false
     };
@@ -19,9 +22,26 @@ export abstract class BaseLogic<TConfig = any> implements ILogic {
     protected constructor(protected revisionIndex: number) {
     }
 
-    public setBuffer(buffer: SharedArrayBuffer): void {
-        this.sharedView = new Float32Array(buffer);
-        this.intView = new Int32Array(buffer);
+    public setBuffers(buffers: Record<string, SharedArrayBuffer>): void {
+        this.sharedViews.clear();
+        this.intViews.clear();
+
+        Object.entries(buffers).forEach(([key, buffer]) => {
+            this.sharedViews.set(key, new Float32Array(buffer));
+            this.intViews.set(key, new Int32Array(buffer));
+        });
+    }
+
+    protected get sharedView(): Float32Array {
+        const view = this.sharedViews.get('main') || this.sharedViews.values().next().value;
+        if (!view) throw new Error(`[BaseLogic] No SharedView available for ${this.constructor.name}`);
+        return view as Float32Array;
+    }
+
+    protected get intView(): Int32Array {
+        const view = this.intViews.get('main') || this.intViews.values().next().value;
+        if (!view) throw new Error(`[BaseLogic] No IntView available for ${this.constructor.name}`);
+        return view as Int32Array;
     }
 
     public setInitialized(val: boolean): void {
@@ -31,16 +51,27 @@ export abstract class BaseLogic<TConfig = any> implements ILogic {
 
     public abstract applyConfig(config: TConfig): void;
 
-    public update(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
-        if (!this.isInitialized || !this.sharedView || !this.intView) return;
+    public update(
+        sharedViewsMap: any,
+        intViewsMap: any,
+        frameCount: number,
+        fps: number
+    ): void {
+        if (!this.isInitialized || this.sharedViews.size === 0) return;
 
         this.onUpdate(this.sharedView, this.intView, frameCount, fps);
-        Atomics.add(this.intView, this.revisionIndex, 1);
+
+        const mainIntView = this.intView;
+        if(mainIntView) {
+            Atomics.add(mainIntView, this.revisionIndex, 1);
+        }
     }
 
     public handleInput(payload: any): void {
-        if (payload.action === 'SYNC_INPUT' || payload.action === 'KEY_STATE') {
-            this.inputState.keys = payload.keys || [];
+        if (payload.action === 'SYNC_INPUT') {
+            this.inputState.actions = payload.actions || [];
+            this.inputState.mouseX = payload.mouseX || 0;
+            this.inputState.mouseY = payload.mouseY || 0;
             this.inputState.isMouseDown = !!payload.isMouseDown;
             this.inputState.isHovering = !!payload.isHovering;
             return;

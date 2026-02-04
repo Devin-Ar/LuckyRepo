@@ -6,7 +6,7 @@ import {SharedSession} from '../session/SharedSession';
 import {AudioManager} from '../managers/AudioManager';
 import {InputManager} from '../managers/InputManager';
 import {SpriteManager} from '../managers/SpriteManager';
-import {IBuffer} from '../interfaces/IBuffer';
+import {IBuffer, BufferMap} from '../interfaces/IBuffer';
 import {GLOBAL_SESSION_MAP} from '../session/GlobalSessionMap';
 import {IGameConfig} from '../interfaces/IGameConfig';
 
@@ -20,8 +20,8 @@ export abstract class BaseGameState<
     protected instanceId: string = "";
     protected isLoadedFromSave: boolean = false;
 
-    protected abstract logicSchema: IBuffer;
-    protected abstract viewSchema: IBuffer;
+    protected abstract logicSchema: IBuffer | BufferMap;
+    protected abstract viewSchema: IBuffer | BufferMap;
     protected abstract viewComponent: React.ComponentType<any>;
 
     constructor(protected forceReset: boolean = false) {
@@ -46,10 +46,10 @@ export abstract class BaseGameState<
         }
 
         this.instanceId = logicWorker.prepareForState(this.name);
-        logicWorker.setupBuffer(this.logicSchema, this.forceReset);
+        logicWorker.setupBuffers(this.logicSchema, this.forceReset);
 
         viewWorker.prepareForState(this.name);
-        viewWorker.setupBuffers(logicWorker.sharedBuffer, this.viewSchema);
+        viewWorker.setupBuffers(logicWorker.getBuffers(), this.viewSchema);
 
         try {
             await this.internalLoadResources();
@@ -103,7 +103,7 @@ export abstract class BaseGameState<
 
         if (this.controller) this.controller.destroy();
 
-        this.onBeforeDestroy(session, logicWorker); // Hook for extra cleanup
+        this.onBeforeDestroy(session, logicWorker);
 
         logicWorker.terminateState(this.name, this.instanceId);
         viewWorker.terminateState(this.name);
@@ -131,7 +131,7 @@ export abstract class BaseGameState<
                 AudioManager.getInstance().loadManifest(config.manifestPath, this.name)
             ]);
         }
-        await this.onCustomLoadResources(); // Hook for anything extra
+        await this.onCustomLoadResources();
     }
 
     private async internalPostInit(worker: WorkerManager, session: SharedSession): Promise<void> {

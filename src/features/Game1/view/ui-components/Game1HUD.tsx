@@ -70,7 +70,7 @@ export const Game1HUD: React.FC<HUDProps> = ({
                 position: 'absolute',
                 top: '3cqh',
                 right: '3cqw',
-                color: '#fff',
+                color: '#00ff00',
                 fontFamily: 'monospace',
                 textAlign: 'right',
                 fontSize: '1.2cqw'

@@ -88,12 +88,14 @@ export class Engine {
         if (!targetState || !targetState.isUpdating) return;
 
         const inputManager = InputManager.getInstance();
-        const inputSnapshot = inputManager.getSnapshot();
+        const snap = inputManager.getSnapshot();
 
         workerManager.sendInput(targetName, 'SYNC_INPUT', {
-            keys: Array.from(inputSnapshot.keys),
-            isMouseDown: inputSnapshot.isMouseDown,
-            isHovering: inputSnapshot.isHoveringButton
+            actions: snap.actions,
+            mouseX: snap.mouseX,
+            mouseY: snap.mouseY,
+            isMouseDown: snap.isMouseDown,
+            isHovering: snap.isHoveringButton
         });
 
         workerManager.tick(targetName, this.frameCount, this.fps || 60);
