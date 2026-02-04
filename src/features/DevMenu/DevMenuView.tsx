@@ -5,6 +5,8 @@ import {Game1State} from '../Game1/model/Game1State';
 import {Game1Level} from '../Game1/model/Game1Config';
 import {Game2State} from '../Game2/model/Game2State';
 import {Game2Level} from '../Game2/model/Game2Config';
+import {BHState} from '../BulletTest/model/BHState';
+import {BHLevel} from '../BulletTest/model/BHConfig';
 import {StateManager} from '../../core/managers/StateManager';
 import {AudioManager} from '../../core/managers/AudioManager';
 import {SharedSession} from '../../core/session/SharedSession';
@@ -206,6 +208,19 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                                            color="#d35400"/>
                                 <DevButton label="LVL 3" onClick={() => handleNav(Game2State, Game2Level.Level3)}
                                            color="#f39c12"/>
+                            </div>
+                        </div>
+
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: Bullet Hell
+                            </div>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                                <DevButton label="LVL 1" onClick={() => handleNav(BHState, BHLevel.Level1)}
+                                           color="#8e44ad"/>
+                                <DevButton label="LVL 2" onClick={() => handleNav(BHState, BHLevel.Level2)}
+                                           color="#2980b9"/>
+                                <DevButton label="LVL 3" onClick={() => handleNav(BHState, BHLevel.Level3)}
+                                           color="#27ae60"/>
                             </div>
                         </div>
 
