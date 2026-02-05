@@ -150,13 +150,15 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                         <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
                             <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_03
                             </div>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton label="LVL 1" onClick={() => handleNav(Game3State, true, Game3Level.Level1)}
                                            color="#16a085"/>
                                 <DevButton label="LVL 2" onClick={() => handleNav(Game3State, true, Game3Level.Level2)}
                                            color="#1abc9c"/>
                                 <DevButton label="LVL 3" onClick={() => handleNav(Game3State, true, Game3Level.Level3)}
                                            color="#2ecc71"/>
+                                <DevButton label="LVL 4" onClick={() => handleNav(Game3State, true, Game3Level.Level4)}
+                                           color="#3498db"/>
                             </div>
                         </div>
 

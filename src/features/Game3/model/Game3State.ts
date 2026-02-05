@@ -36,7 +36,7 @@ export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, G
         // Orchestration: Config -> Controller -> Parse Map -> Send to Worker
         const config = this.getConfig();
         if (this.controller && config.mapPath) {
-            await this.controller.initialize(config);
+            await this.controller.initialize(config, this.currentLevel);
         }
     }
 }

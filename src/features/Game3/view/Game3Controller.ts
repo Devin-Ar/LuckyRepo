@@ -9,6 +9,8 @@ import { MapGenerator } from "../logic/MapGenerator";
 import { ParsedMapData } from "../data/Game3MapData";
 
 export class Game3Controller extends BaseController<Game3Presenter> {
+    private currentLevel: Game3Level = Game3Level.Level1;
+
     constructor(vm: Game3Presenter) {
         super(vm, "Game3");
     }
@@ -17,6 +19,9 @@ export class Game3Controller extends BaseController<Game3Presenter> {
         switch (name) {
             case 'LOGIC_READY':
                 console.log("[Game3Controller] Worker logic is synchronized.");
+                break;
+            case 'LEVEL_COMPLETE':
+                this.handleLevelComplete();
                 break;
             default:
                 console.warn(`[Game3Controller] Unhandled worker event: ${name}`);
@@ -27,11 +32,13 @@ export class Game3Controller extends BaseController<Game3Presenter> {
         if (e.key === 'Escape') this.handleEscape();
     }
 
+    config: any, currentLevel: Game3Level
     /**
      * Heavy lifting (Image Parsing) happens here on Main Thread
      * to avoid Worker limitations with DOM/Jimp.
      */
-    public async initialize(config: any) {
+    public async initialize(config: any, level: Game3Level = Game3Level.Level1) {
+        this.currentLevel = level;
         try {
             this.send('INITIALIZE', config);
 
@@ -75,11 +82,26 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.RESET_SLOT);
         const { Game3State } = await import("../model/Game3State");
-        StateManager.getInstance().replace(new Game3State(false, Game3Level.Level1));
+        StateManager.getInstance().replace(new Game3State(false, this.currentLevel));
     }
 
     private async handleEscape() {
         const { PauseMenuState } = await import("../../shared-menus/states/PauseMenuState");
         StateManager.getInstance().push(new PauseMenuState());
+    }
+
+    private handleLevelComplete() {
+        const levels = Object.values(Game3Level);
+        const currentIndex = levels.indexOf(this.currentLevel);
+        if (currentIndex !== -1 && currentIndex < levels.length - 1) {
+            const nextLevel = levels[currentIndex + 1];
+            console.log(`[Game3Controller] Level complete! Loading ${nextLevel}`);
+            this.loadLevel(nextLevel as Game3Level);
+        } else {
+            console.log("[Game3Controller] All levels complete!");
+            // Optionally wrap around or go to a victory screen. 
+            // For now, let's just reload level 1 or do nothing.
+            this.loadLevel(Game3Level.Level1);
+        }
     }
 }

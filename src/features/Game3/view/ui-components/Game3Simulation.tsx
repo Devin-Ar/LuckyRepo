@@ -45,8 +45,21 @@ export const Game3Simulation: React.FC<{
                         // Border for the hitbox
                         g.lineStyle(1 / worldScale, 0xffffff, 0.3);
 
-                        // Fill: Floor is darker, platforms are distinct
-                        g.beginFill(p.isFloor ? 0x2c3e50 : 0x34495e, 0.8);
+                        // Fill: Floor is darker, platforms are distinct, walls are purple, spikes are cyan
+                        let color = p.isFloor ? 0x2c3e50 : 0x34495e;
+                        if (p.isWall) color = 0x8e44ad;
+                        if (p.isSpike) color = 0x1abc9c;
+                        if (p.isPortal) color = 0x1c00ff;
+                        if (p.isVoid) color = 0x000000;
+                        
+                        let alpha = 0.8;
+                        if (p.isExit) {
+                            color = 0xff0000;
+                            alpha = 0.0; // Transparent fill
+                            g.lineStyle(2 / worldScale, 0xff0000, 1.0); // Stronger red outline
+                        }
+
+                        g.beginFill(color, alpha);
                         g.drawRect(p.x, p.y, p.width, p.height);
                         g.endFill();
                     }
@@ -58,10 +71,11 @@ export const Game3Simulation: React.FC<{
                 draw={(g) => {
                     g.clear();
 
-                    // Color based on state: 0:Idle (Green), 1:Walk (Blue), 2:Jump (Red)
+                    // Color based on state: 0:Idle (Green), 1:Walk (Blue), 2:Jump (Red), 3:WallSlide (Purple)
                     let color = 0x27ae60; // Idle
                     if (heroVisuals.animState === 1) color = 0x2980b9; // Walk
                     if (heroVisuals.animState === 2) color = 0xc0392b; // Jump
+                    if (heroVisuals.animState === 3) color = 0x8e44ad; // WallSlide
 
                     // Hitbox border
                     g.lineStyle(2 / worldScale, 0xffffff, 0.8);

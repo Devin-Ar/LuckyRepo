@@ -12,10 +12,10 @@
     "worldScale": 16
   },
   "Level 2": {
-    "initialHP": 80,
+    "initialHP": 100,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "res/sprite/maps/MapTest.png",
+    "mapPath": "res/sprite/maps/MapTest2(updated).png",
     "mapScale": 1,
     "heroWidth": 1,
     "heroHeight": 1,
@@ -24,10 +24,22 @@
     "worldScale": 16
   },
   "Level 3": {
-    "initialHP": 50,
+    "initialHP": 100,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "res/sprite/maps/MapTest.png",
+    "mapPath": "res/sprite/maps/MapTest3.png",
+    "mapScale": 1,
+    "heroWidth": 1,
+    "heroHeight": 1,
+    "playerScale": 1,
+    "playerOffsetY": 0,
+    "worldScale": 16
+  },
+  "Level 4": {
+    "initialHP": 100,
+    "manifestPath": "res/manifest.json",
+    "bgmKey": "bgm_level1",
+    "mapPath": "res/sprite/maps/MapTest4.png",
     "mapScale": 1,
     "heroWidth": 1,
     "heroHeight": 1,

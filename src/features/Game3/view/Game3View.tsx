@@ -77,6 +77,7 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     onLevel1={() => controller.loadLevel(Game3Level.Level1)}
                     onLevel2={() => controller.loadLevel(Game3Level.Level2)}
                     onLevel3={() => controller.loadLevel(Game3Level.Level3)}
+                    onLevel4={() => controller.loadLevel(Game3Level.Level4)}
                     onQuickLoad={() => controller.resetLevel()}
                 />
             </div>

@@ -4,7 +4,8 @@ import levelData from '../data/game3_levels.json';
 export enum Game3Level {
     Level1 = "Level 1",
     Level2 = "Level 2",
-    Level3 = "Level 3"
+    Level3 = "Level 3",
+    Level4 = "Level 4"
 }
 
 export interface Game3Config {
