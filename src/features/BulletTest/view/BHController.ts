@@ -27,7 +27,7 @@ export class BHController extends BaseController<BHPresenter> {
     }
 
     public async resetLevel() {
-        await SaveManager.getInstance().performLoad(this.RESET_SLOT);
+        await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
         const {BHState} = await import("../model/BHState");
         const currentLevel = (this.vm as any).currentLevel || BHLevel.Level1;
         await StateManager.getInstance().replace(new BHState(false, currentLevel));

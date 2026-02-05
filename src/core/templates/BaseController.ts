@@ -5,7 +5,7 @@ import {SaveManager} from "../managers/SaveManager";
 
 export abstract class BaseController<TVM extends { update: () => void }> implements IController {
     protected workers: WorkerManager;
-    protected readonly RESET_SLOT = 999;
+    protected readonly QUICK_SAVE_KEY = 'quick_save';
 
     constructor(protected vm: TVM, protected stateName: string) {
         this.workers = WorkerManager.getInstance();
@@ -39,7 +39,7 @@ export abstract class BaseController<TVM extends { update: () => void }> impleme
 
     private captureInitialState() {
         setTimeout(async () => {
-            await SaveManager.getInstance().performSave(this.RESET_SLOT, this.stateName);
+            await SaveManager.getInstance().performSave(this.QUICK_SAVE_KEY, this.stateName);
         }, 200);
     }
 

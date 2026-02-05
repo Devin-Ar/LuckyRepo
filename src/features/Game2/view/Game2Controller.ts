@@ -27,7 +27,7 @@ export class Game2Controller extends BaseController<Game2Presenter> {
     }
 
     public async resetLevel() {
-        await SaveManager.getInstance().performLoad(this.RESET_SLOT);
+        await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
         const {Game2State} = await import("../model/Game2State");
         const currentLevel = (this.vm as any).currentLevel || Game2Level.Level1;
         StateManager.getInstance().replace(new Game2State(false, currentLevel));

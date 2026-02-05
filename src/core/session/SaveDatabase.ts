@@ -2,7 +2,7 @@
 import Dexie, {Table} from 'dexie';
 
 export interface GameSave {
-    id?: number;
+    saveName: string;
     stateName: string;
     timestamp: number;
     preview: string;
@@ -20,8 +20,8 @@ export class SaveDatabase extends Dexie {
 
     constructor() {
         super('GameEngineDB');
-        this.version(1).stores({
-            saves: '++id, stateName, timestamp'
+        this.version(2).stores({
+            saves: 'saveName, timestamp'
         });
     }
 }

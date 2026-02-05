@@ -4,6 +4,8 @@ import {WorkerManager} from './WorkerManager';
 import {SharedSession} from '../session/SharedSession';
 import {ViewWorkerManager} from "./ViewWorkerManager";
 
+export const SAVE_EXTENSION = '.brsv';
+
 export class SaveManager {
     private static instance: SaveManager;
 
@@ -12,7 +14,7 @@ export class SaveManager {
         return SaveManager.instance;
     }
 
-    public async performSave(slotId: number, stateName: string): Promise<void> {
+    public async performSave(saveName: string, stateName: string): Promise<void> {
         const logicWorker = WorkerManager.getInstance();
         const viewWorker = ViewWorkerManager.getInstance();
         const session = SharedSession.getInstance();
@@ -25,7 +27,7 @@ export class SaveManager {
         const campaignIndex = session.get<number>('campaign_step_index');
 
         const saveData: GameSave = {
-            id: slotId,
+            saveName: saveName,
             stateName,
             timestamp: Date.now(),
             preview: `Save ${new Date().toLocaleTimeString()}`,
@@ -41,9 +43,9 @@ export class SaveManager {
         await db.saves.put(saveData);
     }
 
-    public async performLoad(slotId: number): Promise<GameSave> {
-        const save = await db.saves.get(slotId);
-        if (!save) throw new Error("Save not found");
+    public async performLoad(saveName: string): Promise<GameSave> {
+        const save = await db.saves.get(saveName);
+        if (!save) throw new Error(`Save '${saveName}' not found`);
 
         const session = SharedSession.getInstance();
         const logicWorker = WorkerManager.getInstance();
@@ -66,6 +68,30 @@ export class SaveManager {
         viewWorker.isInitialized = true;
 
         return save;
+    }
+
+    public async deleteSave(saveName: string): Promise<void> {
+        await db.saves.delete(saveName);
+    }
+
+    public async exportSave(saveName: string): Promise<string> {
+        const save = await db.saves.get(saveName);
+        if (!save) throw new Error("Save not found");
+        return JSON.stringify(save, null, 2);
+    }
+
+    public async importSave(jsonContent: string): Promise<void> {
+        try {
+            const data = JSON.parse(jsonContent) as GameSave;
+            if (!data.saveName || !data.stateName) {
+                throw new Error("Invalid .brsv file format");
+            }
+            data.timestamp = Date.now();
+            await db.saves.put(data);
+        } catch (e) {
+            console.error("Failed to import .brsv", e);
+            throw e;
+        }
     }
 
     private requestSnapshot(worker: Worker, stateName: string): Promise<any> {
