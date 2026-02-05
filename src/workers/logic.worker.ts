@@ -1,8 +1,8 @@
 // src/workers/logic.worker.ts
-import {Game1Logic} from '../features/Game1/logic/Game1Logic';
-import {Game2Logic} from '../features/Game2/logic/Game2Logic';
+//import {Game1Logic} from '../features/Game1/logic/Game1Logic';
+//import {Game2Logic} from '../features/Game2/logic/Game2Logic';
 import {Game3Logic} from '../features/Game3/logic/Game3Logic';
-import {Game4Logic} from '../features/Game4/logic/Game4Logic';
+//import {Game4Logic} from '../features/Game4/logic/Game4Logic';
 
 let sharedBuffer: SharedArrayBuffer;
 let sharedView: Float32Array;
@@ -37,10 +37,10 @@ self.onmessage = (e: MessageEvent) => {
             if (!states.has(stateName)) {
                 console.log(`[Worker] Created Logic for: ${stateName}`);
                 let instance;
-                if (stateName === 'Game1') instance = new Game1Logic();
-                if (stateName === 'Game2') instance = new Game2Logic();
+                //if (stateName === 'Game1') instance = new Game1Logic();
+                //if (stateName === 'Game2') instance = new Game2Logic();
                 if (stateName === 'Game3') instance = new Game3Logic();
-                if (stateName === 'Game4') instance = new Game4Logic();
+               //if (stateName === 'Game4') instance = new Game4Logic();
 
                 if (instance) {
                     states.set(stateName, instance);

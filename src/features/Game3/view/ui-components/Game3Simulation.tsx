@@ -1,10 +1,8 @@
 // src/features/Game3/view/ui-components/Game3Simulation.tsx
 import React, { useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
-import { Container, Graphics, TilingSprite, useTick } from '@pixi/react';
+import { Container, Graphics, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
-import { GameSprite } from '../../../../components/GameSprite';
-import { SpriteManager } from '../../../../core/managers/SpriteManager';
 import { PlatformData } from '../../data/Game3MapData';
 
 export const Game3Simulation: React.FC<{
@@ -14,72 +12,77 @@ export const Game3Simulation: React.FC<{
 }> = ({ vm, width, height }) => {
     const worldContainerRef = useRef<PIXI.Container>(null);
     const [heroVisuals, setHeroVisuals] = useState(vm.heroVisuals);
-    const manager = SpriteManager.getInstance();
-
-    const worldScale = 5;
+    const worldScale = vm.worldScale;
 
     useTick((delta) => {
         const hero = vm.heroVisuals;
         if (!worldContainerRef.current || !hero) return;
 
+        const currentScale = worldScale;
         const heroCenterX = hero.x + (hero.width / 2);
         const heroCenterY = hero.y + (hero.height / 2);
 
-        const targetX = (width / 2) - (heroCenterX * worldScale);
-        const targetY = (height / 2) - (heroCenterY * worldScale);
+        const targetX = (width / 2) - (heroCenterX * currentScale);
+        const targetY = (height / 2) - (heroCenterY * currentScale);
 
+        // Smooth camera follow
         worldContainerRef.current.x += (targetX - worldContainerRef.current.x) * 0.1 * delta;
         worldContainerRef.current.y += (targetY - worldContainerRef.current.y) * 0.1 * delta;
 
         setHeroVisuals({ ...hero });
     });
 
-    const animName = heroVisuals.assetKey === 'hero_walk' ? 'walk' : 'idle';
 
     return (
         <Container ref={worldContainerRef} scale={worldScale}>
-            {/* Environment */}
-            {vm.mapData?.platforms.map((p: PlatformData, i: number) => {
-                const texture = p.assetKey ? manager.getTexture(p.assetKey) : null;
+            {/* Environment Hitboxes */}
+            <Graphics
+                draw={(g) => {
+                    g.clear();
+                    if (!vm.mapData) return;
 
-                if (texture && texture !== PIXI.Texture.WHITE) {
-                    return (
-                        <TilingSprite
-                            key={`plat-${i}`}
-                            texture={texture}
-                            x={p.x}
-                            y={p.y}
-                            width={p.width}
-                            height={p.height}
-                            // FIXED: Added required tilePosition and optional tileScale
-                            tilePosition={{ x: 0, y: 0 }}
-                            tileScale={{ x: 1, y: 1 }}
-                        />
-                    );
-                }
+                    for (const p of vm.mapData.platforms) {
+                        // Border for the hitbox
+                        g.lineStyle(1 / worldScale, 0xffffff, 0.3);
 
-                return (
-                    <Graphics
-                        key={`plat-g-${i}`}
-                        draw={(g) => {
-                            g.clear();
-                            g.beginFill(p.isFloor ? 0x1e272e : 0x341f97);
-                            g.drawRect(p.x, p.y, p.width, p.height);
-                            g.endFill();
-                        }}
-                    />
-                );
-            })}
+                        // Fill: Floor is darker, platforms are distinct
+                        g.beginFill(p.isFloor ? 0x2c3e50 : 0x34495e, 0.8);
+                        g.drawRect(p.x, p.y, p.width, p.height);
+                        g.endFill();
+                    }
+                }}
+            />
 
-            {/* Hero */}
-            <GameSprite
-                sheetName={heroVisuals.assetKey}
-                animationName={animName}
-                x={heroVisuals.x + (heroVisuals.width / 2)}
-                y={heroVisuals.y + (heroVisuals.height / 2)}
-                scale={0.25}
-                anchor={0.5}
-                currentFrame={heroVisuals.frame}
+            {/* Hero Hitbox Visualization (Temporary replacement for sprite) */}
+            <Graphics
+                draw={(g) => {
+                    g.clear();
+
+                    // Color based on state: 0:Idle (Green), 1:Walk (Blue), 2:Jump (Red)
+                    let color = 0x27ae60; // Idle
+                    if (heroVisuals.animState === 1) color = 0x2980b9; // Walk
+                    if (heroVisuals.animState === 2) color = 0xc0392b; // Jump
+
+                    // Hitbox border
+                    g.lineStyle(2 / worldScale, 0xffffff, 0.8);
+
+                    // Hitbox fill
+                    g.beginFill(color, 0.6);
+                    g.drawRect(heroVisuals.x, heroVisuals.y, heroVisuals.width, heroVisuals.height);
+                    g.endFill();
+
+                    // Direction indicator (where the character is facing)
+                    const indicatorW = heroVisuals.width * 0.2;
+                    const indicatorX = heroVisuals.flipX ? heroVisuals.x : heroVisuals.x + heroVisuals.width - indicatorW;
+                    g.beginFill(0xffffff, 0.5);
+                    g.drawRect(indicatorX, heroVisuals.y + heroVisuals.height * 0.1, indicatorW, heroVisuals.height * 0.2);
+                    g.endFill();
+
+                    // Feet center (anchor point reference)
+                    g.beginFill(0xffff00, 1);
+                    g.drawCircle(heroVisuals.x + heroVisuals.width / 2, heroVisuals.y + heroVisuals.height, 0.05);
+                    g.endFill();
+                }}
             />
         </Container>
     );

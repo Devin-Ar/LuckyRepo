@@ -2,22 +2,28 @@
 import {IBuffer} from "../../../core/interfaces/IBuffer";
 
 export const Game3LogicSchema: IBuffer = {
-    HERO_HP: 0,
-    HERO_X: 1,
-    HERO_Y: 2,
-    ENERGY: 3,
-    SCRAP_COUNT: 4,
+    REVISION: 0,
+    FRAME_COUNT: 1,
+    FPS: 2,
 
-    TICK_COUNT: 5,
-    FRAME_COUNT: 6,
-    FPS: 7,
-    REVISION: 8,
+    // Hero State
+    HERO_X: 10,
+    HERO_Y: 11,
+    HERO_VX: 12,
+    HERO_VY: 13,
+    HERO_HP: 14,
 
-    HERO_ANIM_FRAME: 9,
-    HERO_FLIP: 10,
-    HERO_WIDTH: 11,
-    HERO_HEIGHT: 12,
-    HERO_ANIM_STATE: 13,
+    // Hero Visuals/Config
+    HERO_WIDTH: 20,
+    HERO_HEIGHT: 21,
+    HERO_FLIP: 22,
+    HERO_ANIM_STATE: 23,
+    HERO_ANIM_FRAME: 24,
+
+    // Global Config
+    WORLD_SCALE: 30,
+    PLAYER_SCALE: 31,
+    PLAYER_OFFSET_Y: 32,
 
     BUFFER_SIZE: 1024
 };

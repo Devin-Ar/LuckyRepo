@@ -6,22 +6,22 @@ export const Game3Commands: Record<string, ICommand> = {
     INITIALIZE: {
         execute(logic, payload: Game3Config) {
             logic.applyConfig(payload);
-            logic.setInitialized(true);
+            // Don't set initialized here if we expect map data
+            if (!payload.mapPath) {
+                logic.setInitialized(true);
+            }
         }
     },
     SET_MAP_DATA: {
         execute(logic, payload: ParsedMapData) {
             // Logic now receives pure data, no parsing needed here
             logic.setMapData(payload);
+            logic.setInitialized(true);
         }
     },
     MOD_HP: {
-        execute(logic, payload) { logic.modifyHp(payload.amount); }
-    },
-    MOD_ENERGY: {
-        execute(logic, payload) { logic.modifyEnergy(payload.amount); }
-    },
-    ADD_SCRAP: {
-        execute(logic) { logic.addScrap(1); }
+        execute(logic, payload: { amount: number }) {
+            logic.modifyHP(payload.amount);
+        }
     }
 };

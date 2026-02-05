@@ -9,13 +9,15 @@ export enum Game3Level {
 
 export interface Game3Config {
     initialHP: number;
-    initialEnergy: number;
-    initialScrap: number;
-    maxEnergy: number;
-    regenRate: number;
     manifestPath: string;
     bgmKey: string;
     mapPath?: string;
+    mapScale?: number;
+    heroWidth?: number;
+    heroHeight?: number;
+    playerScale?: number;
+    playerOffsetY?: number;
+    worldScale?: number;
 }
 
 export const getGame3Config = (level: Game3Level): Game3Config => {

@@ -2,9 +2,8 @@
 import React from 'react';
 
 interface HUDProps {
-    stats: { hp: number; energy: number; scrap: number };
+    stats: { hp: number };
     onAction: (type: string, val?: number) => void;
-    onJumpG1: () => void;
     onLevel1: () => void;
     onLevel2: () => void;
     onLevel3: () => void;
@@ -12,7 +11,7 @@ interface HUDProps {
 }
 
 export const Game3HUD: React.FC<HUDProps> = ({
-                                                 stats, onAction, onJumpG1, onLevel1, onLevel2, onLevel3, onQuickLoad
+                                                 stats, onAction, onLevel1, onLevel2, onLevel3, onQuickLoad
                                              }) => {
     const cardStyle: React.CSSProperties = {
         padding: '1.5cqw', border: '0.1cqw solid', borderRadius: '0.5cqw',
@@ -36,7 +35,6 @@ export const Game3HUD: React.FC<HUDProps> = ({
                         <button onClick={onLevel3} style={{...btnStyle, background: '#4d1b1b'}}>LVL 3</button>
                     </div>
                     <div style={{display: 'flex', gap: '0.5cqw'}}>
-                        <button onClick={onJumpG1} style={{...btnStyle, borderColor: '#3498db'}}>GOTO_G1</button>
                         <button onClick={onQuickLoad} style={{...btnStyle, borderColor: '#c0392b'}}>RELOAD</button>
                     </div>
                 </div>
@@ -56,18 +54,6 @@ export const Game3HUD: React.FC<HUDProps> = ({
                         <button onClick={() => onAction('MOD_HP', 10)} style={btnStyle}>+10</button>
                         <button onClick={() => onAction('MOD_HP', -10)} style={btnStyle}>-10</button>
                     </div>
-                </div>
-
-                <div style={{...cardStyle, borderColor: '#3498db', color: '#3498db'}}>
-                    <span>ENERGY</span>
-                    <b style={{fontSize: '2cqw'}}>{stats.energy}</b>
-                    <button onClick={() => onAction('MOD_ENERGY', 5)} style={btnStyle}>RECHARGE</button>
-                </div>
-
-                <div style={{...cardStyle, borderColor: '#f1c40f', color: '#f1c40f'}}>
-                    <span>SCRAP</span>
-                    <b style={{fontSize: '2cqw'}}>{stats.scrap}</b>
-                    <button onClick={() => onAction('ADD_SCRAP')} style={btnStyle}>COLLECT</button>
                 </div>
             </div>
             

@@ -1,32 +1,38 @@
 {
   "Level 1": {
     "initialHP": 100,
-    "initialEnergy": 50,
-    "initialScrap": 0,
-    "maxEnergy": 100,
-    "regenRate": 60,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "res/sprite/maps/map_test_level.png"
+    "mapPath": "res/sprite/maps/MapTest.png",
+    "mapScale": 1,
+    "heroWidth": 1,
+    "heroHeight": 1,
+    "playerScale": 1,
+    "playerOffsetY": 0,
+    "worldScale": 16
   },
   "Level 2": {
     "initialHP": 80,
-    "initialEnergy": 30,
-    "initialScrap": 40,
-    "maxEnergy": 80,
-    "regenRate": 90,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "res/sprite/maps/map_test_level.png"
+    "mapPath": "res/sprite/maps/MapTest.png",
+    "mapScale": 1,
+    "heroWidth": 1,
+    "heroHeight": 1,
+    "playerScale": 1,
+    "playerOffsetY": 0,
+    "worldScale": 16
   },
   "Level 3": {
     "initialHP": 50,
-    "initialEnergy": 10,
-    "initialScrap": 10,
-    "maxEnergy": 50,
-    "regenRate": 120,
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
-    "mapPath": "res/sprite/maps/map_test_level.png"
+    "mapPath": "res/sprite/maps/MapTest.png",
+    "mapScale": 1,
+    "heroWidth": 1,
+    "heroHeight": 1,
+    "playerScale": 1,
+    "playerOffsetY": 0,
+    "worldScale": 16
   }
 }

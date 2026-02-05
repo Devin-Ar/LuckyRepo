@@ -61,25 +61,24 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     <Game3Simulation vm={vm} width={VIRTUAL_W} height={VIRTUAL_H}/>
                 </Stage>
 
-                {/* UI Layer */}
-                <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                    <Game3HUD
-                        stats={stats}
-                        onAction={(type, val) => controller.modifyStat(type as any, val)}
-                        onJumpG1={controller.jumpToGame1}
-                        onLevel1={() => controller.loadLevel(Game3Level.Level1)}
-                        onLevel2={() => controller.loadLevel(Game3Level.Level2)}
-                        onLevel3={() => controller.loadLevel(Game3Level.Level3)}
-                        onQuickLoad={() => controller.resetLevel()}
-                    />
-                </div>
-
                 {/* Cinematic Overlays */}
                 <div style={{
                     position: 'absolute', inset: 0, pointerEvents: 'none',
                     boxShadow: `inset 0 0 ${120 + visuals.vignettePulse * 40}px rgba(0,0,0,0.9)`,
                     mixBlendMode: 'multiply'
                 }}/>
+
+                {/* HUD Layer */}
+                <Game3HUD
+                    stats={stats}
+                    onAction={(type, val) => {
+                        if (type === 'MOD_HP') controller.modifyHP(val || 0);
+                    }}
+                    onLevel1={() => controller.loadLevel(Game3Level.Level1)}
+                    onLevel2={() => controller.loadLevel(Game3Level.Level2)}
+                    onLevel3={() => controller.loadLevel(Game3Level.Level3)}
+                    onQuickLoad={() => controller.resetLevel()}
+                />
             </div>
         </div>
     );

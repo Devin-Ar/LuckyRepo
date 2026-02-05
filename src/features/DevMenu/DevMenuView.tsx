@@ -1,8 +1,4 @@
 import React, {useState} from 'react';
-import {Game1State} from '../Game1/model/Game1State';
-import {Game1Level} from '../Game1/model/Game1Config';
-import {Game2State} from '../Game2/model/Game2State';
-import {Game2Level} from '../Game2/model/Game2Config';
 import {Game3State} from '../Game3/model/Game3State';
 import {Game3Level} from '../Game3/model/Game3Config';
 import {StateManager} from '../../core/managers/StateManager';
@@ -107,7 +103,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
 
     const handleNav = (StateClass: any, reset: boolean, level: any) => {
         const target = new StateClass(reset, level);
-        const loadingConfig = StateClass === Game1State ? {view: DemoLoadingView} : {};
+        const loadingConfig = StateClass === Game3State ? {view: DemoLoadingView} : {};
         StateManager.getInstance().replace(target, loadingConfig);
     };
 
@@ -150,31 +146,6 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({onNavigate, res, setRes
                         gap: '1.5cqw',
                         marginTop: '2cqw'
                     }}>
-                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_01
-                            </div>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
-                                <DevButton label="LVL 1" onClick={() => handleNav(Game1State, true, Game1Level.Level1)}
-                                           color="#27ae60"/>
-                                <DevButton label="LVL 2" onClick={() => handleNav(Game1State, true, Game1Level.Level2)}
-                                           color="#2980b9"/>
-                                <DevButton label="LVL 3" onClick={() => handleNav(Game1State, true, Game1Level.Level3)}
-                                           color="#8e44ad"/>
-                            </div>
-                        </div>
-
-                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_02
-                            </div>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
-                                <DevButton label="LVL 1" onClick={() => handleNav(Game2State, true, Game2Level.Level1)}
-                                           color="#c0392b"/>
-                                <DevButton label="LVL 2" onClick={() => handleNav(Game2State, true, Game2Level.Level2)}
-                                           color="#d35400"/>
-                                <DevButton label="LVL 3" onClick={() => handleNav(Game2State, true, Game2Level.Level3)}
-                                           color="#f39c12"/>
-                            </div>
-                        </div>
 
                         <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
                             <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>MODULE: GAME_03

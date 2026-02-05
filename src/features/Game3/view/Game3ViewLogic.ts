@@ -10,42 +10,41 @@ export class Game3ViewLogic extends BaseViewLogic {
     public update(dt: number, frameCount: number) {
         if (!this.hasBuffers()) return;
 
-        // Read from Logic Buffer
-        const currentHp = this.logicView[Game3LogicSchema.HERO_HP];
-        const currentEnergy = this.logicView[Game3LogicSchema.ENERGY];
+        const L = Game3LogicSchema;
+        const V = Game3ViewSchema;
 
-        // Detect HP drop for visual effect
-        if (this.lastHp !== -1 && currentHp < this.lastHp) {
+        // 1. Read from Logic
+        const hp = this.logicView[L.HERO_HP];
+
+        // 2. Visual Effects
+        if (this.lastHp !== -1 && hp < this.lastHp) {
             this.glitchIntensity = 1.0;
         }
-        this.lastHp = currentHp;
-        this.glitchIntensity *= 0.92; // Decay
+        this.lastHp = hp;
+        this.glitchIntensity *= 0.92;
 
-        // Write to View Buffer (Interpolation target)
-        this.outputView[Game3ViewSchema.HERO_HP_DISPLAY] = currentHp;
-        this.outputView[Game3ViewSchema.ENERGY_DISPLAY] = currentEnergy;
-        this.outputView[Game3ViewSchema.SCRAP_DISPLAY] = this.logicView[Game3LogicSchema.SCRAP_COUNT];
-
-        // Pass through coordinates (add Lerp here if smoother movement desired)
-        this.outputView[Game3ViewSchema.HERO_X] = this.logicView[Game3LogicSchema.HERO_X];
-        this.outputView[Game3ViewSchema.HERO_Y] = this.logicView[Game3LogicSchema.HERO_Y];
-
-        // Pass through animation states
-        this.outputView[Game3ViewSchema.HERO_ANIM_FRAME] = this.logicView[Game3LogicSchema.HERO_ANIM_FRAME];
-        this.outputView[Game3ViewSchema.HERO_FLIP] = this.logicView[Game3LogicSchema.HERO_FLIP];
-        this.outputView[Game3ViewSchema.HERO_WIDTH] = this.logicView[Game3LogicSchema.HERO_WIDTH];
-        this.outputView[Game3ViewSchema.HERO_HEIGHT] = this.logicView[Game3LogicSchema.HERO_HEIGHT];
-        this.outputView[Game3ViewSchema.HERO_ANIM_STATE] = this.logicView[Game3LogicSchema.HERO_ANIM_STATE];
-
-        // Calculate Visual Effects
         const timeFactor = dt / 16.67;
         this.uiBounce += 0.05 * timeFactor;
-        const pulseSpeed = currentEnergy < 20 ? 0.15 : 0.05;
-        const vignettePulse = 0.5 + Math.sin(frameCount * pulseSpeed) * 0.2;
+        const vignettePulse = 0.5 + Math.sin(frameCount * 0.05) * 0.2;
 
-        this.outputView[Game3ViewSchema.UI_BOUNCE] = Math.sin(this.uiBounce) * 5;
-        this.outputView[Game3ViewSchema.GLITCH_INTENSITY] = this.glitchIntensity;
-        this.outputView[Game3ViewSchema.VIGNETTE_PULSE] = vignettePulse;
+        // 3. Write to View
+        this.outputView[V.HERO_X] = this.logicView[L.HERO_X];
+        this.outputView[V.HERO_Y] = this.logicView[L.HERO_Y];
+        this.outputView[V.HERO_HP] = hp;
+
+        this.outputView[V.HERO_ANIM_FRAME] = this.logicView[L.HERO_ANIM_FRAME];
+        this.outputView[V.HERO_FLIP] = this.logicView[L.HERO_FLIP];
+        this.outputView[V.HERO_ANIM_STATE] = this.logicView[L.HERO_ANIM_STATE];
+        this.outputView[V.HERO_WIDTH] = this.logicView[L.HERO_WIDTH];
+        this.outputView[V.HERO_HEIGHT] = this.logicView[L.HERO_HEIGHT];
+
+        this.outputView[V.WORLD_SCALE] = this.logicView[L.WORLD_SCALE];
+        this.outputView[V.PLAYER_SCALE] = this.logicView[L.PLAYER_SCALE];
+        this.outputView[V.PLAYER_OFFSET_Y] = this.logicView[L.PLAYER_OFFSET_Y];
+
+        this.outputView[V.UI_BOUNCE] = Math.sin(this.uiBounce) * 5;
+        this.outputView[V.GLITCH_INTENSITY] = this.glitchIntensity;
+        this.outputView[V.VIGNETTE_PULSE] = vignettePulse;
     }
 
     public override getSnapshot() {

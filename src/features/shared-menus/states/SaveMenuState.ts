@@ -4,16 +4,16 @@ import { MenuState } from '../../../core/templates/MenuState';
 import { StateManager } from '../../../core/managers/StateManager';
 import { SaveManager } from '../../../core/managers/SaveManager';
 import { SaveSlotView } from '../views/SaveSlotView';
-import { Game1State } from '../../Game1/model/Game1State';
-import { Game2State } from '../../Game2/model/Game2State';
+//import { Game1State } from '../../Game1/model/Game1State';
+//import { Game2State } from '../../Game2/model/Game2State';
 
 export class SaveMenuState extends MenuState {
     public name = "SaveMenu";
 
-    private stateRegistry: Record<string, any> = {
-        "Game1": Game1State,
-        "Game2": Game2State
-    };
+   private stateRegistry: Record<string, any> = {
+       //"Game1": Game1State,
+       //"Game2": Game2State
+   };
 
     public getView(): JSX.Element {
         const sm = StateManager.getInstance();

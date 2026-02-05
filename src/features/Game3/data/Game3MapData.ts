@@ -9,6 +9,6 @@ export interface PlatformData {
 
 export interface ParsedMapData {
     platforms: PlatformData[];
-    playerStart: { x: number; y: number };
+    playerStart: { x: number; y: number; width?: number; height?: number };
     exit?: { x: number; y: number; width: number; height: number };
 }

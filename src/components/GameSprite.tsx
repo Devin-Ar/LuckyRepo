@@ -9,18 +9,24 @@ interface Props {
     imageName?: string;
     x: number;
     y: number;
+    width?: number;
+    height?: number;
     scale?: number;
     rotation?: number;
     anchor?: number | [number, number];
     isPlaying?: boolean;
     currentFrame?: number;
+    roundPixels?: boolean;
+    flipX?: boolean;
 }
 
 export const GameSprite = ({
                                sheetName, animationName, imageName,
-                               x, y, scale = 1, rotation = 0, anchor = 0.5,
+                               x, y, width, height, scale, rotation = 0, anchor = 0.5,
                                isPlaying = true,
-                               currentFrame = 0
+                               currentFrame = 0,
+                               roundPixels = false,
+                               flipX = false
                            }: Props) => {
     const manager = SpriteManager.getInstance();
     const spriteRef = useRef<PIXI.AnimatedSprite>(null);
@@ -43,8 +49,12 @@ export const GameSprite = ({
         }
     }, [currentFrame, frames]);
 
+    const finalWidth = width !== undefined ? (flipX ? -width : width) : undefined;
+    const ax = typeof anchor === 'number' ? anchor : (Array.isArray(anchor) ? anchor[0] : 0.5);
+    const finalX = (flipX && width !== undefined) ? x + (1 - 2 * ax) * width : x;
+
     if (imageName && staticTexture) {
-        return <Sprite texture={staticTexture} x={x} y={y} scale={scale} rotation={rotation} anchor={anchor}/>;
+        return <Sprite texture={staticTexture} x={finalX} y={y} width={finalWidth} height={height} scale={scale} rotation={rotation} anchor={anchor} roundPixels={roundPixels}/>;
     }
 
     if (frames && frames.length > 0) {
@@ -53,11 +63,14 @@ export const GameSprite = ({
                 ref={spriteRef}
                 textures={frames}
                 isPlaying={false}
-                x={x}
+                x={finalX}
                 y={y}
+                width={finalWidth}
+                height={height}
                 scale={scale}
                 rotation={rotation}
                 anchor={anchor}
+                roundPixels={roundPixels}
             />
         );
     }

@@ -1,6 +1,6 @@
 // src/workers/view.worker.ts
-import {Game1ViewLogic} from '../features/Game1/view/Game1ViewLogic';
-import {Game2ViewLogic} from '../features/Game2/view/Game2ViewLogic';
+//import {Game1ViewLogic} from '../features/Game1/view/Game1ViewLogic';
+//import {Game2ViewLogic} from '../features/Game2/view/Game2ViewLogic';
 import {Game3ViewLogic} from '../features/Game3/view/Game3ViewLogic';
 
 let logicView: Float32Array;
@@ -36,8 +36,8 @@ self.onmessage = (e: MessageEvent) => {
                 console.log(`[ViewWorker] Created ViewLogic for: ${stateName}`);
                 let instance;
 
-                if (stateName === 'Game1') instance = new Game1ViewLogic();
-                if (stateName === 'Game2') instance = new Game2ViewLogic();
+                //if (stateName === 'Game1') instance = new Game1ViewLogic();
+                //if (stateName === 'Game2') instance = new Game2ViewLogic();
                 if (stateName === 'Game3') instance = new Game3ViewLogic();
 
                 if (instance) {

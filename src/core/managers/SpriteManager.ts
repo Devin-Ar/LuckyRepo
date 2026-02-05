@@ -37,6 +37,7 @@ export class SpriteManager {
 
         for (const [sheetName, config] of Object.entries(data.spritesheets) as any) {
             const baseTexture = await PIXI.Assets.load(config.url);
+            baseTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
             currentStateKeys.add(config.url);
 
@@ -64,6 +65,7 @@ export class SpriteManager {
         if (data.images) {
             for (const [name, path] of Object.entries(data.images) as any) {
                 const texture = await PIXI.Assets.load(path);
+                texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
                 this.textures.set(name, texture);
                 currentStateKeys.add(name);
                 currentStateKeys.add(path);
