@@ -42,10 +42,8 @@ export class BHPresenter extends BasePresenter {
         const offset = BHViewSchema.ROCKS_START_INDEX + (index * BHViewSchema.ROCK_STRIDE);
         return {
             primedMode: this.sharedView[offset + 3] || 0,
-            startX: this.sharedView[offset + 4] || 0,
-            startY: this.sharedView[offset + 5] || 0,
-            endX: this.sharedView[offset + 6] || 0,
-            endY: this.sharedView[offset + 7] || 0
+            endX: this.sharedView[offset + 4] || 0,
+            endY: this.sharedView[offset + 5] || 0
         };
     }
 }

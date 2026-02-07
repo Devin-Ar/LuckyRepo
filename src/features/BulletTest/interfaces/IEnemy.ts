@@ -12,7 +12,6 @@ export interface IContactEnemy extends IEntity {
     moveSpeed: number;
     contactDamage: number;
     wave: number;              // 0 | 1 | 2
-    seed: number;
 }
 
 // Ranged Enemy
@@ -30,7 +29,6 @@ export interface IRangedEnemy extends IEntity {
     projectileType: string;    // 'single' | 'spread3' | 'ring8'
     projectileDamage: number;
     wave: number;              // 0 | 1 | 2
-    seed: number;
 }
 
 // Union

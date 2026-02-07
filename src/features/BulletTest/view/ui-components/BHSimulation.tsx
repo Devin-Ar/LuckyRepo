@@ -145,6 +145,7 @@ const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
         for (let i = 0; i < currentCount; i++) {
             const graphic = pool[i];
             const data = vm.getRockAttackData(i);
+            const data2 = vm.getRockViewData(i);
 
             if (!data || paused) {
                 if (graphic) graphic.visible = false;
@@ -155,7 +156,7 @@ const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
                 graphic.visible = true;
                 graphic.clear();
                 graphic.lineStyle(30, 0xff0000);
-                graphic.moveTo(data.startX, data.startY);
+                graphic.moveTo(data2.x, data2.y);
                 graphic.lineTo(data.endX, data.endY);
             } else {
                 graphic.visible = false;

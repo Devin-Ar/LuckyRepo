@@ -12,7 +12,7 @@ export const BHViewSchema: IBuffer = {
     ACTIVE_ROCK_COUNT: 8,
 
     ROCKS_START_INDEX: 10,
-    ROCK_STRIDE: 8,
+    ROCK_STRIDE: 6,
 
     BUFFER_SIZE: 4096
 };
