@@ -1,6 +1,7 @@
 import { IPlayer } from '../IPlayer';
 import { BHConfig } from "../../model/BHConfig";
 import { IHitbox } from "../IEntity";
+import {playerProjectile} from "./baseProjectile";
 
 export class basePlayer implements IPlayer {
     private static instance: basePlayer;
@@ -19,6 +20,7 @@ export class basePlayer implements IPlayer {
 
     private currentFrame: number = 0;
     private lastHitFrame: number = 0;
+    private bulletTime: number = Date.now();
     private fireFlag: boolean = false;
     private config: any;
 
@@ -74,6 +76,10 @@ export class basePlayer implements IPlayer {
         return chalEnd;
     }
 
+    public fireProjectile(inputState: any, config: BHConfig): playerProjectile {
+        return new playerProjectile(this.x, this.y, inputState, config);
+    }
+
     public updatePlayer(inputState: any, config: BHConfig, frameCount: number): void {
         this.currentFrame = frameCount;
         this.update(inputState, config);
@@ -81,7 +87,7 @@ export class basePlayer implements IPlayer {
 
     //This one in particular should be private, might need refactoring if we want this to be more clean...
     public update(inputState: any, config: BHConfig): void {
-        const actions = inputState;
+        const actions = inputState.actions;
         if (actions === undefined) return;
         let targetVx = 0;
         let targetVy = 0;
@@ -90,6 +96,11 @@ export class basePlayer implements IPlayer {
         if (actions.includes('MOVE_DOWN')) targetVy = this.moveSpeed;
         if (actions.includes('MOVE_LEFT')) targetVx = -this.moveSpeed;
         if (actions.includes('MOVE_RIGHT')) targetVx = this.moveSpeed;
+
+        if (inputState.isMouseDown && this.bulletTime + 250 < Date.now()) {
+            this.bulletTime = Date.now();
+            this.fireFlag = true;
+        }
 
         this.setMovement(targetVx, targetVy);
 

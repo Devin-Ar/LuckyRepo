@@ -6,12 +6,13 @@ import {BHCommands} from './BHCommands';
 import {BHConfig} from '../model/BHConfig';
 import {basePlayer} from '../interfaces/baseInterfaces/basePlayer';
 import {baseEntity, RockEntity} from '../interfaces/baseInterfaces/baseEntity';
+import {playerProjectile} from "../interfaces/baseInterfaces/baseProjectile";
 
 export class BHTestLogic extends BaseLogic<BHConfig> {
     protected dispatcher: BaseDispatcher<BHTestLogic>;
     private player: basePlayer;
     private entities: baseEntity[] = [];
-    private playerProjectiles: baseEntity[] = [];
+    private playerProjectiles: playerProjectile[] = [];
     private evilProjectils: baseEntity[] = [];
     private currentFrame: number = 0;
 
@@ -33,6 +34,8 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     public override destroy(): void {
         super.destroy();
         this.entities = [];
+        this.playerProjectiles = [];
+        this.evilProjectils = [];
     }
 
     public override getSnapshot(): any {
@@ -61,16 +64,21 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         if (!this.config) return;
         this.currentFrame = frameCount;
 
-        (this.player as basePlayer).updatePlayer(this.inputState.actions, this.config, frameCount);
+        (this.player as basePlayer).updatePlayer(this.inputState, this.config, frameCount);
 
         for (const entity of this.entities) {
             entity.update(this.player, this.config);
         }
 
         if ((this.player as basePlayer).playerAction()) {
-
+            this.playerProjectiles.push((this.player as basePlayer).fireProjectile(this.inputState, this.config));
         }
 
+        for (const proj of this.playerProjectiles) {
+            proj.update(this.player, this.config);
+        }
+
+        this.playerProjectiles = this.playerProjectiles.filter(proj => proj.active);
 
         this.syncToSAB(sharedView, frameCount, fps);
     }
@@ -91,6 +99,12 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
 
         this.entities.forEach((r, i) => {
             const base = BHLogicSchema.ROCKS_START_INDEX + (i * BHLogicSchema.ROCK_STRIDE);
+            r.syncToSAB(sharedView, base);
+        });
+
+        sharedView[BHLogicSchema.PPROJ_START_INDEX - 1] = this.playerProjectiles.length;
+        this.playerProjectiles.forEach((r, i) => {
+            const base = BHLogicSchema.PPROJ_START_INDEX + (i * BHLogicSchema.PPROJ_STRIDE);
             r.syncToSAB(sharedView, base);
         });
     }

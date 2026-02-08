@@ -46,6 +46,17 @@ export class BHViewLogic extends BaseViewLogic {
             this.outputView[vBase + 6] = this.logicView[lBase + 6];
             this.outputView[vBase + 7] = this.logicView[lBase + 7];
         }
+
+        const projCount = this.logicView[BHLogicSchema.PPROJ_START_INDEX-1];
+        this.outputView[BHLogicSchema.PPROJ_START_INDEX-1] = projCount;
+        for (let i = 0; i < projCount; i++) {
+            const lBase = BHLogicSchema.PPROJ_START_INDEX + (i * BHLogicSchema.PPROJ_STRIDE);
+            const vBase = BHViewSchema.PPROJ_START_INDEX + (i * BHViewSchema.PPROJ_STRIDE);
+
+            this.outputView[vBase] = this.logicView[lBase];
+            this.outputView[vBase + 1] = this.logicView[lBase + 1];
+
+        }
     }
 
     public override getSnapshot() {
