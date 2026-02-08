@@ -76,11 +76,9 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
 
         for (const proj of this.playerProjectiles) {
             proj.update(this.player, this.config);
-            proj.collided(this.entities);
         }
 
         this.playerProjectiles = this.playerProjectiles.filter(proj => proj.active);
-        this.entities = this.entities.filter(proj => proj.active);
 
         this.syncToSAB(sharedView, frameCount, fps);
     }

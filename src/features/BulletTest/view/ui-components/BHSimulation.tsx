@@ -207,6 +207,7 @@ const PlayerProjPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
 
         for (let i = 0; i < currentCount; i++) {
             const graphic = pool[i];
+            console.log("reached here");
             const data = vm.getPlayerProjData(i);
             if (!data || paused) {
                 if (graphic) graphic.visible = false;
