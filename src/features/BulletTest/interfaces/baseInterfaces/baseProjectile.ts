@@ -2,6 +2,7 @@ import {IHitbox} from "../IEntity";
 import {basePlayer} from "./basePlayer";
 import {BHConfig} from "../../model/BHConfig";
 import {IProjectile} from "../IProjectile";
+import {baseEntity} from "./baseEntity";
 
 export abstract class baseProjectile implements IProjectile {
     seed: number;
@@ -32,6 +33,19 @@ export abstract class baseProjectile implements IProjectile {
 
     abstract update(player: basePlayer, config: BHConfig): void;
 
+    collided(entity: baseEntity[]) {
+        //this does NOT handle when projectiles are bigger than the entity
+        for (const holder of entity) {
+            if (!this.active) break;
+            if (!holder.active) continue;
+            if (this.x < holder.x + holder.width && this.x + this.width > holder.x &&
+                this.y < holder.y + holder.height && this.y + this.height > holder.y) {
+                holder.modifyHP(this.damage);
+                this.active = false;
+            }
+            if (holder.health <= 0) holder.active = false;
+        }
+    }
 }
 
 export class playerProjectile extends baseProjectile {
@@ -46,7 +60,7 @@ export class playerProjectile extends baseProjectile {
         this.playerRelative = Math.atan2(dy, dx);
         this.vx = Math.cos(this.playerRelative) * this.speed;
         this.vy = Math.sin(this.playerRelative) * this.speed;
-        this.damage = -0.2;
+        this.damage = -20;
         this.height = 20;
         this.width = 20;
     }

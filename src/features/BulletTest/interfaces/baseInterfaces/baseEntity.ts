@@ -9,6 +9,7 @@ export abstract class baseEntity implements IEntity {
     hitbox: IHitbox;
     seed: number;
     width: number;
+    health: number;
     x: number;
     y: number;
     vx: number;
@@ -19,6 +20,7 @@ export abstract class baseEntity implements IEntity {
         this.y = 0;
         this.vx = 0;
         this.vy = 0;
+        this.health = 0;
         this.hitbox = {offsetX: 0, offsetY: 0}
         this.height = 0;
         this.width = 0;
@@ -30,6 +32,14 @@ export abstract class baseEntity implements IEntity {
     abstract update(player: basePlayer, config: BHConfig): void;
     abstract orientation(player: basePlayer): void;
     abstract syncToSAB(sharedView: Float32Array, base: number): void;
+    modifyHP(points: number) {
+        if (this.active) {
+            this.health += points;
+        }
+        if (this.health < 0) {
+            this.active = false;
+        }
+    }
 }
 
 //We should move this to a separate file
@@ -43,6 +53,9 @@ export class RockEntity extends baseEntity {
         super();
         this.x = x;
         this.y = y;
+        this.width = 50;
+        this.height = 52;
+        this.health = 100;
         this.timeElapsed = Date.now() + Math.random() * 1000;
         this.atkBox = { eX: 0, eY: 0 };
         this.followRun = false;
