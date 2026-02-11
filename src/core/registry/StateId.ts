@@ -1,6 +1,7 @@
 export enum StateId {
     GAME_1 = "Game1",
     GAME_2 = "Game2",
+    GAME_3 = "Game3",
     BH_GAME = "BHGame",
     DEV_MENU = "DevMenu",
     PAUSE_MENU = "PauseMenu",

@@ -67,6 +67,7 @@ interface DevMenuViewProps {
 export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRes }) => {
     const game1 = StateRegistry.get(StateId.GAME_1);
     const game2 = StateRegistry.get(StateId.GAME_2);
+    const game3 = StateRegistry.get(StateId.GAME_3);
     const bhGame = StateRegistry.get(StateId.BH_GAME);
 
     const [vols, setVols] = useState(controller.getInitialVolumes());
@@ -186,6 +187,29 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                                     label="LVL 3"
                                     onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[2]?.params)}
                                     color="#f39c12"
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                            <div style={{fontSize: '0.8cqw', color: '#00d2ff', marginBottom: '0.5cqw'}}>
+                                MODULE: {game3?.displayName.toUpperCase() ?? "GAME_03"}
+                            </div>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                                <DevButton
+                                    label="LVL 1"
+                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[0]?.params)}
+                                    color="#0984e3"
+                                />
+                                <DevButton
+                                    label="LVL 2"
+                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[1]?.params)}
+                                    color="#6c5ce7"
+                                />
+                                <DevButton
+                                    label="LVL 3"
+                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[2]?.params)}
+                                    color="#a29bfe"
                                 />
                             </div>
                         </div>

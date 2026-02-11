@@ -14,6 +14,8 @@ import {ContinueState} from "../features/shared-menus/states/ContinueState";
 import {GameOverState} from "../features/shared-menus/states/GameOverState";
 import {BHState} from "../features/BulletTest/model/BHState";
 import {BHLevel} from "../features/BulletTest/model/BHConfig";
+import {Game3State} from "../features/Game3/model/Game3State";
+import {Game3Level} from "../features/Game3/model/Game3Config";
 
 export const initializeStateRegistry = () => {
     StateRegistry.register({
@@ -37,6 +39,19 @@ export const initializeStateRegistry = () => {
             { label: "LVL 1", params: { level: Game2Level.Level1 } },
             { label: "LVL 2", params: { level: Game2Level.Level2 } },
             { label: "LVL 3", params: { level: Game2Level.Level3 } }
+        ]
+    });
+
+    StateRegistry.register({
+        id: StateId.GAME_3,
+        displayName: "G3 Code Run",
+        type: 'GAME',
+        factory: (p) => new Game3State(p?.reset ?? false, p?.level ?? Game3Level.Level1),
+        presets: [
+            { label: "LVL 1", params: { level: Game3Level.Level1 } },
+            { label: "LVL 2", params: { level: Game3Level.Level2 } },
+            { label: "LVL 3", params: { level: Game3Level.Level3 } },
+            { label: "LVL 4", params: { level: Game3Level.Level4 } }
         ]
     });
 

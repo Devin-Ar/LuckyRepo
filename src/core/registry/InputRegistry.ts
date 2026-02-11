@@ -18,5 +18,11 @@ export const INPUT_REGISTRY: Record<string, Record<string, string[]>> = {
         "MOVE_DOWN": ["S", "ARROWDOWN"],
         "MOVE_LEFT": ["A", "ARROWLEFT"],
         "MOVE_RIGHT": ["D", "ARROWRIGHT"],
+    },
+    "Game3": {
+        "MOVE_LEFT": ["A", "ARROWLEFT"],
+        "MOVE_RIGHT": ["D", "ARROWRIGHT"],
+        "MOVE_DOWN": ["S", "ARROWDOWN"],
+        "JUMP": ["W", "ARROWUP", " "]
     }
 };
