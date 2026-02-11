@@ -1,5 +1,5 @@
-// src/features/Game1/model/Game1ViewSchema.ts
-import {IBuffer} from "../../../core/interfaces/IBuffer";
+// src/features/BulletTest/model/BHViewSchema.ts
+import { IBuffer } from "../../../core/interfaces/IBuffer";
 
 export const BHViewSchema: IBuffer = {
     HERO_X: 0,
@@ -11,9 +11,15 @@ export const BHViewSchema: IBuffer = {
 
     ACTIVE_ROCK_COUNT: 8,
 
-    ROCKS_START_INDEX: 10,
+    // Wave display
+    CURRENT_WAVE: 9,
+    TOTAL_WAVES: 12,
+    WAVE_STATE: 13,
+    WAVE_DELAY_TIMER: 14,
+
+    ROCKS_START_INDEX: 20,
     ROCK_STRIDE: 6,
-    PPROJ_START_INDEX: 75,
+    PPROJ_START_INDEX: 200,
     PPROJ_STRIDE: 2,
 
     BUFFER_SIZE: 4096

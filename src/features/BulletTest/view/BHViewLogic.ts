@@ -1,7 +1,7 @@
-// src/features/Game1/view/Game1ViewLogic.ts
-import {BHLogicSchema} from '../model/BHLogicSchema';
-import {BHViewSchema} from '../model/BHViewSchema';
-import {BaseViewLogic} from '../../../core/templates/BaseViewLogic';
+// src/features/BulletTest/view/BHViewLogic.ts
+import { BHLogicSchema } from '../model/BHLogicSchema';
+import { BHViewSchema } from '../model/BHViewSchema';
+import { BaseViewLogic } from '../../../core/templates/BaseViewLogic';
 
 export class BHViewLogic extends BaseViewLogic {
     private heroRotation: number = 0;
@@ -43,20 +43,23 @@ export class BHViewLogic extends BaseViewLogic {
             this.outputView[vBase + 3] = this.logicView[lBase + 3];
             this.outputView[vBase + 4] = this.logicView[lBase + 4];
             this.outputView[vBase + 5] = this.logicView[lBase + 5];
-            this.outputView[vBase + 6] = this.logicView[lBase + 6];
-            this.outputView[vBase + 7] = this.logicView[lBase + 7];
         }
 
-        const projCount = this.logicView[BHLogicSchema.PPROJ_START_INDEX-1];
-        this.outputView[BHLogicSchema.PPROJ_START_INDEX-1] = projCount;
+        // Projectiles
+        const projCount = this.logicView[BHLogicSchema.PPROJ_START_INDEX - 1];
+        this.outputView[BHViewSchema.PPROJ_START_INDEX - 1] = projCount;
         for (let i = 0; i < projCount; i++) {
             const lBase = BHLogicSchema.PPROJ_START_INDEX + (i * BHLogicSchema.PPROJ_STRIDE);
             const vBase = BHViewSchema.PPROJ_START_INDEX + (i * BHViewSchema.PPROJ_STRIDE);
-
             this.outputView[vBase] = this.logicView[lBase];
             this.outputView[vBase + 1] = this.logicView[lBase + 1];
-
         }
+
+        // Wave state passthrough
+        this.outputView[BHViewSchema.CURRENT_WAVE] = this.logicView[BHLogicSchema.CURRENT_WAVE];
+        this.outputView[BHViewSchema.TOTAL_WAVES] = this.logicView[BHLogicSchema.TOTAL_WAVES];
+        this.outputView[BHViewSchema.WAVE_STATE] = this.logicView[BHLogicSchema.WAVE_STATE];
+        this.outputView[BHViewSchema.WAVE_DELAY_TIMER] = this.logicView[BHLogicSchema.WAVE_DELAY_TIMER];
     }
 
     public override getSnapshot() {

@@ -1,9 +1,14 @@
-// src/features/Game1/view/ui-components/Game1HUD.tsx
+// src/features/BulletTest/view/ui-components/BH_HUD.tsx
 import React from 'react';
 
 interface HUDProps {
     hp: number;
     rockCount: number;
+    currentWave: number;
+    totalWaves: number;
+    waveState: string;
+    waveDelayTimer: number;
+    isRoomCleared: boolean;
     shieldBarRef: React.RefObject<HTMLDivElement>;
     shieldTextRef: React.RefObject<HTMLSpanElement>;
     damageBtnRef: React.RefObject<HTMLButtonElement>;
@@ -16,7 +21,8 @@ interface HUDProps {
 }
 
 export const BH_HUD: React.FC<HUDProps> = ({
-                                               hp, rockCount, shieldBarRef, shieldTextRef, damageBtnRef,
+                                               hp, rockCount, currentWave, totalWaves, waveState, waveDelayTimer, isRoomCleared,
+                                               shieldBarRef, shieldTextRef, damageBtnRef,
                                                onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onResetG1
                                            }) => {
     const btnStyle: React.CSSProperties = {
@@ -32,75 +38,125 @@ export const BH_HUD: React.FC<HUDProps> = ({
         textAlign: 'center'
     };
 
+    const getWaveStatusText = (): string => {
+        if (isRoomCleared) return 'ROOM CLEARED!';
+        if (waveState === 'DELAY') return `NEXT WAVE IN ${Math.ceil(waveDelayTimer / 60)}s`;
+        if (waveState === 'ACTIVE') return `ENEMIES: ${rockCount}`;
+        if (waveState === 'CLEARED') return 'WAVE CLEARED!';
+        return 'STANDBY';
+    };
+
+    const getWaveStatusColor = (): string => {
+        if (isRoomCleared) return '#f1c40f';
+        if (waveState === 'DELAY') return '#e67e22';
+        if (waveState === 'ACTIVE') return '#e74c3c';
+        if (waveState === 'CLEARED') return '#2ecc71';
+        return '#888';
+    };
+
     return (
-        <div style={{position: 'absolute', inset: 0, pointerEvents: 'none', containerType: 'size'}}>
-            <div
-                style={{position: 'absolute', top: '5cqh', left: '50%', transform: 'translateX(-50%)', width: '35cqw'}}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', containerType: 'size' }}>
+
+            {/* Shield Bar - Top Center */}
+            <div style={{
+                position: 'absolute', top: '5cqh', left: '50%',
+                transform: 'translateX(-50%)', width: '35cqw'
+            }}>
                 <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    color: '#fff',
-                    marginBottom: '0.5cqh',
-                    fontWeight: 'bold',
-                    fontFamily: 'monospace',
-                    fontSize: '1.2cqw'
+                    display: 'flex', justifyContent: 'space-between',
+                    color: '#fff', marginBottom: '0.5cqh',
+                    fontWeight: 'bold', fontFamily: 'monospace', fontSize: '1.2cqw'
                 }}>
                     <span>SHIELD ENERGY</span>
                     <span ref={shieldTextRef}>{Math.round(hp)}%</span>
                 </div>
                 <div style={{
-                    width: '100%',
-                    height: '2cqh',
-                    backgroundColor: '#222',
-                    borderRadius: '1cqw',
-                    border: '0.2cqw solid #fff',
-                    overflow: 'hidden'
+                    width: '100%', height: '2cqh', backgroundColor: '#222',
+                    borderRadius: '1cqw', border: '0.2cqw solid #fff', overflow: 'hidden'
                 }}>
                     <div ref={shieldBarRef} style={{
-                        width: `${Math.max(0, hp)}%`,
-                        height: '100%',
+                        width: `${Math.max(0, hp)}%`, height: '100%',
                         backgroundColor: hp < 30 ? '#c0392b' : '#27ae60'
-                    }}/>
+                    }} />
                 </div>
             </div>
 
+            {/* Wave Info - Top Right */}
             <div style={{
-                position: 'absolute',
-                top: '3cqh',
-                right: '3cqw',
-                color: '#fff',
-                fontFamily: 'monospace',
-                textAlign: 'right',
-                fontSize: '1.2cqw'
+                position: 'absolute', top: '3cqh', right: '3cqw',
+                color: '#fff', fontFamily: 'monospace', textAlign: 'right', fontSize: '1.2cqw'
             }}>
-                ROCKS_ACTIVE: {rockCount}
+                <div style={{
+                    color: getWaveStatusColor(),
+                    fontSize: '1.4cqw', fontWeight: 'bold', marginBottom: '0.5cqh'
+                }}>
+                    WAVE {currentWave + 1} / {totalWaves}
+                </div>
+                <div style={{ color: getWaveStatusColor(), fontSize: '1cqw' }}>
+                    {getWaveStatusText()}
+                </div>
+                <div style={{ color: '#888', fontSize: '0.8cqw', marginTop: '0.3cqh' }}>
+                    ENEMIES_ACTIVE: {rockCount}
+                </div>
             </div>
 
+            {/* Room Cleared Banner - Center */}
+            {isRoomCleared && (
+                <div style={{
+                    position: 'absolute', top: '40%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    color: '#f1c40f', fontFamily: 'monospace',
+                    fontSize: '3cqw', fontWeight: 'bold',
+                    textShadow: '0 0 20px rgba(241, 196, 60, 0.6)',
+                    textAlign: 'center', letterSpacing: '0.3cqw'
+                }}>
+                    ALL WAVES CLEARED
+                    <div style={{ fontSize: '1.2cqw', color: '#fff', marginTop: '1cqh' }}>
+                        ROOM SECURED
+                    </div>
+                </div>
+            )}
+
+            {/* Delay Countdown Overlay - Center (during delay phase) */}
+            {waveState === 'DELAY' && waveDelayTimer > 0 && (
+                <div style={{
+                    position: 'absolute', top: '35%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    color: '#e67e22', fontFamily: 'monospace',
+                    fontSize: '2cqw', fontWeight: 'bold',
+                    textShadow: '0 0 15px rgba(230, 126, 34, 0.5)',
+                    textAlign: 'center', opacity: 0.9
+                }}>
+                    WAVE {currentWave + 1} INCOMING
+                    <div style={{ fontSize: '4cqw', color: '#fff', marginTop: '0.5cqh' }}>
+                        {Math.ceil(waveDelayTimer / 60)}
+                    </div>
+                </div>
+            )}
+
+            {/* Dev Controls - Bottom Left */}
             <div style={{
-                position: 'absolute',
-                top: '3cqh',
-                left: '3cqw',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1cqh'
+                position: 'absolute', top: '3cqh', left: '3cqw',
+                display: 'flex', flexDirection: 'column', gap: '1cqh'
             }}>
                 <button ref={damageBtnRef} onClick={onDamage}
-                        style={{...btnStyle, background: '#333', border: '0.1cqw solid #fff'}}>
+                        style={{ ...btnStyle, background: '#333', border: '0.1cqw solid #fff' }}>
                     TAKE DAMAGE (-15)
                 </button>
 
-                <div style={{display: 'flex', gap: '0.5cqw'}}>
-                    <button onClick={onLevel1} style={{...btnStyle, background: '#408240', flex: 1}}>LVL 1</button>
-                    <button onClick={onLevel2} style={{...btnStyle, background: '#C29F19', flex: 1}}>LVL 2</button>
-                    <button onClick={onLevel3} style={{...btnStyle, background: '#C21919', flex: 1}}>LVL 3</button>
+                <div style={{ display: 'flex', gap: '0.5cqw' }}>
+                    <button onClick={onLevel1} style={{ ...btnStyle, background: '#408240', flex: 1 }}>LVL 1</button>
+                    <button onClick={onLevel2} style={{ ...btnStyle, background: '#C29F19', flex: 1 }}>LVL 2</button>
+                    <button onClick={onLevel3} style={{ ...btnStyle, background: '#C21919', flex: 1 }}>LVL 3</button>
                 </div>
 
-                <button onClick={onJumpToG2} style={{...btnStyle, background: '#2980b9'}}>
+                <button onClick={onJumpToG2} style={{ ...btnStyle, background: '#2980b9' }}>
                     Go to Game 2
                 </button>
 
-                <div style={{display: 'flex', gap: '0.5cqw'}}>
-                    <button onClick={onResetG1} style={{...btnStyle, background: '#c0392b', flex: 1}}>Quick Load
+                <div style={{ display: 'flex', gap: '0.5cqw' }}>
+                    <button onClick={onResetG1} style={{ ...btnStyle, background: '#c0392b', flex: 1 }}>
+                        Quick Load
                     </button>
                 </div>
             </div>

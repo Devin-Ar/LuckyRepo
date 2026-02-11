@@ -1,4 +1,4 @@
-// src/features/Game1/view/Game1Controller.ts
+// src/features/BulletTest/view/BHController.ts
 import {BaseController} from "../../../core/templates/BaseController";
 import {BHPresenter} from "./BHPresenter";
 import {StateManager} from "../../../core/managers/StateManager";
@@ -10,6 +10,8 @@ import {StateRegistry} from "../../../core/registry/StateRegistry";
 import {StateId} from "../../../core/registry/StateId";
 
 export class BHController extends BaseController<BHPresenter> {
+    private isDead: boolean = false;
+
     constructor(vm: BHPresenter) {
         super(vm, StateId.BH_GAME);
     }
@@ -46,6 +48,15 @@ export class BHController extends BaseController<BHPresenter> {
         if (name === 'EXPLOSION_REQ') {
             AudioManager.getInstance().play('sfx_explosion');
         }
+        if (name === 'PLAYER_DEAD' && !this.isDead) {
+            this.isDead = true;
+            this.handlePlayerDeath();
+        }
+    }
+
+    private handlePlayerDeath(): void {
+        console.log("[BHController] Player died. Returning to main menu.");
+        StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
     }
 
     private async openPauseMenu() {

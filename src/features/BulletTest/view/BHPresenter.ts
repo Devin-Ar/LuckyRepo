@@ -1,6 +1,8 @@
-// src/features/Game1/view/Game1Presenter.ts
-import {BasePresenter} from "../../../core/templates/BasePresenter";
-import {BHViewSchema} from "../model/BHViewSchema";
+// src/features/BulletTest/view/BHPresenter.ts
+import { BasePresenter } from "../../../core/templates/BasePresenter";
+import { BHViewSchema } from "../model/BHViewSchema";
+
+const WAVE_STATE_LABELS = ['IDLE', 'DELAY', 'ACTIVE', 'CLEARED', 'ALL_CLEARED'] as const;
 
 export class BHPresenter extends BasePresenter {
 
@@ -20,8 +22,33 @@ export class BHPresenter extends BasePresenter {
     }
 
     public get projCount(): number {
-        return Math.floor(this.sharedView[BHViewSchema.PPROJ_START_INDEX-1] || 0);
+        return Math.floor(this.sharedView[BHViewSchema.PPROJ_START_INDEX - 1] || 0);
     }
+
+    // Wave state
+
+    public get currentWave(): number {
+        return Math.floor(this.sharedView[BHViewSchema.CURRENT_WAVE] || 0);
+    }
+
+    public get totalWaves(): number {
+        return Math.floor(this.sharedView[BHViewSchema.TOTAL_WAVES] || 0);
+    }
+
+    public get waveState(): string {
+        const idx = Math.floor(this.sharedView[BHViewSchema.WAVE_STATE] || 0);
+        return WAVE_STATE_LABELS[idx] || 'IDLE';
+    }
+
+    public get waveDelayTimer(): number {
+        return Math.floor(this.sharedView[BHViewSchema.WAVE_DELAY_TIMER] || 0);
+    }
+
+    public get isRoomCleared(): boolean {
+        return this.waveState === 'ALL_CLEARED' && this.entityCount === 0;
+    }
+
+    // Visuals
 
     public get heroVisuals() {
         return {

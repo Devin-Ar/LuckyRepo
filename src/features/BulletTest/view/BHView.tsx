@@ -1,29 +1,33 @@
-// src/features/Game1/view/Game1View.ts
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Stage} from '@pixi/react';
-import {BHPresenter} from './BHPresenter';
-import {BHController} from './BHController';
-import {StateManager} from '../../../core/managers/StateManager';
-import {IGameViewProps} from '../../../core/interfaces/IViewProps';
-import {BHLevel} from "../model/BHConfig";
+// src/features/BulletTest/view/BHView.tsx
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Stage } from '@pixi/react';
+import { BHPresenter } from './BHPresenter';
+import { BHController } from './BHController';
+import { StateManager } from '../../../core/managers/StateManager';
+import { IGameViewProps } from '../../../core/interfaces/IViewProps';
+import { BHLevel } from "../model/BHConfig";
 
-import {BHSimulation} from './ui-components/BHSimulation';
-import {BH_HUD} from './ui-components/BH_HUD';
+import { BHSimulation } from './ui-components/BHSimulation';
+import { BH_HUD } from './ui-components/BH_HUD';
 
 export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
-                                                                                vm,
-                                                                                controller,
-                                                                                width = 960,
-                                                                                height = 540
+                                                                                vm, controller, width = 960, height = 540
                                                                             }) => {
     const [hpState, setHpState] = useState(vm.hp);
     const [rockCount, setRockCount] = useState(vm.entityCount);
     const [isPaused, setIsPaused] = useState(false);
 
+    // Wave state
+    const [currentWave, setCurrentWave] = useState(vm.currentWave);
+    const [totalWaves, setTotalWaves] = useState(vm.totalWaves);
+    const [waveState, setWaveState] = useState(vm.waveState);
+    const [waveDelayTimer, setWaveDelayTimer] = useState(vm.waveDelayTimer);
+    const [isRoomCleared, setIsRoomCleared] = useState(vm.isRoomCleared);
+
     const shieldBarRef = useRef<HTMLDivElement>(null);
     const shieldTextRef = useRef<HTMLSpanElement>(null);
     const damageBtnRef = useRef<HTMLButtonElement>(null);
-    const heroPosRef = useRef({x: vm.pos.x, y: vm.pos.y});
+    const heroPosRef = useRef({ x: vm.pos.x, y: vm.pos.y });
 
     useEffect(() => {
         const unsubscribe = vm.subscribe(() => {
@@ -41,6 +45,13 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
 
             if (Math.abs(hpState - currentHp) > 1) setHpState(currentHp);
             if (rockCount !== vm.entityCount) setRockCount(vm.entityCount);
+
+            // Update wave state
+            setCurrentWave(vm.currentWave);
+            setTotalWaves(vm.totalWaves);
+            setWaveState(vm.waveState);
+            setWaveDelayTimer(vm.waveDelayTimer);
+            setIsRoomCleared(vm.isRoomCleared);
         });
         return () => unsubscribe();
     }, [vm, hpState, rockCount, isPaused]);
@@ -49,42 +60,27 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
 
     return (
         <div style={{
-            position: 'absolute',
-            inset: 0,
-            background: '#000',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            position: 'absolute', inset: 0, background: '#000',
+            overflow: 'hidden', display: 'flex',
+            alignItems: 'center', justifyContent: 'center'
         }}>
             <div style={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                position: 'relative', width: '100%', height: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
                 <Stage
                     key={`stage-${width}-${height}`}
                     width={width} height={height}
-                    options={{backgroundColor: 0x000, antialias: true, resolution: 1, autoDensity: false}}
+                    options={{ backgroundColor: 0x000, antialias: true, resolution: 1, autoDensity: false }}
                     style={{
-                        display: 'block',
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        imageRendering: 'pixelated'
+                        display: 'block', width: '100%', height: '100%',
+                        objectFit: 'contain', imageRendering: 'pixelated'
                     }}
                 >
                     <BHSimulation
-                        vm={vm}
-                        paused={isPaused}
-                        width={width}
-                        height={height}
-                        scale={scaleFactor}
-                        heroPos={heroPosRef}
-                        hp={hpState}
+                        vm={vm} paused={isPaused}
+                        width={width} height={height}
+                        scale={scaleFactor} heroPos={heroPosRef} hp={hpState}
                     />
                 </Stage>
             </div>
@@ -92,6 +88,11 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
             <BH_HUD
                 hp={hpState}
                 rockCount={rockCount}
+                currentWave={currentWave}
+                totalWaves={totalWaves}
+                waveState={waveState}
+                waveDelayTimer={waveDelayTimer}
+                isRoomCleared={isRoomCleared}
                 shieldBarRef={shieldBarRef}
                 shieldTextRef={shieldTextRef}
                 damageBtnRef={damageBtnRef}
