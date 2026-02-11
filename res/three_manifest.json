@@ -1,0 +1,71 @@
+{
+  "spritesheets": {
+    "hero_sheet": {
+      "url": "res/sprite/sheets/hero_sheet.png",
+      "frames": {
+        "h_idle_1": { "x": 0, "y": 0, "w": 32, "h": 32 },
+        "h_idle_2": { "x": 32, "y": 0, "w": 32, "h": 32 }
+      },
+      "animations": {
+        "idle": ["h_idle_1", "h_idle_2"]
+      }
+    },
+    "hero_idle": {
+      "url": "res/sprite/sheets/Dungeon Crawler Hero Side Idle Animation 2.0.piskel.0.png",
+      "frames": {
+        "h_idle_0": {"x":0, "y":0, "w":32, "h":32},
+        "h_idle_1": {"x":32, "y":0, "w":32, "h":32},
+        "h_idle_2": {"x":64, "y":0, "w":32, "h":32},
+        "h_idle_3": {"x":0, "y":32, "w":32, "h":32},
+        "h_idle_4": {"x":32, "y":32, "w":32, "h":32},
+        "h_idle_5": {"x":64, "y":32, "w":32, "h":32},
+        "h_idle_6": {"x":0, "y":64, "w":32, "h":32},
+        "h_idle_7": {"x":32, "y":64, "w":32, "h":32},
+        "h_idle_8": {"x":64, "y":64, "w":32, "h":32},
+        "h_idle_9": {"x":0, "y":96, "w":32, "h":32},
+        "h_idle_10": {"x":32, "y":96, "w":32, "h":32},
+        "h_idle_11": {"x":64, "y":96, "w":32, "h":32}
+      },
+      "animations": {
+        "idle": ["h_idle_0", "h_idle_1", "h_idle_2", "h_idle_3", "h_idle_4", "h_idle_5", "h_idle_6", "h_idle_7", "h_idle_8", "h_idle_9", "h_idle_10", "h_idle_11"]
+      }
+    },
+    "hero_walk": {
+      "url": "res/sprite/sheets/Dungeon Crawler Hero Walking Side animation 2.0.png",
+      "frames": {
+        "h_walk_0": {"x":0, "y":0, "w":32, "h":32},
+        "h_walk_1": {"x":32, "y":0, "w":32, "h":32},
+        "h_walk_2": {"x":64, "y":0, "w":32, "h":32},
+        "h_walk_3": {"x":0, "y":32, "w":32, "h":32},
+        "h_walk_4": {"x":32, "y":32, "w":32, "h":32},
+        "h_walk_5": {"x":64, "y":32, "w":32, "h":32},
+        "h_walk_6": {"x":0, "y":64, "w":32, "h":32},
+        "h_walk_7": {"x":32, "y":64, "w":32, "h":32},
+        "h_walk_8": {"x":64, "y":64, "w":32, "h":32}
+      },
+      "animations": {
+        "walk": ["h_walk_0", "h_walk_1", "h_walk_2", "h_walk_3", "h_walk_4", "h_walk_5", "h_walk_6", "h_walk_7", "h_walk_8"]
+      }
+    }
+  },
+  "images": {
+    "static_rock": "res/sprite/static/rock.png",
+    "Platform Floor": "res/sprite/static/Platform Floor.png",
+    "Platform Length": "res/sprite/static/Platform Length.png",
+    "Exit Door": "res/sprite/sheets/static/Exit Door.png"
+  },
+  "audio": {
+    "bgm_level1": {
+      "url": "res/audio/ost/dungeon_ambient.wav",
+      "type": "ost",
+      "loop": true,
+      "volume": 0.8
+    },
+    "sfx_explosion": {
+      "url": "res/audio/sfx/bomb_explosion.wav",
+      "type": "sfx",
+      "loop": false,
+      "volume": 1.0
+    }
+  }
+}
