@@ -7,6 +7,8 @@ import { Game2Logic } from "../features/Game2/logic/Game2Logic";
 
 import { Game1ViewLogic } from "../features/Game1/view/Game1ViewLogic";
 import { Game2ViewLogic } from "../features/Game2/view/Game2ViewLogic";
+import {BHTestLogic} from "../features/BulletTest/logic/BHTestLogic";
+import {BHViewLogic} from "../features/BulletTest/view/BHViewLogic";
 
 export const initializeWorkerRegistries = () => {
     LogicRegistry.register({
@@ -17,6 +19,10 @@ export const initializeWorkerRegistries = () => {
         id: StateId.GAME_2,
         factory: () => new Game2Logic()
     });
+    LogicRegistry.register({
+        id: StateId.BH_GAME,
+        factory: () => new BHTestLogic()
+    });
 
     ViewRegistry.register({
         id: StateId.GAME_1,
@@ -25,5 +31,9 @@ export const initializeWorkerRegistries = () => {
     ViewRegistry.register({
         id: StateId.GAME_2,
         factory: () => new Game2ViewLogic()
+    });
+    ViewRegistry.register({
+        id: StateId.BH_GAME,
+        factory: () => new BHViewLogic()
     });
 };

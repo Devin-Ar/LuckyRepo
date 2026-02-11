@@ -29,7 +29,7 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
         const unsubscribe = vm.subscribe(() => {
             const stateManager = StateManager.getInstance();
             const activeState = stateManager.getActiveState();
-            const pausedStatus = activeState?.name !== "BHTest";
+            const pausedStatus = activeState?.name !== "BHGame";
             if (isPaused !== pausedStatus) setIsPaused(pausedStatus);
 
             const currentHp = vm.hp;

@@ -6,10 +6,12 @@ import {AudioManager} from "../../../core/managers/AudioManager";
 import {BHLevel} from "../model/BHConfig";
 import {SaveManager} from "../../../core/managers/SaveManager";
 import {InputManager} from "../../../core/managers/InputManager";
+import {StateRegistry} from "../../../core/registry/StateRegistry";
+import {StateId} from "../../../core/registry/StateId";
 
 export class BHController extends BaseController<BHPresenter> {
     constructor(vm: BHPresenter) {
-        super(vm, "BHTest");
+        super(vm, StateId.BH_GAME);
     }
 
     public takeDamage() {
@@ -17,20 +19,20 @@ export class BHController extends BaseController<BHPresenter> {
     }
 
     public async jumpToGame2() {
-        const {Game2State} = await import("../../Game2/model/Game2State");
-        await StateManager.getInstance().replace(new Game2State(false));
+        const target = StateRegistry.create(StateId.GAME_2, { reset: false });
+        await StateManager.getInstance().replace(target);
     }
 
     public async loadLevel(level: BHLevel) {
-        const {BHState} = await import("../model/BHState");
-        await StateManager.getInstance().replace(new BHState(false, level));
+        const target = StateRegistry.create(StateId.BH_GAME, { reset: false, level });
+        await StateManager.getInstance().replace(target);
     }
 
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
-        const {BHState} = await import("../model/BHState");
         const currentLevel = (this.vm as any).currentLevel || BHLevel.Level1;
-        await StateManager.getInstance().replace(new BHState(false, currentLevel));
+        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level: currentLevel });
+        await StateManager.getInstance().replace(target);
     }
 
     protected onKeyDown(e: KeyboardEvent): void {
@@ -47,10 +49,9 @@ export class BHController extends BaseController<BHPresenter> {
     }
 
     private async openPauseMenu() {
-        const {PauseMenuState} = await import("../../shared-menus/states/PauseMenuState");
         const manager = StateManager.getInstance();
         if (manager.getCurrentStateName() === this.stateName) {
-            await manager.push(new PauseMenuState());
+            await manager.push(StateRegistry.create(StateId.PAUSE_MENU));
         }
     }
 }

@@ -145,6 +145,7 @@ const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
         for (let i = 0; i < currentCount; i++) {
             const graphic = pool[i];
             const data = vm.getRockAttackData(i);
+            const data2 = vm.getRockViewData(i);
 
             if (!data || paused) {
                 if (graphic) graphic.visible = false;
@@ -155,11 +156,68 @@ const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
                 graphic.visible = true;
                 graphic.clear();
                 graphic.lineStyle(30, 0xff0000);
-                graphic.moveTo(data.startX, data.startY);
+                graphic.moveTo(data2.x, data2.y);
                 graphic.lineTo(data.endX, data.endY);
             } else {
                 graphic.visible = false;
             }
+        }
+    });
+
+    return <Container ref={containerRef}/>;
+};
+
+const PlayerProjPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const graphicsPool = useRef<PIXI.Graphics[]>([]);
+
+    useEffect(() => {
+        return () => {
+            graphicsPool.current.forEach(s => {
+                if (s && !s.destroyed) {
+                    s.destroy();
+                }
+            });
+            graphicsPool.current = [];
+        };
+    }, []);
+
+    useTick(() => {
+        if (!containerRef.current) return;
+        const currentCount = vm.projCount;
+
+        const pool = graphicsPool.current;
+
+        if (currentCount > pool.length) {
+            for (let i = pool.length; i < currentCount; i++) {
+                const newGraphic = new PIXI.Graphics();
+                newGraphic.visible = false;
+                containerRef.current.addChild(newGraphic);
+                pool.push(newGraphic);
+            }
+        } else if (currentCount < pool.length) {
+            for (let i = pool.length - 1; i >= currentCount; i--) {
+                const oldGraphic = pool.pop();
+                if (oldGraphic) {
+                    containerRef.current.removeChild(oldGraphic);
+                    oldGraphic.destroy();
+                }
+            }
+        }
+
+        for (let i = 0; i < currentCount; i++) {
+            const graphic = pool[i];
+            console.log("reached here");
+            const data = vm.getPlayerProjData(i);
+            if (!data || paused) {
+                if (graphic) graphic.visible = false;
+                continue;
+            }
+
+            graphic.visible = true;
+            graphic.clear();
+            graphic.lineStyle(10, 0x00ff00);
+            graphic.drawRect(data.x, data.y, 20, 20);
         }
     });
 
@@ -199,6 +257,7 @@ export const BHSimulation: React.FC<{
             <PixiForceResizer w={width} h={height}/>
             <OscillatingBackground paused={paused} w={width} h={height}/>
             <Container scale={scale}>
+                <PlayerProjPool vm={vm} paused={paused}/>
                 <RockAttackPool vm={vm} paused={paused}/>
                 <RockPool vm={vm} paused={paused}/>
                 <Container ref={heroRef}>

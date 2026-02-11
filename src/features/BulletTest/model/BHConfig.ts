@@ -25,8 +25,7 @@ export const getBHConfig = (level: BHLevel): BHConfig => {
 
     if (!config) {
         console.warn(`Config for ${level} not found, falling back to Level 1`);
-        return (levelData as Record<string, BHConfig>)[BHLevel.Level1];
-    }
+        return (levelData as Record<string, BHConfig>)["Level 1"];    }
 
     return config;
 };

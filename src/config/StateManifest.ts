@@ -12,6 +12,8 @@ import {SaveMenuState} from "../features/shared-menus/states/SaveMenuState";
 import {SettingsMenuState} from "../features/shared-menus/states/SettingsMenuState";
 import {ContinueState} from "../features/shared-menus/states/ContinueState";
 import {GameOverState} from "../features/shared-menus/states/GameOverState";
+import {BHState} from "../features/BulletTest/model/BHState";
+import {BHLevel} from "../features/BulletTest/model/BHConfig";
 
 export const initializeStateRegistry = () => {
     StateRegistry.register({
@@ -35,6 +37,18 @@ export const initializeStateRegistry = () => {
             { label: "LVL 1", params: { level: Game2Level.Level1 } },
             { label: "LVL 2", params: { level: Game2Level.Level2 } },
             { label: "LVL 3", params: { level: Game2Level.Level3 } }
+        ]
+    });
+
+    StateRegistry.register({
+        id: StateId.BH_GAME,
+        displayName: "Example",
+        type: 'GAME',
+        factory: (p) => new BHState(p?.reset ?? false, p?.level ?? BHLevel.Level1),
+        presets: [
+            { label: "LVL 1", params: { level: BHLevel.Level1 } },
+            { label: "LVL 2", params: { level: BHLevel.Level2 } },
+            { label: "LVL 3", params: { level: BHLevel.Level3 } }
         ]
     });
 
