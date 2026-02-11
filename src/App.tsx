@@ -2,8 +2,10 @@
 import {cloneElement, JSX, useEffect, useMemo, useRef, useState} from "react";
 import {StateManager} from "./core/managers/StateManager";
 import {DebugOverlay} from "./components/DebugOverlay";
-import {DevMenuState} from "./features/DevMenu/DevMenuState";
-import {initializeCampaigns, initializeGameRegistry} from "./config/CampaignDefinitions";
+import { StateRegistry } from "./core/registry/StateRegistry";
+import { StateId } from "./core/registry/StateId";
+import { initializeStateRegistry } from "./config/StateManifest";
+import { initializeCampaigns } from "./config/CampaignManifest";
 
 type Resolution = '540p' | '720p' | '1080p' | '1440p' | '4k' | 'fit';
 
@@ -35,16 +37,19 @@ const App = () => {
         const unsubscribe = manager.subscribe(handleUpdate);
 
         if (!isInitialized.current) {
-            manager.replace(new DevMenuState());
-            initializeGameRegistry();
+            initializeStateRegistry();
+
             initializeCampaigns();
+
+            manager.replace(StateRegistry.create(StateId.DEV_MENU));
+
             isInitialized.current = true;
         }
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             dprMedia.removeEventListener('change', updateDpr);
-            unsubscribe(); // Remove the listener so we don't leak memory
+            unsubscribe();
         };
     }, []);
 
@@ -65,18 +70,12 @@ const App = () => {
 
     const dims = useMemo(() => {
         switch (res) {
-            case '540p':
-                return {w: 960, h: 540};
-            case '720p':
-                return {w: 1280, h: 720};
-            case '1080p':
-                return {w: 1920, h: 1080};
-            case '1440p':
-                return {w: 2560, h: 1440};
-            case '4k':
-                return {w: 3840, h: 2160};
-            default:
-                return null;
+            case '540p': return {w: 960, h: 540};
+            case '720p': return {w: 1280, h: 720};
+            case '1080p': return {w: 1920, h: 1080};
+            case '1440p': return {w: 2560, h: 1440};
+            case '4k': return {w: 3840, h: 2160};
+            default: return null;
         }
     }, [res]);
 

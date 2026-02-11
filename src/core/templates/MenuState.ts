@@ -1,35 +1,25 @@
 // src/core/templates/MenuState.ts
-import {JSX} from 'react';
-import {State} from './State';
-import {StateManager} from '../managers/StateManager';
+import { JSX } from 'react';
+import { State } from './State';
+import { BaseMenuController } from './BaseMenuController';
+import {StateId} from "../registry/StateId";
 
+export abstract class MenuState<TController extends BaseMenuController> extends State {
+    protected controller: TController;
 
-export abstract class MenuState extends State {
-    constructor() {
+    constructor(controllerFactory: () => TController) {
         super();
-        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.controller = controllerFactory();
     }
 
     public async init(): Promise<void> {
         this.isRendering = true;
-        window.addEventListener('keydown', this.handleKeyDown, true);
+        this.controller.init(this.name as StateId);
+    }
+
+    public destroy(): void {
+        this.controller.destroy();
     }
 
     public abstract getView(): JSX.Element;
-
-    public destroy(): void {
-        window.removeEventListener('keydown', this.handleKeyDown, true);
-    }
-
-    protected onClose(): void {
-        StateManager.getInstance().pop();
-    }
-
-    private handleKeyDown(e: KeyboardEvent) {
-        if (e.key === 'Escape') {
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            this.onClose();
-        }
-    }
 }

@@ -127,9 +127,8 @@ export const Game1Simulation: React.FC<{
         heroPos.current.x = visuals.x;
         heroPos.current.y = visuals.y;
 
-        if (heroVisuals.currentFrame !== visuals.currentFrame) {
-            setHeroVisuals(visuals);
-        }
+        setHeroVisuals(visuals);
+
     });
 
     return (

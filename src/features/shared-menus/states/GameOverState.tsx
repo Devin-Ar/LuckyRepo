@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { State } from "../../../core/templates/State";
 import { CampaignManager } from "../../../core/managers/CampaignManager";
+import { StateId } from "../../../core/registry/StateId";
 
 export class GameOverState extends State {
-    public name = "GameOverScreen";
+    public name = StateId.GAME_OVER;
 
     public async init(): Promise<void> {
         this.isInitialized = true;
@@ -11,7 +12,6 @@ export class GameOverState extends State {
     }
 
     public update(dt: number, frameCount: number): void {}
-
     public destroy(): void {}
 
     public getView(): React.JSX.Element {
@@ -21,10 +21,7 @@ export class GameOverState extends State {
 
 const GameOverView: React.FC = () => {
     useEffect(() => {
-        const handleInput = () => {
-            CampaignManager.getInstance().quitCampaign();
-        };
-
+        const handleInput = () => CampaignManager.getInstance().quitCampaign();
         const timeout = setTimeout(() => {
             window.addEventListener("keydown", handleInput);
             window.addEventListener("click", handleInput);
@@ -44,12 +41,8 @@ const GameOverView: React.FC = () => {
             fontFamily: 'monospace'
         }}>
             <h1 style={{ fontSize: '5rem', margin: 0 }}>GAME OVER</h1>
-            <p style={{ marginTop: '20px', color: '#666', animation: 'blink 1s infinite' }}>
-                PRESS ANY KEY
-            </p>
-            <style>{`
-                @keyframes blink { 50% { opacity: 0; } }
-            `}</style>
+            <p style={{ marginTop: '20px', color: '#666', animation: 'blink 1s infinite' }}>PRESS ANY KEY</p>
+            <style>{`@keyframes blink { 50% { opacity: 0; } }`}</style>
         </div>
     );
 };

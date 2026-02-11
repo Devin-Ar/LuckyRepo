@@ -1,6 +1,7 @@
-import {Game1Logic} from '../features/Game1/logic/Game1Logic';
-import {Game2Logic} from '../features/Game2/logic/Game2Logic';
-import {BHTestLogic} from '../features/BulletTest/logic/BHTestLogic';
+import { LogicRegistry } from '../core/registry/WorkerRegistry';
+import { initializeWorkerRegistries } from '../config/WorkerManifest';
+
+initializeWorkerRegistries();
 
 const sharedBuffers: Map<string, SharedArrayBuffer> = new Map();
 const sharedViews: Map<string, Float32Array> = new Map();
@@ -53,28 +54,17 @@ self.onmessage = (e: MessageEvent) => {
             break;
 
         case 'CREATE_STATE':
-            if (payload?.force && states.has(stateName)) {
-                console.warn(`[Worker] Force-recreating state: ${stateName}`);
-                states.get(stateName).destroy();
-                states.delete(stateName);
-            }
-
             if (!states.has(stateName)) {
-                console.log(`[Worker] Created Logic for: ${stateName}`);
-                let instance;
-                if (stateName === 'Game1') instance = new Game1Logic();
-                if (stateName === 'Game2') instance = new Game2Logic();
-                if (stateName === 'BHTest') instance = new BHTestLogic();
-
-                if (instance) {
+                try {
+                    const instance = LogicRegistry.create(stateName);
                     states.set(stateName, instance);
                     if (sharedBuffers.size > 0) {
                         const bufferRecord: Record<string, SharedArrayBuffer> = {};
                         sharedBuffers.forEach((buf, key) => bufferRecord[key] = buf);
                         instance.setBuffers(bufferRecord);
                     }
-                } else {
-                    console.error(`[Worker] Failed to create logic instance for: ${stateName}`);
+                } catch (e) {
+                    console.error(`[Worker] Failed to create state: ${stateName}`, e);
                 }
             }
             break;

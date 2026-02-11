@@ -6,10 +6,12 @@ import {Game2Level} from "../model/Game2Config";
 import {SaveManager} from "../../../core/managers/SaveManager";
 import {CampaignManager} from "../../../core/managers/CampaignManager";
 import {InputManager} from "../../../core/managers/InputManager";
+import {StateRegistry} from "../../../core/registry/StateRegistry";
+import {StateId} from "../../../core/registry/StateId";
 
 export class Game2Controller extends BaseController<Game2Presenter> {
     constructor(vm: Game2Presenter) {
-        super(vm, "Game2");
+        super(vm, StateId.GAME_2);
     }
 
     public modifyStat(action: 'MOD_HP' | 'MOD_ENERGY' | 'ADD_SCRAP', amount?: number) {
@@ -17,36 +19,32 @@ export class Game2Controller extends BaseController<Game2Presenter> {
     }
 
     public async jumpToGame1() {
-        const {Game1State} = await import("../../Game1/model/Game1State");
-        StateManager.getInstance().replace(new Game1State(false));
+        const target = StateRegistry.create(StateId.GAME_1, { reset: false });
+        StateManager.getInstance().replace(target);
     }
 
     public async loadLevel(level: Game2Level) {
-        const {Game2State} = await import("../model/Game2State");
-        StateManager.getInstance().replace(new Game2State(false, level));
+        const target = StateRegistry.create(StateId.GAME_2, { reset: false, level });
+        StateManager.getInstance().replace(target);
     }
 
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
-        const {Game2State} = await import("../model/Game2State");
         const currentLevel = (this.vm as any).currentLevel || Game2Level.Level1;
-        StateManager.getInstance().replace(new Game2State(false, currentLevel));
+        const target = StateRegistry.create(StateId.GAME_2, { reset: false, level: currentLevel });
+        StateManager.getInstance().replace(target);
     }
 
     protected onKeyDown(e: KeyboardEvent): void {
-        const input = InputManager.getInstance();
-
-        if (input.isKeyAction(e.key, 'PAUSE')) {
+        if (InputManager.getInstance().isKeyAction(e.key, 'PAUSE')) {
             this.handleEscape();
         }
     }
 
-    protected onWorkerEvent(name: string): void {
-    }
+    protected onWorkerEvent(name: string): void {}
 
     private async handleEscape() {
-        const {PauseMenuState} = await import("../../shared-menus/states/PauseMenuState");
-        StateManager.getInstance().push(new PauseMenuState());
+        StateManager.getInstance().push(StateRegistry.create(StateId.PAUSE_MENU));
     }
 
     public nextLevel() {

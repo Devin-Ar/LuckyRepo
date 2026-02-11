@@ -1,9 +1,10 @@
 // src/core/managers/CampaignManager.ts
-import {SharedSession} from "../session/SharedSession";
-import {CampaignRegistry} from "../registry/CampaignRegistry";
-import {StateManager} from "./StateManager";
-import {ICampaignDefinition} from "../interfaces/ICampaign";
-import {DevMenuState} from "../../features/DevMenu/DevMenuState";
+import { SharedSession } from "../session/SharedSession";
+import { CampaignRegistry } from "../registry/CampaignRegistry";
+import { StateManager } from "./StateManager";
+import { ICampaignDefinition } from "../interfaces/ICampaign";
+import { StateRegistry } from "../registry/StateRegistry";
+import { StateId } from "../registry/StateId";
 
 export class CampaignManager {
     private static instance: CampaignManager;
@@ -109,7 +110,7 @@ export class CampaignManager {
         session.set('campaign_step_index', 0);
 
         console.log("[CampaignManager] Quitting to Menu.");
-        StateManager.getInstance().replace(new DevMenuState());
+        StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
     }
 
     private loadCurrentStep(def: ICampaignDefinition, index: number) {

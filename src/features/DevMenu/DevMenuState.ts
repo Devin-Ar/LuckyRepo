@@ -1,14 +1,24 @@
 // src/features/DevMenu/DevMenuState.ts
-import React, {JSX} from 'react';
-import {State} from '../../core/templates/State';
-import {StateManager} from '../../core/managers/StateManager';
-import {DevMenuView} from './DevMenuView';
+import React, { JSX } from 'react';
+import { State } from '../../core/templates/State';
+import { StateId } from '../../core/registry/StateId';
+import { DevMenuController } from './DevMenuController';
+import { DevMenuView } from './DevMenuView';
 
 export class DevMenuState extends State {
-    public name = "DevMenu";
+    public name = StateId.DEV_MENU;
+    private controller: DevMenuController;
+    protected params: any;
+
+    constructor(params?: any) {
+        super();
+        this.params = params || {};
+        this.controller = new DevMenuController();
+    }
 
     public async init(): Promise<void> {
         this.isRendering = true;
+        this.controller.init(this.name as StateId);
     }
 
     public update(dt: number, frameCount: number): void {
@@ -17,13 +27,13 @@ export class DevMenuState extends State {
     public getView(): JSX.Element {
         return React.createElement(DevMenuView, {
             key: this.name,
-            onNavigate: (StateClass: any, ...args: any[]) => {
-                const target = new StateClass(...args);
-                StateManager.getInstance().replace(target);
-            }
+            controller: this.controller,
+            res: this.params.res,
+            setRes: this.params.setRes
         });
     }
 
     public destroy(): void {
+        this.controller.destroy();
     }
 }

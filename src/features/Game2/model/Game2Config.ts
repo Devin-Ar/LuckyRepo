@@ -19,5 +19,5 @@ export interface Game2Config {
 
 export const getGame2Config = (level: Game2Level): Game2Config => {
     const config = (levelData as Record<string, Game2Config>)[level];
-    return config || (levelData as Record<string, Game2Config>)[Game2Level.Level1];
+    return config || (levelData as Record<string, Game2Config>)["Level 1"];
 };

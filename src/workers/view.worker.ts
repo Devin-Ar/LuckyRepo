@@ -1,7 +1,8 @@
 // src/workers/view.worker.ts
-import {Game1ViewLogic} from '../features/Game1/view/Game1ViewLogic';
-import {Game2ViewLogic} from '../features/Game2/view/Game2ViewLogic';
-import {BHViewLogic} from '../features/BulletTest/view/BHViewLogic';
+import { ViewRegistry } from '../core/registry/WorkerRegistry';
+import { initializeWorkerRegistries } from '../config/WorkerManifest';
+
+initializeWorkerRegistries();
 
 const logicViews: Map<string, Float32Array> = new Map();
 const logicIntViews: Map<string, Int32Array> = new Map();
@@ -13,6 +14,7 @@ self.onmessage = (e: MessageEvent) => {
 
     switch (type) {
         case 'INIT_SABS':
+            console.log(`[ViewWorker] Initializing Buffers`);
             logicViews.clear();
             logicIntViews.clear();
             outputViews.clear();
@@ -46,16 +48,12 @@ self.onmessage = (e: MessageEvent) => {
 
         case 'CREATE_STATE':
             if (!states.has(stateName)) {
-                console.log(`[ViewWorker] Created ViewLogic for: ${stateName}`);
-                let instance;
-
-                if (stateName === 'Game1') instance = new Game1ViewLogic();
-                if (stateName === 'Game2') instance = new Game2ViewLogic();
-                if (stateName === 'BHTest') instance = new BHViewLogic();
-
-                if (instance) {
+                try {
+                    const instance = ViewRegistry.create(stateName);
                     states.set(stateName, instance);
                     instance.setBuffers(logicViews, logicIntViews, outputViews);
+                } catch (e) {
+                    console.error(`[ViewWorker] Failed to create view state: ${stateName}`, e);
                 }
             }
             break;

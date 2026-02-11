@@ -1,12 +1,9 @@
 // src/features/shared-menus/views/SettingsViews.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { SharedSession } from '../../../core/session/SharedSession';
-import { AudioManager } from '../../../core/managers/AudioManager';
-import { InputManager } from '../../../core/managers/InputManager';
-import { INPUT_REGISTRY } from '../../../core/registry/InputRegistry';
+import { SettingsMenuController } from '../controllers/SettingsMenuController';
 
 interface SettingsViewProps {
-    onBack: () => void;
+    controller: SettingsMenuController;
     res?: string;
     setRes?: (r: string) => void;
 }
@@ -19,87 +16,76 @@ const rowStyle: React.CSSProperties = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     padding: '1cqw 1.5cqw', borderBottom: '1px solid #1a1a1a'
 };
-const controlGroupStyle = {
+const controlGroupStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: '1.5cqw',
     minWidth: '20cqw', justifyContent: 'flex-end'
 };
-const sliderStyle = { cursor: 'pointer', accentColor: '#00ff00', width: '12cqw' };
-const inputStyle = {
+const sliderStyle: React.CSSProperties = { cursor: 'pointer', accentColor: '#00ff00', width: '12cqw' };
+const inputStyle: React.CSSProperties = {
     backgroundColor: '#000', color: '#00ff00', border: '1px solid #00ff00',
     padding: '0.5cqw', fontFamily: 'monospace', outline: 'none'
 };
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes }) => {
-    const session = SharedSession.getInstance();
-    const audio = AudioManager.getInstance();
-    const input = InputManager.getInstance();
-
+export const SettingsView: React.FC<SettingsViewProps> = ({ controller, res, setRes }) => {
     const [activeTab, setActiveTab] = useState<'system' | 'controls'>('system');
     const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
+    const [localRes, setLocalRes] = useState(res || controller.getResolution());
     const [vols, setVols] = useState({
-        master: session.get<number>('master_volume') ?? 0.5,
-        ost: session.get<number>('ost_volume') ?? 0.5,
-        sfx: session.get<number>('sfx_volume') ?? 0.5
+        master: controller.getVolume('master'),
+        ost: controller.getVolume('ost'),
+        sfx: controller.getVolume('sfx')
     });
 
-    const [selectedGameProfile, setSelectedGameProfile] = useState<string>("Shared");
+    const [selectedProfile, setSelectedProfile] = useState<string>("Shared");
     const [bindingTarget, setBindingTarget] = useState<{action: string, slot: number} | null>(null);
     const [viewBinds, setViewBinds] = useState<Record<string, string[]>>({});
 
     const refreshViewBinds = useCallback(() => {
-        const gameName = selectedGameProfile;
-        const base = { ...INPUT_REGISTRY[gameName] };
-        const overrides = session.get<Record<string, string[]>>(`bind_${gameName}`) || {};
-        const merged = { ...base, ...overrides };
-
+        const merged = controller.getBindingsForGame(selectedProfile);
         setViewBinds(merged);
-    }, [selectedGameProfile, session]);
+    }, [selectedProfile, controller]);
 
     useEffect(() => {
+        controller.registerBindRefresh(refreshViewBinds);
         refreshViewBinds();
-    }, [refreshViewBinds]);
+    }, [refreshViewBinds, controller]);
 
     useEffect(() => {
         if (!bindingTarget) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
             e.preventDefault();
+            e.stopImmediatePropagation();
+
             const key = e.key.toUpperCase();
-            input.setBinding(bindingTarget.action, key, selectedGameProfile, bindingTarget.slot);
+            controller.setBinding(bindingTarget.action, key, selectedProfile, bindingTarget.slot);
 
             setBindingTarget(null);
             refreshViewBinds();
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [bindingTarget, input, refreshViewBinds, selectedGameProfile]);
+        window.addEventListener('keydown', handleKeyDown, true);
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
+    }, [bindingTarget, controller, refreshViewBinds, selectedProfile]);
 
     const handleVolumeChange = (cat: 'master' | 'ost' | 'sfx', val: number) => {
         setVols(prev => ({ ...prev, [cat]: val }));
-        session.set(`${cat}_volume`, val);
-        audio.setVolume(cat, val);
+        controller.setVolume(cat, val);
     };
 
     const handleResChange = (newRes: string) => {
-        setRes?.(newRes);
-        session.set('resolution', newRes);
+        setLocalRes(newRes);
+        controller.setResolution(newRes);
+        if (setRes) setRes(newRes);
     };
 
     const toggleFullscreen = async () => {
-        if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen().catch(() => {});
-            setIsFullscreen(true);
-        } else {
-            if (document.exitFullscreen) {
-                await document.exitFullscreen();
-                setIsFullscreen(false);
-            }
-        }
+        const isFull = await controller.toggleFullscreen();
+        setIsFullscreen(isFull);
     };
 
     const handleReset = () => {
-        input.resetBindings(selectedGameProfile);
+        controller.resetBindings(selectedProfile);
         refreshViewBinds();
     };
 
@@ -158,7 +144,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
 
                             <div style={rowStyle}>
                                 <span>DISPLAY_RESOLUTION</span>
-                                <select value={res} onChange={(e) => handleResChange(e.target.value)} style={inputStyle}>
+                                <select value={localRes} onChange={(e) => handleResChange(e.target.value)} style={inputStyle}>
                                     {['540p', '720p', '1080p', '1440p', '4k', 'fit'].map(r => (
                                         <option key={r} value={r}>{r.toUpperCase()}</option>
                                     ))}
@@ -177,18 +163,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
                             <div style={{ ...rowStyle, borderBottom: '2px solid #333', marginBottom: '1.5cqw' }}>
                                 <span style={{ color: '#888' }}>SELECT_REGISTRY_CONTEXT:</span>
                                 <select
-                                    value={selectedGameProfile}
-                                    onChange={(e) => setSelectedGameProfile(e.target.value)}
+                                    value={selectedProfile}
+                                    onChange={(e) => setSelectedProfile(e.target.value)}
                                     style={{...inputStyle, width: '25cqw'}}
                                 >
-                                    {Object.keys(INPUT_REGISTRY).map(name => (
+                                    {controller.getRegistryProfiles().map(name => (
                                         <option key={name} value={name}>{name.toUpperCase()}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <p style={{ color: '#888', marginBottom: '1cqw', fontSize: '0.8em' }}>
-                                CONFIGURING: {selectedGameProfile.toUpperCase()}
+                                CONFIGURING: {selectedProfile.toUpperCase()}
                             </p>
 
                             {Object.entries(viewBinds).map(([action, keys]) => (
@@ -228,7 +214,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
                     justifyContent: 'flex-end',
                     gap: '1cqw'
                 }}>
-                    {/* Only show RESET when on the controls tab */}
                     {activeTab === 'controls' && (
                         <button
                             onClick={handleReset}
@@ -239,12 +224,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, res, setRes 
                                 background: 'rgba(255, 0, 0, 0.1)'
                             }}
                         >
-                            RESET_DEFAULTS_[{selectedGameProfile.toUpperCase()}]
+                            RESET_DEFAULTS_[{selectedProfile.toUpperCase()}]
                         </button>
                     )}
 
                     <button
-                        onClick={onBack}
+                        onClick={() => controller.onBack()}
                         style={{...btnStyle, background: '#111', borderColor: '#444', color: '#888'}}
                     >
                         EXIT_CONFIG

@@ -25,7 +25,7 @@ export const getGame1Config = (level: Game1Level): Game1Config => {
 
     if (!config) {
         console.warn(`Config for ${level} not found, falling back to Level 1`);
-        return (levelData as Record<string, Game1Config>)[Game1Level.Level1];
+        return (levelData as Record<string, Game1Config>)["Level 1"];
     }
 
     return config;
