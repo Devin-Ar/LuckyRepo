@@ -66,7 +66,7 @@ export class BHPresenter extends BasePresenter {
         return Math.floor(this.sharedView[BHViewSchema.CURRENT_LEVEL] || 0);
     }
 
-    // --- Visuals ---
+    // Visuals
 
     public get heroVisuals() {
         return {

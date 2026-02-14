@@ -15,7 +15,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private isOnGround = false;
     private isWallSliding = false;
     private wallJumpTimer = 0;
-    private wallJumpDirection = 0; // -1 for left, 1 for right
+    private wallJumpDirection = 0;
     private spikeDamageTimer = 0;
     private wasInSpike = false;
     private portalCooldown = 0;
@@ -27,7 +27,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private animFrame = 0;
     private animTimer = 0;
     private flipX = false;
-    private animState = 0; // 0: Idle, 1: Walk, 2: Jump
+    private animState = 0;
 
     // Config (Cache for SAB sync)
     private heroWidth = 1.0;
@@ -57,7 +57,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.heroWidth = config.heroWidth || 1.0;
         this.heroHeight = config.heroHeight || 2.0;
 
-        // Configure movement
         this.moveSpeed = 0.2;
         this.jumpPower = -0.4;
         this.gravity = 0.04;
@@ -72,7 +71,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.hero.vy = 0;
         this.hasCompletedLevel = false;
 
-        // If the map marker has dimensions, use them
         if (data.playerStart.width && data.playerStart.height) {
             this.heroWidth = data.playerStart.width;
             this.heroHeight = data.playerStart.height;
@@ -82,44 +80,27 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
         if (!this.config || !this.isInitialized) return;
 
-        // Note: this.inputState is now an InputSnapshot provided by the main thread
         this.isOnGround = this.checkIsOnGround();
 
-        // 1. Movement
         this.updateHeroMovement();
-
-        // 2. Physics Resolution
         this.resolveMovement();
-
-        // 3. Animation State
         this.updateAnimation();
-
-        // 4. Exit Logic (Check before other hazards to avoid being teleported away first)
         this.updateExitLogic();
-
-        // 5. Spike Logic
         this.updateSpikeLogic();
-
-        // 6. Portal Logic
         this.updatePortalLogic();
-
-        // 7. Void Logic
         this.updateVoidLogic();
 
-        // 8. SAB Sync
         this.syncToSAB(sharedView, frameCount, fps);
     }
 
-    /** Helper to check if a specific action is active in the current snapshot */
     private isAction(action: string): boolean {
         return this.inputState && this.inputState.actions && this.inputState.actions.includes(action);
     }
 
     private checkIsOnGround(): boolean {
-        // Check slightly below the hero's feet (0.1 units down)
         const checkY = this.hero.y + this.heroHeight + 0.1;
         for (const p of this.platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue; // Non-solid ground
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
             if (
                 this.hero.x + this.heroWidth > p.x &&
                 this.hero.x < p.x + p.width &&
@@ -134,7 +115,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
 
     private getWallCollision(): number {
         const checkDist = 0.1;
-        // Check Left (Wall is on our left)
         for (const p of this.platforms) {
             if (p.isWall &&
                 this.hero.x <= p.x + p.width && this.hero.x + checkDist > p.x + p.width &&
@@ -142,7 +122,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
                 return -1;
             }
         }
-        // Check Right (Wall is on our right)
         for (const p of this.platforms) {
             if (p.isWall &&
                 this.hero.x + this.heroWidth >= p.x && this.hero.x + this.heroWidth - checkDist < p.x &&
@@ -160,7 +139,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         const moveRight = this.isAction('MOVE_RIGHT');
         const jumpHeld = this.isAction('JUMP');
 
-        // 1. Horizontal Movement
         let moveDir = 0;
         if (moveLeft) moveDir -= 1;
         if (moveRight) moveDir += 1;
@@ -168,12 +146,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (this.wallJumpTimer > 0) {
             this.hero.vx = this.wallJumpDirection * this.moveSpeed * 1.5;
             this.wallJumpTimer--;
-            // If we hit a wall while jumping away, we might want to allow sliding/jumping again immediately
-            if (wallSide !== 0 && wallSide === this.wallJumpDirection) {
-                // We hit the wall we were jumping towards? (e.g. opposite wall)
-                // The requirements say we can choose to press space again or slide.
-                // So we should allow wallSide to override if player wants.
-            }
         } else {
             if (moveDir !== 0) {
                 this.hero.vx = moveDir * this.moveSpeed;
@@ -183,42 +155,37 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             }
         }
 
-        // 2. Wall Sliding
         this.isWallSliding = false;
         if (!this.isOnGround && wallSide !== 0) {
-            // Slide if moving towards the wall
             if ((wallSide === -1 && moveDir === -1) || (wallSide === 1 && moveDir === 1)) {
                 this.isWallSliding = true;
-                this.wallJumpTimer = 0; // Cancel wall jump if we start sliding
+                this.wallJumpTimer = 0;
             }
         }
 
-        // 3. Vertical Movement (Gravity)
         let effectiveGravity = this.gravity;
         if (this.isJumpingFromGround && jumpHeld && this.hero.vy < 0) {
-            effectiveGravity *= 0.5; // Half gravity to double the jump height
+            effectiveGravity *= 0.5;
         }
 
         if (this.isWallSliding && this.hero.vy > 0) {
-            this.hero.vy += effectiveGravity * 0.2; // Reduced gravity
+            this.hero.vy += effectiveGravity * 0.2;
             if (this.hero.vy > 0.1) this.hero.vy = 0.1;
         } else {
             this.hero.vy += effectiveGravity;
         }
 
-        // 4. Jump Logic
         if (jumpHeld) {
             if (this.isOnGround) {
                 this.hero.vy = this.jumpPower;
                 this.wallJumpTimer = 0;
                 this.isJumpingFromGround = true;
-            } else if (wallSide !== 0 && (jumpHeld || this.isWallSliding)) {
-                // Wall Jump
+            } else if (wallSide !== 0) {
                 this.hero.vy = this.jumpPower;
                 this.wallJumpDirection = -wallSide;
                 this.wallJumpTimer = 15;
                 this.isWallSliding = false;
-                this.isJumpingFromGround = false; // No dynamic jump height from walls
+                this.isJumpingFromGround = false;
             }
         }
 
@@ -226,7 +193,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.isJumpingFromGround = false;
         }
 
-        // 5. Terminal Velocity
         if (this.hero.vy > 0.8) this.hero.vy = 0.8;
     }
 
@@ -235,7 +201,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (currentlyInSpike) {
             if (!this.wasInSpike || this.spikeDamageTimer <= 0) {
                 this.modifyHP(-10);
-                this.spikeDamageTimer = 120; // ~2 seconds at 60fps
+                this.spikeDamageTimer = 120;
             }
         }
 
@@ -253,15 +219,13 @@ export class Game3Logic extends BaseLogic<Game3Config> {
 
         const portal = this.getCollidingPlatform('isPortal');
         if (portal) {
-            // Find the other portal
             const portals = this.platforms.filter(p => p.isPortal);
             if (portals.length >= 2) {
                 const otherPortal = portals.find(p => p !== portal);
                 if (otherPortal) {
-                    // Teleport to center of the other portal
                     this.hero.x = otherPortal.x + (otherPortal.width / 2) - (this.heroWidth / 2);
                     this.hero.y = otherPortal.y + (otherPortal.height / 2) - (this.heroHeight / 2);
-                    this.portalCooldown = 60; // 1 second cooldown
+                    this.portalCooldown = 60;
                 }
             }
         }
@@ -280,7 +244,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private updateExitLogic() {
         if (!this.hasCompletedLevel && this.checkHazardCollision('isExit')) {
             this.hasCompletedLevel = true;
-            this.dispatcher.dispatch('LEVEL_COMPLETE', {});
+            // Send event to main thread so the controller can handle progression
+            self.postMessage({ type: 'EVENT', name: 'LEVEL_COMPLETE' });
         }
     }
 
@@ -305,9 +270,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private resolveMovement() {
         const nextX = this.hero.x + this.hero.vx;
 
-        // Horizontal Resolution
         for (const p of this.platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue; // Non-solid hazards
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
             if (nextX + this.heroWidth > p.x && nextX < p.x + p.width && this.hero.y + this.heroHeight > p.y && this.hero.y < p.y + p.height) {
                 if (nextX > this.hero.x) this.hero.x = p.x - this.heroWidth;
                 else if (nextX < this.hero.x) this.hero.x = p.x + p.width;
@@ -318,16 +282,15 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (this.hero.vx !== 0) this.hero.x = nextX;
 
         const nextY = this.hero.y + this.hero.vy;
-        // Vertical Resolution
         let verticalCollided = false;
         for (const p of this.platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue; // Non-solid hazards
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
             if (this.hero.x + this.heroWidth > p.x && this.hero.x < p.x + p.width && nextY + this.heroHeight > p.y && nextY < p.y + p.height) {
                 if (nextY > this.hero.y) {
-                    this.hero.y = p.y - this.heroHeight; // Land
+                    this.hero.y = p.y - this.heroHeight;
                     this.isJumpingFromGround = false;
                 } else if (nextY < this.hero.y) {
-                    this.hero.y = p.y + p.height; // Ceiling
+                    this.hero.y = p.y + p.height;
                     this.isJumpingFromGround = false;
                 }
                 this.hero.vy = 0;
