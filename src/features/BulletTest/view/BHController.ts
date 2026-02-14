@@ -3,6 +3,8 @@ import {BaseController} from "../../../core/templates/BaseController";
 import {BHPresenter} from "./BHPresenter";
 import {StateManager} from "../../../core/managers/StateManager";
 import {AudioManager} from "../../../core/managers/AudioManager";
+import {CampaignManager} from "../../../core/managers/CampaignManager";
+import {SharedSession} from "../../../core/session/SharedSession";
 import {BHLevel} from "../model/BHConfig";
 import {SaveManager} from "../../../core/managers/SaveManager";
 import {InputManager} from "../../../core/managers/InputManager";
@@ -11,6 +13,7 @@ import {StateId} from "../../../core/registry/StateId";
 
 export class BHController extends BaseController<BHPresenter> {
     private isDead: boolean = false;
+    private hasExited: boolean = false;
 
     constructor(vm: BHPresenter) {
         super(vm, StateId.BH_GAME);
@@ -52,11 +55,45 @@ export class BHController extends BaseController<BHPresenter> {
             this.isDead = true;
             this.handlePlayerDeath();
         }
+        if (name === 'EXIT_DOOR_ENTERED' && !this.hasExited) {
+            this.hasExited = true;
+            this.handleExitDoor();
+        }
     }
 
     private handlePlayerDeath(): void {
-        console.log("[BHController] Player died. Returning to main menu.");
-        StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+        console.log("[BHController] Player died.");
+
+        if (this.isInCampaign()) {
+            CampaignManager.getInstance().failCurrentStep();
+        } else {
+            StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+        }
+    }
+
+    private handleExitDoor(): void {
+        console.log("[BHController] Exit door entered.");
+
+        if (this.isInCampaign()) {
+            CampaignManager.getInstance().completeCurrentStep();
+        } else {
+            // Fallback for standalone / dev menu play: use SAB level index
+            const levelIndex = this.vm.currentLevelIndex;
+            const nextLevels: (BHLevel | null)[] = [BHLevel.Level2, BHLevel.Level3, null];
+            const next = nextLevels[levelIndex] ?? null;
+
+            if (next) {
+                this.loadLevel(next);
+            } else {
+                StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+            }
+        }
+    }
+
+    /** Check if we're currently inside a campaign run */
+    private isInCampaign(): boolean {
+        const campaignId = SharedSession.getInstance().get<string>('campaign_id');
+        return !!campaignId;
     }
 
     private async openPauseMenu() {

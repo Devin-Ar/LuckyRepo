@@ -60,6 +60,12 @@ export class BHViewLogic extends BaseViewLogic {
         this.outputView[BHViewSchema.TOTAL_WAVES] = this.logicView[BHLogicSchema.TOTAL_WAVES];
         this.outputView[BHViewSchema.WAVE_STATE] = this.logicView[BHLogicSchema.WAVE_STATE];
         this.outputView[BHViewSchema.WAVE_DELAY_TIMER] = this.logicView[BHLogicSchema.WAVE_DELAY_TIMER];
+
+        // Exit door passthrough
+        this.outputView[BHViewSchema.EXIT_DOOR_ACTIVE] = this.logicView[BHLogicSchema.EXIT_DOOR_ACTIVE];
+        this.outputView[BHViewSchema.EXIT_DOOR_X] = this.logicView[BHLogicSchema.EXIT_DOOR_X];
+        this.outputView[BHViewSchema.EXIT_DOOR_Y] = this.logicView[BHLogicSchema.EXIT_DOOR_Y];
+        this.outputView[BHViewSchema.CURRENT_LEVEL] = this.logicView[BHLogicSchema.CURRENT_LEVEL];
     }
 
     public override getSnapshot() {

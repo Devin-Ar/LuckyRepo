@@ -27,6 +27,13 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     private waveManager: WaveManager = new WaveManager();
     private wavesStarted: boolean = false;
 
+    // Exit door
+    private exitDoorActive: boolean = false;
+    private exitDoorX: number = 0;
+    private exitDoorY: number = 0;
+    private static readonly DOOR_SIZE = 60;
+    private exitDoorEntered: boolean = false;
+
     constructor() {
         super(BHLogicSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, BHCommands, "BHTest");
@@ -53,6 +60,10 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
         this.wavesStarted = false;
+        this.exitDoorActive = false;
+        this.exitDoorEntered = false;
+        this.exitDoorX = config.width / 2;
+        this.exitDoorY = config.height / 2;
     }
 
     public override destroy(): void {
@@ -143,6 +154,25 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         // Emit room cleared event when all waves done
         if (this.waveManager.isAllCleared() && this.entities.length === 0) {
             self.postMessage({ type: 'EVENT', name: 'ROOM_CLEARED' });
+
+            // Activate the exit door
+            if (!this.exitDoorActive) {
+                this.exitDoorActive = true;
+            }
+        }
+
+        // Check if player steps on the exit door
+        if (this.exitDoorActive && !this.exitDoorEntered) {
+            const halfDoor = BHTestLogic.DOOR_SIZE / 2;
+            const px = this.player.x;
+            const py = this.player.y;
+            if (
+                px >= this.exitDoorX - halfDoor && px <= this.exitDoorX + halfDoor &&
+                py >= this.exitDoorY - halfDoor && py <= this.exitDoorY + halfDoor
+            ) {
+                this.exitDoorEntered = true;
+                self.postMessage({ type: 'EVENT', name: 'EXIT_DOOR_ENTERED' });
+            }
         }
 
         this.syncToSAB(sharedView, frameCount, fps);
@@ -164,6 +194,16 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             'IDLE': 0, 'DELAY': 1, 'ACTIVE': 2, 'CLEARED': 3, 'ALL_CLEARED': 4
         };
         sharedView[BHLogicSchema.WAVE_STATE] = stateMap[this.waveManager.getState()] ?? 0;
+
+        // Exit door
+        sharedView[BHLogicSchema.EXIT_DOOR_ACTIVE] = this.exitDoorActive ? 1 : 0;
+        sharedView[BHLogicSchema.EXIT_DOOR_X] = this.exitDoorX;
+        sharedView[BHLogicSchema.EXIT_DOOR_Y] = this.exitDoorY;
+
+        // Encode current level: "Level 1"=0, "Level 2"=1, "Level 3"=2
+        const levelLabel = this.config!.levelLabel || "Level 1";
+        const levelIndex = levelLabel === "Level 3" ? 2 : levelLabel === "Level 2" ? 1 : 0;
+        sharedView[BHLogicSchema.CURRENT_LEVEL] = levelIndex;
 
         // Entities
         this.entities.forEach((r, i) => {

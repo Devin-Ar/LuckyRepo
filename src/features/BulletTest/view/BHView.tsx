@@ -24,6 +24,11 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
     const [waveDelayTimer, setWaveDelayTimer] = useState(vm.waveDelayTimer);
     const [isRoomCleared, setIsRoomCleared] = useState(vm.isRoomCleared);
 
+    // Exit door
+    const [exitDoorActive, setExitDoorActive] = useState(vm.exitDoorActive);
+    const [exitDoorX, setExitDoorX] = useState(vm.exitDoorX);
+    const [exitDoorY, setExitDoorY] = useState(vm.exitDoorY);
+
     const shieldBarRef = useRef<HTMLDivElement>(null);
     const shieldTextRef = useRef<HTMLSpanElement>(null);
     const damageBtnRef = useRef<HTMLButtonElement>(null);
@@ -52,6 +57,11 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
             setWaveState(vm.waveState);
             setWaveDelayTimer(vm.waveDelayTimer);
             setIsRoomCleared(vm.isRoomCleared);
+
+            // Exit door
+            setExitDoorActive(vm.exitDoorActive);
+            setExitDoorX(vm.exitDoorX);
+            setExitDoorY(vm.exitDoorY);
         });
         return () => unsubscribe();
     }, [vm, hpState, rockCount, isPaused]);
@@ -93,6 +103,11 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                 waveState={waveState}
                 waveDelayTimer={waveDelayTimer}
                 isRoomCleared={isRoomCleared}
+                exitDoorActive={exitDoorActive}
+                exitDoorX={exitDoorX}
+                exitDoorY={exitDoorY}
+                gameWidth={width}
+                gameHeight={height}
                 shieldBarRef={shieldBarRef}
                 shieldTextRef={shieldTextRef}
                 damageBtnRef={damageBtnRef}

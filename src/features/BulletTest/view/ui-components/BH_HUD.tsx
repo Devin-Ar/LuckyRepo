@@ -9,6 +9,11 @@ interface HUDProps {
     waveState: string;
     waveDelayTimer: number;
     isRoomCleared: boolean;
+    exitDoorActive: boolean;
+    exitDoorX: number;
+    exitDoorY: number;
+    gameWidth: number;
+    gameHeight: number;
     shieldBarRef: React.RefObject<HTMLDivElement>;
     shieldTextRef: React.RefObject<HTMLSpanElement>;
     damageBtnRef: React.RefObject<HTMLButtonElement>;
@@ -22,6 +27,7 @@ interface HUDProps {
 
 export const BH_HUD: React.FC<HUDProps> = ({
                                                hp, rockCount, currentWave, totalWaves, waveState, waveDelayTimer, isRoomCleared,
+                                               exitDoorActive, exitDoorX, exitDoorY, gameWidth, gameHeight,
                                                shieldBarRef, shieldTextRef, damageBtnRef,
                                                onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onResetG1
                                            }) => {
@@ -112,9 +118,48 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 }}>
                     ALL WAVES CLEARED
                     <div style={{ fontSize: '1.2cqw', color: '#fff', marginTop: '1cqh' }}>
-                        ROOM SECURED
+                        PROCEED TO EXIT
                     </div>
                 </div>
+            )}
+
+            {/* Exit Door - rendered as a square in game space */}
+            {exitDoorActive && gameWidth > 0 && gameHeight > 0 && (
+                <div style={{
+                    position: 'absolute',
+                    left: `${(exitDoorX / gameWidth) * 100}%`,
+                    top: `${(exitDoorY / gameHeight) * 100}%`,
+                    transform: 'translate(-50%, -50%)',
+                    width: '6.25%',   /* ~60px at 960 width */
+                    height: '11.1%',  /* ~60px at 540 height */
+                    border: '3px solid #f1c40f',
+                    backgroundColor: 'rgba(241, 196, 60, 0.25)',
+                    boxShadow: '0 0 20px rgba(241, 196, 60, 0.5), inset 0 0 15px rgba(241, 196, 60, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'exitDoorPulse 1.5s ease-in-out infinite'
+                }}>
+                    <span style={{
+                        color: '#f1c40f',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        fontSize: '0.9cqw',
+                        textShadow: '0 0 8px rgba(241, 196, 60, 0.8)'
+                    }}>
+                        EXIT
+                    </span>
+                </div>
+            )}
+
+            {/* Exit door pulse animation */}
+            {exitDoorActive && (
+                <style>{`
+                    @keyframes exitDoorPulse {
+                        0%, 100% { box-shadow: 0 0 20px rgba(241, 196, 60, 0.5), inset 0 0 15px rgba(241, 196, 60, 0.3); }
+                        50% { box-shadow: 0 0 35px rgba(241, 196, 60, 0.8), inset 0 0 25px rgba(241, 196, 60, 0.5); }
+                    }
+                `}</style>
             )}
 
             {/* Delay Countdown Overlay - Center (during delay phase) */}

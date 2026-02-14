@@ -48,7 +48,25 @@ export class BHPresenter extends BasePresenter {
         return this.waveState === 'ALL_CLEARED' && this.entityCount === 0;
     }
 
-    // Visuals
+    // Exit Door
+
+    public get exitDoorActive(): boolean {
+        return (this.sharedView[BHViewSchema.EXIT_DOOR_ACTIVE] || 0) === 1;
+    }
+
+    public get exitDoorX(): number {
+        return this.sharedView[BHViewSchema.EXIT_DOOR_X] || 0;
+    }
+
+    public get exitDoorY(): number {
+        return this.sharedView[BHViewSchema.EXIT_DOOR_Y] || 0;
+    }
+
+    public get currentLevelIndex(): number {
+        return Math.floor(this.sharedView[BHViewSchema.CURRENT_LEVEL] || 0);
+    }
+
+    // --- Visuals ---
 
     public get heroVisuals() {
         return {

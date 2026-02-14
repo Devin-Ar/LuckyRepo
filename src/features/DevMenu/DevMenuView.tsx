@@ -142,6 +142,14 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                                         color="#f39c12"
                                     />
                                 </div>
+                                <div style={{flex:1}}>
+                                    <DevButton
+                                        label="CROSS GAME"
+                                        subLabel="BH + G3 Campaign"
+                                        onClick={() => controller.startCampaign('cross_game')}
+                                        color="#8e44ad"
+                                    />
+                                </div>
                             </div>
                         </div>
 
