@@ -25,6 +25,8 @@ export class Game3Controller extends BaseController<Game3Presenter> {
         if (name === 'LEVEL_COMPLETE' && !this.hasCompleted) {
             this.hasCompleted = true;
             this.handleLevelComplete();
+        } else if (name === 'MAP_DATA_PRODUCED') {
+            this.vm.mapData = payload;
         }
     }
 
@@ -66,8 +68,6 @@ export class Game3Controller extends BaseController<Game3Presenter> {
             // Send pure data to worker
             this.send('SET_MAP_DATA', parsedData);
 
-            // Update View for debugging/rendering
-            this.vm.mapData = parsedData;
             console.log("[Game3Controller] Map data sent to worker.");
         } catch (e) {
             console.error("[Game3Controller] Critical initialization failure:", e);

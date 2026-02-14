@@ -5,37 +5,45 @@ import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { Game3Commands } from './Game3Commands';
 import { Game3Config } from '../model/Game3Config';
 import { ParsedMapData, PlatformData } from '../data/Game3MapData';
+import { Game3Collision } from './Game3Collision';
+import { Game3Animation } from './Game3Animation';
+import { Game3Hazards } from './Game3Hazards';
 
 export class Game3Logic extends BaseLogic<Game3Config> {
     protected dispatcher: BaseDispatcher<Game3Logic>;
 
+    private collision: Game3Collision;
+    private animation: Game3Animation;
+    private hazards: Game3Hazards;
+
     // State
-    private hp = 100;
-    private hero = { x: 0, y: 0, vx: 0, vy: 0 };
-    private isOnGround = false;
-    private isWallSliding = false;
-    private wallJumpTimer = 0;
-    private wallJumpDirection = 0;
-    private spikeDamageTimer = 0;
-    private wasInSpike = false;
-    private portalCooldown = 0;
-    private isJumpingFromGround = false;
-    private hasCompletedLevel = false;
-    private spawnPoint = { x: 0, y: 0 };
+    public hp = 100;
+    public hero = { x: 0, y: 0, vx: 0, vy: 0 };
+    public isOnGround = false;
+    public isWallSliding = false;
+    public wallJumpTimer = 0;
+    public wallJumpDirection = 0;
+    public spikeDamageTimer = 0;
+    public wasInSpike = false;
+    public portalCooldown = 0;
+    public isJumpingFromGround = false;
+    public hasCompletedLevel = false;
+    public spawnPoint = { x: 0, y: 0 };
 
     // Visuals/Animation
-    private animFrame = 0;
-    private animTimer = 0;
-    private flipX = false;
-    private animState = 0;
+    public animFrame = 0;
+    public animTimer = 0;
+    public flipX = false;
+    public animState = 0;
 
     // Config (Cache for SAB sync)
-    private heroWidth = 1.0;
-    private heroHeight = 1.0;
-    private worldScale = 32;
-    private playerScale = 1.0;
-    private playerOffsetY = 0;
-    private platforms: PlatformData[] = [];
+    public heroWidth = 1.0;
+    public heroHeight = 1.0;
+    public worldScale = 32;
+    public playerScale = 1.0;
+    public playerOffsetY = 0;
+    public platforms: PlatformData[] = [];
+    public mapData: ParsedMapData | null = null;
 
     // Movement settings
     private moveSpeed = 0.2;
@@ -46,6 +54,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     constructor() {
         super(Game3LogicSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game3Commands, "Game3");
+        this.collision = new Game3Collision(this);
+        this.animation = new Game3Animation(this);
+        this.hazards = new Game3Hazards(this, this.collision);
     }
 
     public applyConfig(config: Game3Config): void {
@@ -63,6 +74,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     }
 
     public setMapData(data: ParsedMapData) {
+        this.mapData = data;
         this.platforms = data.platforms;
         this.hero.x = data.playerStart.x;
         this.hero.y = data.playerStart.y;
@@ -75,20 +87,23 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.heroWidth = data.playerStart.width;
             this.heroHeight = data.playerStart.height;
         }
+
+        // Notify that map data is processed - following Producer/Consumer pattern
+        self.postMessage({ type: 'EVENT', name: 'MAP_DATA_PRODUCED', payload: data });
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
         if (!this.config || !this.isInitialized) return;
 
-        this.isOnGround = this.checkIsOnGround();
+        this.isOnGround = this.collision.checkIsOnGround();
 
         this.updateHeroMovement();
-        this.resolveMovement();
-        this.updateAnimation();
-        this.updateExitLogic();
-        this.updateSpikeLogic();
-        this.updatePortalLogic();
-        this.updateVoidLogic();
+        this.collision.resolveMovement();
+        this.animation.update();
+        this.hazards.updateExitLogic();
+        this.hazards.updateSpikeLogic();
+        this.hazards.updatePortalLogic();
+        this.hazards.updateVoidLogic();
 
         this.syncToSAB(sharedView, frameCount, fps);
     }
@@ -97,43 +112,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         return this.inputState && this.inputState.actions && this.inputState.actions.includes(action);
     }
 
-    private checkIsOnGround(): boolean {
-        const checkY = this.hero.y + this.heroHeight + 0.1;
-        for (const p of this.platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
-            if (
-                this.hero.x + this.heroWidth > p.x &&
-                this.hero.x < p.x + p.width &&
-                checkY > p.y &&
-                this.hero.y + this.heroHeight <= p.y
-            ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private getWallCollision(): number {
-        const checkDist = 0.1;
-        for (const p of this.platforms) {
-            if (p.isWall &&
-                this.hero.x <= p.x + p.width && this.hero.x + checkDist > p.x + p.width &&
-                this.hero.y + this.heroHeight > p.y && this.hero.y < p.y + p.height) {
-                return -1;
-            }
-        }
-        for (const p of this.platforms) {
-            if (p.isWall &&
-                this.hero.x + this.heroWidth >= p.x && this.hero.x + this.heroWidth - checkDist < p.x &&
-                this.hero.y + this.heroHeight > p.y && this.hero.y < p.y + p.height) {
-                return 1;
-            }
-        }
-        return 0;
-    }
 
     private updateHeroMovement() {
-        const wallSide = this.getWallCollision();
+        const wallSide = this.collision.getWallCollision();
 
         const moveLeft = this.isAction('MOVE_LEFT');
         const moveRight = this.isAction('MOVE_RIGHT');
@@ -196,132 +177,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (this.hero.vy > 0.8) this.hero.vy = 0.8;
     }
 
-    private updateSpikeLogic() {
-        const currentlyInSpike = this.checkHazardCollision('isSpike');
-        if (currentlyInSpike) {
-            if (!this.wasInSpike || this.spikeDamageTimer <= 0) {
-                this.modifyHP(-10);
-                this.spikeDamageTimer = 120;
-            }
-        }
-
-        if (this.spikeDamageTimer > 0) {
-            this.spikeDamageTimer--;
-        }
-        this.wasInSpike = currentlyInSpike;
-    }
-
-    private updatePortalLogic() {
-        if (this.portalCooldown > 0) {
-            this.portalCooldown--;
-            return;
-        }
-
-        const portal = this.getCollidingPlatform('isPortal');
-        if (portal) {
-            const portals = this.platforms.filter(p => p.isPortal);
-            if (portals.length >= 2) {
-                const otherPortal = portals.find(p => p !== portal);
-                if (otherPortal) {
-                    this.hero.x = otherPortal.x + (otherPortal.width / 2) - (this.heroWidth / 2);
-                    this.hero.y = otherPortal.y + (otherPortal.height / 2) - (this.heroHeight / 2);
-                    this.portalCooldown = 60;
-                }
-            }
-        }
-    }
-
-    private updateVoidLogic() {
-        if (this.checkHazardCollision('isVoid')) {
-            this.hero.x = this.spawnPoint.x;
-            this.hero.y = this.spawnPoint.y;
-            this.hero.vx = 0;
-            this.hero.vy = 0;
-            this.modifyHP(-20);
-        }
-    }
-
-    private updateExitLogic() {
-        if (!this.hasCompletedLevel && this.checkHazardCollision('isExit')) {
-            this.hasCompletedLevel = true;
-            // Send event to main thread so the controller can handle progression
-            self.postMessage({ type: 'EVENT', name: 'LEVEL_COMPLETE' });
-        }
-    }
-
-    private checkHazardCollision(property: 'isSpike' | 'isVoid' | 'isPortal' | 'isExit'): boolean {
-        return !!this.getCollidingPlatform(property);
-    }
-
-    private getCollidingPlatform(property: 'isSpike' | 'isVoid' | 'isPortal' | 'isExit'): PlatformData | undefined {
-        const padding = 0.05;
-        for (const p of this.platforms) {
-            if (p[property] &&
-                this.hero.x + this.heroWidth - padding > p.x &&
-                this.hero.x + padding < p.x + p.width &&
-                this.hero.y + this.heroHeight - padding > p.y &&
-                this.hero.y + padding < p.y + p.height) {
-                return p;
-            }
-        }
-        return undefined;
-    }
-
-    private resolveMovement() {
-        const nextX = this.hero.x + this.hero.vx;
-
-        for (const p of this.platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
-            if (nextX + this.heroWidth > p.x && nextX < p.x + p.width && this.hero.y + this.heroHeight > p.y && this.hero.y < p.y + p.height) {
-                if (nextX > this.hero.x) this.hero.x = p.x - this.heroWidth;
-                else if (nextX < this.hero.x) this.hero.x = p.x + p.width;
-                this.hero.vx = 0;
-                break;
-            }
-        }
-        if (this.hero.vx !== 0) this.hero.x = nextX;
-
-        const nextY = this.hero.y + this.hero.vy;
-        let verticalCollided = false;
-        for (const p of this.platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
-            if (this.hero.x + this.heroWidth > p.x && this.hero.x < p.x + p.width && nextY + this.heroHeight > p.y && nextY < p.y + p.height) {
-                if (nextY > this.hero.y) {
-                    this.hero.y = p.y - this.heroHeight;
-                    this.isJumpingFromGround = false;
-                } else if (nextY < this.hero.y) {
-                    this.hero.y = p.y + p.height;
-                    this.isJumpingFromGround = false;
-                }
-                this.hero.vy = 0;
-                verticalCollided = true;
-                break;
-            }
-        }
-        if (!verticalCollided) this.hero.y = nextY;
-    }
-
-    private updateAnimation() {
-        if (this.hero.vx > 0.01) this.flipX = false;
-        else if (this.hero.vx < -0.01) this.flipX = true;
-
-        const prevState = this.animState;
-        if (this.isWallSliding) this.animState = 3;
-        else if (!this.isOnGround) this.animState = 2;
-        else if (Math.abs(this.hero.vx) > 0.01) this.animState = 1;
-        else this.animState = 0;
-
-        if (prevState !== this.animState) {
-            this.animFrame = 0;
-            this.animTimer = 0;
-        }
-
-        this.animTimer++;
-        if (this.animTimer >= 6) {
-            this.animFrame = (this.animFrame + 1) % 12;
-            this.animTimer = 0;
-        }
-    }
 
     private syncToSAB(sharedView: Float32Array, frameCount: number, fps: number) {
         const S = Game3LogicSchema;

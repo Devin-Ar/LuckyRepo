@@ -4,16 +4,7 @@ import {Game3ViewSchema} from "../model/Game3ViewSchema";
 import {ParsedMapData} from "../data/Game3MapData"
 
 export class Game3Presenter extends BasePresenter {
-    private _mapData: ParsedMapData | null = null;
-
-    public set mapData(data: ParsedMapData) {
-        this._mapData = data;
-        this.notify();
-    }
-
-    public get mapData(): ParsedMapData | null {
-        return this._mapData;
-    }
+    public mapData: ParsedMapData | null = null;
 
     public get heroVisuals() {
         const S = Game3ViewSchema;
