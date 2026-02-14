@@ -24,4 +24,9 @@ export interface Game3Config {
 
 export const getGame3Config = (level: Game3Level): Game3Config => {
     const config = (levelData as Record<string, Game3Config>)[level];
-    return (levelData as Record<string, Game3Config>)["Level 1"];};
+    if (!config) {
+        console.warn(`[Game3Config] No config for "${level}", falling back to Level 1`);
+        return (levelData as Record<string, Game3Config>)["Level 1"];
+    }
+    return config;
+};
