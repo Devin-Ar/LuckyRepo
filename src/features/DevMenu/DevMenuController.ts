@@ -2,7 +2,7 @@
 import { BaseMenuController } from "../../core/templates/BaseMenuController";
 import { StateManager } from "../../core/managers/StateManager";
 import { StateRegistry } from "../../core/registry/StateRegistry";
-import { StateId } from "../../core/registry/StateId";
+import { FeatureEnum } from "../FeatureEnum";
 import { SharedSession } from "../../core/session/SharedSession";
 import { AudioManager } from "../../core/managers/AudioManager";
 import { CampaignManager } from "../../core/managers/CampaignManager";
@@ -15,17 +15,18 @@ export class DevMenuController extends BaseMenuController {
     public onBack(): void {
     }
 
-    public handleNav(id: StateId, params: any) {
+    public async handleNav(id: FeatureEnum, params: any) {
         this.session.clearSavableKeys();
         this.session.set('campaign_id', null);
         this.session.set('campaign_step_index', 0);
 
-        const target = StateRegistry.create(id, { reset: false, ...params });
+        const target = await StateRegistry.create(id, { reset: false, ...params });
         StateManager.getInstance().replace(target);
     }
 
-    public openPopup(id: StateId, params: any = {}) {
-        StateManager.getInstance().push(StateRegistry.create(id, params));
+    public async openPopup(id: FeatureEnum, params: any = {}) {
+        const target = await StateRegistry.create(id, params);
+        StateManager.getInstance().push(target);
     }
 
     public startCampaign(id: string) {

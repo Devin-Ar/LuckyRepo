@@ -8,10 +8,10 @@ import {Game2Controller} from '../view/Game2Controller';
 import {Game2Config, Game2Level, getGame2Config} from './Game2Config';
 import {SharedSession} from '../../../core/session/SharedSession';
 import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
-import {StateId} from '../../../core/registry/StateId';
+import {FeatureEnum} from '../../FeatureEnum';
 
 export class Game2State extends BaseGameState<Game2Presenter, Game2Controller, Game2Config> {
-    public name = StateId.GAME_2;
+    public name = FeatureEnum.GAME_2;
     protected logicSchema = Game2LogicSchema;
     protected viewSchema = Game2ViewSchema;
     protected viewComponent = Game2View;

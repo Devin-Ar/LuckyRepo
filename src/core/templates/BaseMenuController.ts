@@ -1,12 +1,12 @@
 // src/core/templates/BaseMenuController.ts
 import { InputManager } from "../managers/InputManager";
 import { StateManager } from "../managers/StateManager";
-import { StateId } from "../registry/StateId";
+import { FeatureEnum } from "../../features/FeatureEnum";
 
 export abstract class BaseMenuController {
     protected input: InputManager;
     protected stateManager: StateManager;
-    protected stateId?: StateId;
+    protected stateId?: FeatureEnum;
 
     constructor() {
         this.input = InputManager.getInstance();
@@ -14,7 +14,7 @@ export abstract class BaseMenuController {
         this.handleKeyDown = this.handleKeyDown.bind(this);
     }
 
-    public init(stateId: StateId): void {
+    public init(stateId: FeatureEnum): void {
         this.stateId = stateId;
         window.addEventListener('keydown', this.handleKeyDown);
         this.onInitialize();

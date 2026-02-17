@@ -11,14 +11,14 @@ import { MapGenerator } from "../logic/MapGenerator";
 import { ParsedMapData } from "../data/Game3MapData";
 import { InputManager } from "../../../core/managers/InputManager";
 import { StateRegistry } from "../../../core/registry/StateRegistry";
-import { StateId } from "../../../core/registry/StateId";
+import {FeatureEnum} from "../../FeatureEnum";
 
 export class Game3Controller extends BaseController<Game3Presenter> {
     private currentLevel: Game3Level = Game3Level.Level1;
     private hasCompleted: boolean = false;
 
     constructor(vm: Game3Presenter) {
-        super(vm, StateId.GAME_3);
+        super(vm, FeatureEnum.GAME_3);
     }
 
     protected onWorkerEvent(name: string, payload?: any): void {
@@ -88,7 +88,7 @@ export class Game3Controller extends BaseController<Game3Presenter> {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
 
         const currentLevel = (this.vm as any).currentLevel || Game3Level.Level1;
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level: currentLevel });
+        const target = await StateRegistry.create(FeatureEnum.GAME_3, { reset: false, level: currentLevel });
         await StateManager.getInstance().replace(target);
     }
 
@@ -116,7 +116,7 @@ export class Game3Controller extends BaseController<Game3Presenter> {
             if (next) {
                 this.loadLevel(next);
             } else {
-                StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+                StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
             }
         }
     }
@@ -130,7 +130,8 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     private async openPauseMenu() {
         const manager = StateManager.getInstance();
         if (manager.getCurrentStateName() === this.stateName) {
-            await manager.push(StateRegistry.create(StateId.PAUSE_MENU));
+            const target = await StateRegistry.create(FeatureEnum.PAUSE_MENU);
+            await manager.push(target);
         }
     }
 }

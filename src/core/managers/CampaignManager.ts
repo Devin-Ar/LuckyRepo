@@ -4,7 +4,7 @@ import { CampaignRegistry } from "../registry/CampaignRegistry";
 import { StateManager } from "./StateManager";
 import { ICampaignDefinition } from "../interfaces/ICampaign";
 import { StateRegistry } from "../registry/StateRegistry";
-import { StateId } from "../registry/StateId";
+import { FeatureEnum } from "../../features/FeatureEnum";
 
 export class CampaignManager {
     private static instance: CampaignManager;
@@ -28,7 +28,6 @@ export class CampaignManager {
 
         console.log(`[CampaignManager] Starting Campaign: ${campaignId}`);
 
-        // Reset Session Data
         const session = SharedSession.getInstance();
 
         session.clearSavableKeys();
@@ -84,6 +83,7 @@ export class CampaignManager {
     public failCurrentStep(context?: any) {
         const session = SharedSession.getInstance();
         const campaignId = session.get<string>('campaign_id');
+        const index = session.get<number>('campaign_step_index');
 
         if (!campaignId) {
             console.error("No active campaign to fail.");
@@ -92,10 +92,12 @@ export class CampaignManager {
         }
 
         const def = CampaignRegistry.get(campaignId);
+        const step = def?.steps[index ?? -1];
+        const factory = step?.failFactory || def?.failFactory;
 
-        if (def && def.failFactory) {
+        if (factory) {
             console.log(`[CampaignManager] Campaign Failed. Loading Fail State.`);
-            const failState = def.failFactory(context);
+            const failState = factory(context);
             StateManager.getInstance().replace(failState);
         } else {
             console.warn("No failFactory defined for this campaign. Quitting.");
@@ -110,14 +112,14 @@ export class CampaignManager {
         session.set('campaign_step_index', 0);
 
         console.log("[CampaignManager] Quitting to Menu.");
-        StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+        StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
     }
 
     private loadCurrentStep(def: ICampaignDefinition, index: number) {
         const step = def.steps[index];
         console.log(`[CampaignManager] Loading Step ${index}: ${step.name}`);
 
-        const nextState = step.factory(step.config);
+        const nextState = StateRegistry.createFromPreset(step.stateId, step.presetLabel);
 
         StateManager.getInstance().replace(nextState, step.loadingConfig);
     }

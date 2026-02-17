@@ -50,12 +50,20 @@ export class SettingsMenuController extends BaseMenuController {
         return Object.keys(INPUT_REGISTRY);
     }
 
-    public getBindingsForGame(gameName: string): Record<string, string[]> {
-        const base = { ...INPUT_REGISTRY[gameName] };
-
+    public getBindingsForGame(gameName: string): Record<string, { keys: string[], label: string }> {
+        const rawRegistry = INPUT_REGISTRY[gameName] || {};
         const overrides = this.session.get<Record<string, string[]>>(`bind_${gameName}`) || {};
 
-        return { ...base, ...overrides };
+        const result: Record<string, { keys: string[], label: string }> = {};
+
+        for (const [action, data] of Object.entries(rawRegistry)) {
+            result[action] = {
+                label: data.label,
+                keys: overrides[action] ? [...overrides[action]] : [...data.keys]
+            };
+        }
+
+        return result;
     }
 
     public setBinding(action: string, key: string, gameName: string, slotIndex: number) {

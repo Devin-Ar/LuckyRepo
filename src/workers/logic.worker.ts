@@ -1,3 +1,4 @@
+// src/workers/logic.worker.ts
 import { LogicRegistry } from '../core/registry/WorkerRegistry';
 import { initializeWorkerRegistries } from '../config/WorkerManifest';
 
@@ -8,8 +9,9 @@ const sharedViews: Map<string, Float32Array> = new Map();
 const intViews: Map<string, Int32Array> = new Map();
 
 const states: Map<string, any> = new Map();
+const pendingStates: Map<string, Promise<any>> = new Map();
 
-self.onmessage = (e: MessageEvent) => {
+self.onmessage = async (e: MessageEvent) => {
     const {type, stateName, payload, frameCount, fps} = e.data;
 
     switch (type) {
@@ -55,16 +57,30 @@ self.onmessage = (e: MessageEvent) => {
 
         case 'CREATE_STATE':
             if (!states.has(stateName)) {
-                try {
-                    const instance = LogicRegistry.create(stateName);
-                    states.set(stateName, instance);
-                    if (sharedBuffers.size > 0) {
-                        const bufferRecord: Record<string, SharedArrayBuffer> = {};
-                        sharedBuffers.forEach((buf, key) => bufferRecord[key] = buf);
-                        instance.setBuffers(bufferRecord);
+                if (pendingStates.has(stateName)) {
+                    await pendingStates.get(stateName);
+                } else {
+                    const loadPromise = (async () => {
+                        const instance = await LogicRegistry.create(stateName);
+                        if (sharedBuffers.size > 0) {
+                            const bufferRecord: Record<string, SharedArrayBuffer> = {};
+                            sharedBuffers.forEach((buf, key) => bufferRecord[key] = buf);
+                            instance.setBuffers(bufferRecord);
+                        }
+                        return instance;
+                    })();
+
+                    pendingStates.set(stateName, loadPromise);
+
+                    try {
+                        const instance = await loadPromise;
+                        states.set(stateName, instance);
+                        console.log(`[Worker] Loaded Logic: ${stateName}`);
+                    } catch (e) {
+                        console.error(`[Worker] Failed to create state: ${stateName}`, e);
+                    } finally {
+                        pendingStates.delete(stateName);
                     }
-                } catch (e) {
-                    console.error(`[Worker] Failed to create state: ${stateName}`, e);
                 }
             }
             break;
@@ -86,7 +102,16 @@ self.onmessage = (e: MessageEvent) => {
             break;
 
         case 'INPUT':
-            const target = states.get(stateName);
+            let target = states.get(stateName);
+
+            if (!target && pendingStates.has(stateName)) {
+                try {
+                    target = await pendingStates.get(stateName);
+                } catch (e) {
+                    // Handled in CREATE_STATE
+                }
+            }
+
             if (target) {
                 if (payload.action === 'GET_SNAPSHOT') {
                     console.info(`[Worker] [${stateName}] Generating Snapshot`);

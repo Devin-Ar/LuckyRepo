@@ -3,7 +3,7 @@ import {cloneElement, JSX, useEffect, useMemo, useRef, useState} from "react";
 import {StateManager} from "./core/managers/StateManager";
 import {DebugOverlay} from "./components/DebugOverlay";
 import { StateRegistry } from "./core/registry/StateRegistry";
-import { StateId } from "./core/registry/StateId";
+import { FeatureEnum } from "./features/FeatureEnum";
 import { initializeStateRegistry } from "./config/StateManifest";
 import { initializeCampaigns } from "./config/CampaignManifest";
 
@@ -41,7 +41,9 @@ const App = () => {
 
             initializeCampaigns();
 
-            manager.replace(StateRegistry.create(StateId.DEV_MENU));
+            StateRegistry.create(FeatureEnum.DEV_MENU).then(startState => {
+                manager.replace(startState);
+            });
 
             isInitialized.current = true;
         }

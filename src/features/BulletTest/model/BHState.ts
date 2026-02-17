@@ -9,10 +9,10 @@ import {BHConfig, BHLevel, getBHConfig} from './BHConfig';
 import {SharedSession} from '../../../core/session/SharedSession';
 import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
 import {InputManager} from "../../../core/managers/InputManager";
-import {StateId} from '../../../core/registry/StateId';
+import {FeatureEnum} from "../../FeatureEnum";
 
 export class BHState extends BaseGameState<BHPresenter, BHController, BHConfig> {
-    public name = StateId.BH_GAME;
+    public name = FeatureEnum.BH_GAME;
 
     protected logicSchema = BHLogicSchema;
     protected viewSchema = BHViewSchema;

@@ -1,12 +1,12 @@
 // src/features/shared-menus/states/SaveMenuState.ts
 import React, { JSX } from 'react';
 import { MenuState } from '../../../core/templates/MenuState';
-import { StateId } from '../../../core/registry/StateId';
+import { FeatureEnum } from '../../FeatureEnum';
 import { SaveMenuController } from '../controllers/SaveMenuController';
 import { SaveSlotView } from '../views/SaveSlotView';
 
 export class SaveMenuState extends MenuState<SaveMenuController> {
-    public name = StateId.SAVE_MENU;
+    public name = FeatureEnum.SAVE_MENU;
 
     constructor() {
         super(() => new SaveMenuController());

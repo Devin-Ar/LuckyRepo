@@ -1,12 +1,12 @@
 // src/features/DevMenu/DevMenuState.ts
 import React, { JSX } from 'react';
 import { State } from '../../core/templates/State';
-import { StateId } from '../../core/registry/StateId';
+import { FeatureEnum } from '../FeatureEnum';
 import { DevMenuController } from './DevMenuController';
 import { DevMenuView } from './DevMenuView';
 
 export class DevMenuState extends State {
-    public name = StateId.DEV_MENU;
+    public name = FeatureEnum.DEV_MENU;
     private controller: DevMenuController;
     protected params: any;
 
@@ -18,7 +18,7 @@ export class DevMenuState extends State {
 
     public async init(): Promise<void> {
         this.isRendering = true;
-        this.controller.init(this.name as StateId);
+        this.controller.init(this.name as FeatureEnum);
     }
 
     public update(dt: number, frameCount: number): void {

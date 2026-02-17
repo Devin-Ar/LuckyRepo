@@ -1,22 +1,24 @@
 // src/core/registry/WorkerRegistry.ts
-export interface WorkerDefinition<T> {
+export interface WorkerRegistryItem<T> {
     id: string;
-    factory: () => T;
+    loader: () => Promise<new () => T>;
 }
 
 export class WorkerRegistry<T> {
-    private definitions = new Map<string, WorkerDefinition<T>>();
+    private loaders = new Map<string, () => Promise<new () => T>>();
 
-    public register(def: WorkerDefinition<T>) {
-        this.definitions.set(def.id, def);
+    public register(def: WorkerRegistryItem<T>) {
+        this.loaders.set(def.id, def.loader);
     }
 
-    public create(id: string): T {
-        const def = this.definitions.get(id);
-        if (!def) {
-            throw new Error(`WorkerRegistry: No factory registered for ID "${id}"`);
+    public async create(id: string): Promise<T> {
+        const loader = this.loaders.get(id);
+        if (!loader) {
+            throw new Error(`WorkerRegistry: No loader registered for ID "${id}"`);
         }
-        return def.factory();
+
+        const ClassConstructor = await loader();
+        return new ClassConstructor();
     }
 }
 
