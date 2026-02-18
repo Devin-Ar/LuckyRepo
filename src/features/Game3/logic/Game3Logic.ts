@@ -6,14 +6,12 @@ import { Game3Commands } from './Game3Commands';
 import { Game3Config } from '../model/Game3Config';
 import { ParsedMapData, PlatformData } from '../data/Game3MapData';
 import { Game3Collision } from './Game3Collision';
-import { Game3Animation } from './Game3Animation';
 import { Game3Hazards } from './Game3Hazards';
 
 export class Game3Logic extends BaseLogic<Game3Config> {
     protected dispatcher: BaseDispatcher<Game3Logic>;
 
     private collision: Game3Collision;
-    private animation: Game3Animation;
     private hazards: Game3Hazards;
 
     // State
@@ -30,13 +28,11 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public hasCompletedLevel = false;
     public spawnPoint = { x: 0, y: 0 };
 
-    // Visuals/Animation
-    public animFrame = 0;
-    public animTimer = 0;
+    // Logical Visual State
     public flipX = false;
-    public animState = 0;
+    public animState = 0; // 0:Idle, 1:Walk, 2:Jump, 3:WallSlide
 
-    // Config (Cache for SAB sync)
+    // Config
     public heroWidth = 1.0;
     public heroHeight = 1.0;
     public worldScale = 32;
@@ -55,7 +51,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         super(Game3LogicSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game3Commands, "Game3");
         this.collision = new Game3Collision(this);
-        this.animation = new Game3Animation(this);
         this.hazards = new Game3Hazards(this, this.collision);
     }
 
@@ -67,10 +62,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.playerOffsetY = config.playerOffsetY || 0;
         this.heroWidth = config.heroWidth || 1.0;
         this.heroHeight = config.heroHeight || 2.0;
-
-        this.moveSpeed = 0.2;
-        this.jumpPower = -0.4;
-        this.gravity = 0.04;
     }
 
     public setMapData(data: ParsedMapData) {
@@ -88,8 +79,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.heroHeight = data.playerStart.height;
         }
 
-        // Notify that map data is processed - following Producer/Consumer pattern
-        self.postMessage({ type: 'EVENT', name: 'MAP_DATA_PRODUCED', payload: data });
+        // We do NOT need to postMessage MAP_DATA_PRODUCED anymore for rendering,
+        // because we are now syncing via SAB. We might still send it for UI logic if needed.
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
@@ -99,7 +90,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
 
         this.updateHeroMovement();
         this.collision.resolveMovement();
-        this.animation.update();
+        this.determineAnimState(); // Replaces Game3Animation update
         this.hazards.updateExitLogic();
         this.hazards.updateSpikeLogic();
         this.hazards.updatePortalLogic();
@@ -112,10 +103,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         return this.inputState && this.inputState.actions && this.inputState.actions.includes(action);
     }
 
-
     private updateHeroMovement() {
         const wallSide = this.collision.getWallCollision();
-
         const moveLeft = this.isAction('MOVE_LEFT');
         const moveRight = this.isAction('MOVE_RIGHT');
         const jumpHeld = this.isAction('JUMP');
@@ -170,13 +159,29 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             }
         }
 
-        if (this.hero.vy >= 0) {
-            this.isJumpingFromGround = false;
-        }
-
+        if (this.hero.vy >= 0) this.isJumpingFromGround = false;
         if (this.hero.vy > 0.8) this.hero.vy = 0.8;
     }
 
+    private determineAnimState() {
+        if (this.hero.vx > 0.01) this.flipX = false;
+        else if (this.hero.vx < -0.01) this.flipX = true;
+
+        if (this.isWallSliding) this.animState = 3;
+        else if (!this.isOnGround) this.animState = 2;
+        else if (Math.abs(this.hero.vx) > 0.01) this.animState = 1;
+        else this.animState = 0;
+    }
+
+    private getPlatformType(p: PlatformData): number {
+        // Encoding type for SAB
+        if (p.isExit) return 5;
+        if (p.isPortal) return 4;
+        if (p.isSpike) return 3;
+        if (p.isVoid) return 2;
+        if (p.isWall) return 1;
+        return 0; // Floor/Default
+    }
 
     private syncToSAB(sharedView: Float32Array, frameCount: number, fps: number) {
         const S = Game3LogicSchema;
@@ -193,11 +198,25 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         sharedView[S.HERO_HEIGHT] = this.heroHeight;
         sharedView[S.HERO_FLIP] = this.flipX ? 1 : 0;
         sharedView[S.HERO_ANIM_STATE] = this.animState;
-        sharedView[S.HERO_ANIM_FRAME] = this.animFrame;
 
         sharedView[S.WORLD_SCALE] = this.worldScale;
         sharedView[S.PLAYER_SCALE] = this.playerScale;
         sharedView[S.PLAYER_OFFSET_Y] = this.playerOffsetY;
+
+        // SYNC OBJECTS TO SAB
+        // We limit to MAX_OBJECTS to prevent buffer overflow
+        const objCount = Math.min(this.platforms.length, S.MAX_OBJECTS);
+        sharedView[S.OBJ_COUNT] = objCount;
+
+        for(let i = 0; i < objCount; i++) {
+            const p = this.platforms[i];
+            const idx = S.OBJ_START_INDEX + (i * S.OBJ_STRIDE);
+            sharedView[idx] = p.x;
+            sharedView[idx + 1] = p.y;
+            sharedView[idx + 2] = p.width;
+            sharedView[idx + 3] = p.height;
+            sharedView[idx + 4] = this.getPlatformType(p);
+        }
     }
 
     public override getSnapshot() {
@@ -212,7 +231,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             portalCooldown: this.portalCooldown,
             isJumpingFromGround: this.isJumpingFromGround,
             spawnPoint: { ...this.spawnPoint },
-            hasCompletedLevel: this.hasCompletedLevel
+            hasCompletedLevel: this.hasCompletedLevel,
+            animState: this.animState,
+            flipX: this.flipX
         };
     }
 
@@ -229,6 +250,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.isJumpingFromGround = data.isJumpingFromGround ?? false;
             this.spawnPoint = data.spawnPoint || this.spawnPoint;
             this.hasCompletedLevel = data.hasCompletedLevel ?? false;
+            this.animState = data.animState ?? 0;
+            this.flipX = data.flipX ?? false;
             this.isInitialized = true;
         }
     }

@@ -15,13 +15,28 @@ const configureServerHeaders = (): Plugin => ({
 
 export default defineConfig({
     base: '/LuckyRepo/',
-    plugins: [react(), configureServerHeaders()],
+    plugins: [
+        react(),
+        configureServerHeaders()
+    ],
+
+    worker: {
+        format: 'es',
+        plugins: () => [
+        ]
+    },
+
     server: {
         port: 3000,
-        // Keep these as backup
         headers: {
             'Cross-Origin-Opener-Policy': 'same-origin',
             'Cross-Origin-Embedder-Policy': 'require-corp',
         },
     },
+
+    build: {
+        target: 'esnext',
+        outDir: 'dist',
+        sourcemap: true
+    }
 });

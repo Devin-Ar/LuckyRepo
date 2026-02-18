@@ -1,10 +1,35 @@
 // src/features/Game3/view/Game3Presenter.ts
 import {BasePresenter} from "../../../core/templates/BasePresenter";
 import {Game3ViewSchema} from "../model/Game3ViewSchema";
-import {ParsedMapData} from "../data/Game3MapData"
+
+// Define a light structure for View usage
+export interface ViewObject {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    type: number;
+}
 
 export class Game3Presenter extends BasePresenter {
-    public mapData: ParsedMapData | null = null;
+
+    public get objects(): ViewObject[] {
+        const S = Game3ViewSchema;
+        const count = this.sharedView[S.OBJ_COUNT];
+        const result: ViewObject[] = [];
+
+        for(let i=0; i<count; i++) {
+            const idx = S.OBJ_START_INDEX + (i * S.OBJ_STRIDE);
+            result.push({
+                x: this.sharedView[idx],
+                y: this.sharedView[idx+1],
+                width: this.sharedView[idx+2],
+                height: this.sharedView[idx+3],
+                type: this.sharedView[idx+4]
+            });
+        }
+        return result;
+    }
 
     public get heroVisuals() {
         const S = Game3ViewSchema;
@@ -17,7 +42,7 @@ export class Game3Presenter extends BasePresenter {
             animationName = 'walk';
         }
         if (animState === 2) {
-            assetKey = 'hero_walk'; // Fallback to walk for jump
+            assetKey = 'hero_walk';
             animationName = 'walk';
         }
 
@@ -30,9 +55,9 @@ export class Game3Presenter extends BasePresenter {
             height: this.sharedView[S.HERO_HEIGHT] || 1.0,
             playerScale: this.sharedView[S.PLAYER_SCALE] || 1.0,
             playerOffsetY: this.sharedView[S.PLAYER_OFFSET_Y] || 0,
-            assetKey: assetKey,
-            animationName: animationName,
-            animState: animState
+            assetKey,
+            animationName,
+            animState
         };
     }
 

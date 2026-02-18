@@ -6,6 +6,7 @@ export const Game3ViewSchema: IBuffer = {
     HERO_Y: 1,
     HERO_HP: 2,
 
+    // Visuals calculated by ViewLogic
     HERO_ANIM_FRAME: 5,
     HERO_FLIP: 6,
     HERO_WIDTH: 7,
@@ -20,5 +21,11 @@ export const Game3ViewSchema: IBuffer = {
     GLITCH_INTENSITY: 21,
     VIGNETTE_PULSE: 22,
 
-    BUFFER_SIZE: 1024
+    // Object System (Mirrored from Logic)
+    OBJ_COUNT: 50,
+    OBJ_START_INDEX: 100,
+    OBJ_STRIDE: 5,
+    MAX_OBJECTS: 1000,
+
+    BUFFER_SIZE: 10000
 };
