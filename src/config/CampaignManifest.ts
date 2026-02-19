@@ -59,6 +59,63 @@ const ArcadeCampaign: ICampaignStep[] = [
     }
 ];
 
+const CrossGameCampaign: ICampaignStep[] = [
+    {
+        name: "Floor 1: The Gatehouse",
+        stateId: FeatureEnum.BH_GAME,
+        presetLabel: "LVL 1",
+        loadingConfig: {
+            view: LoreLoadingView,
+            props: { message: "The tower doors creak open. Creatures stir in the darkness beyond the threshold." }
+        }
+    },
+    {
+        name: "The Outer Wall",
+        stateId: FeatureEnum.GAME_3,
+        presetLabel: "LVL 1",
+        loadingConfig: {
+            view: DemoLoadingView,
+            props: { message: "You slip through a window onto the crumbling ramparts. The only way forward is up." }
+        }
+    },
+    {
+        name: "Floor 2: The Armory",
+        stateId: FeatureEnum.BH_GAME,
+        presetLabel: "LVL 2",
+        loadingConfig: {
+            view: LoreLoadingView,
+            props: { message: "Rusted blades line the walls. The tower's guardians grow fiercer the higher you climb." }
+        }
+    },
+    {
+        name: "The Bell Tower Ascent",
+        stateId: FeatureEnum.GAME_3,
+        presetLabel: "LVL 2",
+        loadingConfig: {
+            view: DemoLoadingView,
+            props: { message: "Wind howls through broken stone. Ancient chains and beams offer treacherous footing." }
+        }
+    },
+    {
+        name: "Floor 3: The Sanctum",
+        stateId: FeatureEnum.BH_GAME,
+        presetLabel: "LVL 3",
+        loadingConfig: {
+            view: LoreLoadingView,
+            props: { message: "The air hums with old magic. Whatever rules this tower awaits in the chamber above." }
+        }
+    },
+    {
+        name: "The Summit",
+        stateId: FeatureEnum.GAME_3,
+        presetLabel: "LVL 3",
+        loadingConfig: {
+            view: DemoLoadingView,
+            props: { message: "Moonlight breaks through the clouds. One final climb to the peak — or a long fall down." }
+        }
+    },
+];
+
 export const initializeCampaigns = () => {
     CampaignRegistry.register({
         id: "story_mode",
@@ -70,5 +127,11 @@ export const initializeCampaigns = () => {
         id: "arcade_mode",
         steps: ArcadeCampaign,
         failFactory: () => StateRegistry.create(FeatureEnum.GAME_OVER)
+    });
+
+    CampaignRegistry.register({
+        id: "cross_game",
+        steps: CrossGameCampaign,
+        failFactory: () => StateRegistry.create(FeatureEnum.CONTINUE)
     });
 };

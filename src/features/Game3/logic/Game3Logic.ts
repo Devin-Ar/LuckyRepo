@@ -42,7 +42,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public mapData: ParsedMapData | null = null;
 
     // Movement settings
-    private moveSpeed = 0.2;
+    private moveSpeed = 0.25;
     private jumpPower = -0.4;
     private gravity = 0.04;
     private friction = 0.5;
@@ -99,7 +99,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.syncToSAB(sharedView, frameCount, fps);
     }
 
-    private isAction(action: string): boolean {
+    public isAction(action: string): boolean {
         return this.inputState && this.inputState.actions && this.inputState.actions.includes(action);
     }
 

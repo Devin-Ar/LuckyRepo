@@ -46,5 +46,17 @@
     "playerScale": 1,
     "playerOffsetY": 0,
     "worldScale": 16
+  },
+  "Level 5": {
+    "initialHP": 100,
+    "manifestPath": "res/three_manifest.json",
+    "bgmKey": "bgm_level1",
+    "mapPath": "res/sprite/maps/MapTest5.png",
+    "mapScale": 1,
+    "heroWidth": 1,
+    "heroHeight": 1,
+    "playerScale": 1,
+    "playerOffsetY": 0,
+    "worldScale": 16
   }
 }

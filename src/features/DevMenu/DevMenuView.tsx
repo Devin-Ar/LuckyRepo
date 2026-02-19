@@ -123,7 +123,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                         gap: '1.5cqw',
                         marginTop: '2cqw'
                     }}>
-                        <div style={{gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
+                        <div style={{gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
                             <div style={{fontSize: '0.8cqw', color: '#e74c3c', marginBottom: '0.5cqw'}}>CAMPAIGN_MODES</div>
                             <div style={{display: 'flex', gap: '1cqw'}}>
                                 <div style={{flex:1}}>
@@ -139,6 +139,14 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                                         label="ARCADE MODE"
                                         subLabel="Quick Action"
                                         onClick={() => controller.startCampaign('arcade_mode')}
+                                        color="#f39c12"
+                                    />
+                                </div>
+                                <div style={{flex:1}}>
+                                    <DevButton
+                                        label="Actual Campaign"
+                                        subLabel="Uma~"
+                                        onClick={() => controller.startCampaign('cross_game')}
                                         color="#f39c12"
                                     />
                                 </div>
@@ -195,7 +203,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>
                                 MODULE: {game2?.displayName.toUpperCase() ?? "GAME_03"}
                             </div>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5cqw'}}>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
                                     onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[0]?.params)}
@@ -214,6 +222,11 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                                 <DevButton
                                     label="LVL 4"
                                     onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[3]?.params)}
+                                    color="#f39c12"
+                                />
+                                <DevButton
+                                    label="LVL 5"
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[4]?.params)}
                                     color="#f39c12"
                                 />
                             </div>
