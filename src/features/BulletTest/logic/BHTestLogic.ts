@@ -5,8 +5,8 @@ import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { BHCommands } from './BHCommands';
 import { BHConfig } from '../model/BHConfig';
 import { basePlayer } from '../interfaces/baseInterfaces/basePlayer';
-import { baseEntity } from '../interfaces/baseInterfaces/baseEntity';
-import { playerProjectile } from '../interfaces/baseInterfaces/baseProjectile';
+import {baseEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
+import {enemyProjectile, playerProjectile} from '../interfaces/baseInterfaces/baseProjectile';
 import { WaveManager } from './WaveManager';
 import { IWaveDefinition } from '../interfaces/IRoom';
 import waveData from '../data/bh_waves.json';
@@ -20,7 +20,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     private player: basePlayer;
     private entities: baseEntity[] = [];
     private playerProjectiles: playerProjectile[] = [];
-    private enemyProjectiles: baseEntity[] = [];
+    private enemyProjectiles: enemyProjectile[] = [];
     private currentFrame: number = 0;
 
     // Wave system
@@ -126,6 +126,10 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
 
         // Update existing entities
         for (const entity of this.entities) {
+            if (entity.type === "singleShot") {
+                const typeCast : ShotEntity = entity as unknown as ShotEntity;
+                typeCast.updateProjectile(this.player, this.config, this.enemyProjectiles);
+            }
             entity.update(this.player, this.config);
         }
 
@@ -142,8 +146,15 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             proj.collided(this.entities);
         }
 
+        // Update projectiles and check collisions
+        for (const proj of this.enemyProjectiles) {
+            proj.update(this.player, this.config);
+            proj.collided(this.player);
+        }
+
         // Clean up dead entities and expired projectiles
         this.playerProjectiles = this.playerProjectiles.filter(proj => proj.active);
+        this.enemyProjectiles = this.enemyProjectiles.filter(proj => proj.active);
         this.entities = this.entities.filter(entity => entity.active);
 
         // Check player death
@@ -215,6 +226,12 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         sharedView[BHLogicSchema.PPROJ_START_INDEX - 1] = this.playerProjectiles.length;
         this.playerProjectiles.forEach((r, i) => {
             const base = BHLogicSchema.PPROJ_START_INDEX + (i * BHLogicSchema.PPROJ_STRIDE);
+            r.syncToSAB(sharedView, base);
+        });
+
+        sharedView[BHLogicSchema.EPROJ_START_INDEX - 1] = this.enemyProjectiles.length;
+        this.enemyProjectiles.forEach((r, i) => {
+            const base = BHLogicSchema.EPROJ_START_INDEX + (i * BHLogicSchema.EPROJ_STRIDE);
             r.syncToSAB(sharedView, base);
         });
     }

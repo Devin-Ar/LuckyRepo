@@ -27,6 +27,8 @@ export const BHViewSchema: IBuffer = {
     ROCK_STRIDE: 6,
     PPROJ_START_INDEX: 200,
     PPROJ_STRIDE: 2,
+    EPROJ_START_INDEX: 300,
+    EPROJ_STRIDE: 2,
 
     BUFFER_SIZE: 4096
 };

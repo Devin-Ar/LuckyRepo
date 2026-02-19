@@ -16,6 +16,7 @@ export interface IEntity {
     hitbox: IHitbox;
     seed: number;
     active: boolean;
+    type: string;
 
     update(player: any, config: BHConfig): void;
 }

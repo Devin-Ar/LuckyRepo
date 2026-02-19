@@ -223,6 +223,61 @@ const PlayerProjPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
     return <Container ref={containerRef}/>;
 };
 
+const EnemyProjPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const graphicsPool = useRef<PIXI.Graphics[]>([]);
+
+    useEffect(() => {
+        return () => {
+            graphicsPool.current.forEach(s => {
+                if (s && !s.destroyed) {
+                    s.destroy();
+                }
+            });
+            graphicsPool.current = [];
+        };
+    }, []);
+
+    useTick(() => {
+        if (!containerRef.current) return;
+        const currentCount = vm.projEnemyCount;
+
+        const pool = graphicsPool.current;
+
+        if (currentCount > pool.length) {
+            for (let i = pool.length; i < currentCount; i++) {
+                const newGraphic = new PIXI.Graphics();
+                newGraphic.visible = false;
+                containerRef.current.addChild(newGraphic);
+                pool.push(newGraphic);
+            }
+        } else if (currentCount < pool.length) {
+            for (let i = pool.length - 1; i >= currentCount; i--) {
+                const oldGraphic = pool.pop();
+                if (oldGraphic) {
+                    containerRef.current.removeChild(oldGraphic);
+                    oldGraphic.destroy();
+                }
+            }
+        }
+
+        for (let i = 0; i < currentCount; i++) {
+            const graphic = pool[i];
+            const data = vm.getEnemyProjData(i);
+            if (!data || paused) {
+                if (graphic) graphic.visible = false;
+                continue;
+            }
+            graphic.visible = true;
+            graphic.clear();
+            graphic.lineStyle(10, 0xff0000);
+            graphic.drawRect(data.x, data.y, 20, 20);
+        }
+    });
+
+    return <Container ref={containerRef}/>;
+};
+
 export const BHSimulation: React.FC<{
     vm: BHPresenter,
     paused: boolean,
@@ -257,6 +312,7 @@ export const BHSimulation: React.FC<{
             <OscillatingBackground paused={paused} w={width} h={height}/>
             <Container scale={scale}>
                 <PlayerProjPool vm={vm} paused={paused}/>
+                <EnemyProjPool vm={vm} paused={paused}/>
                 <RockAttackPool vm={vm} paused={paused}/>
                 <RockPool vm={vm} paused={paused}/>
                 <Container ref={heroRef}>

@@ -17,6 +17,7 @@ export class basePlayer implements IPlayer {
     playerRelative: number;
     x: number;
     y: number;
+    type: string;
 
     private currentFrame: number = 0;
     private lastHitFrame: number = 0;
@@ -32,11 +33,12 @@ export class basePlayer implements IPlayer {
         this.vy = 0;
         this.playerRelative = 0; //It is itself... Might be usable for tracking mouse
         this.hitbox = {offsetX: 0, offsetY: 0}
-        this.height = 0;
-        this.width = 0;
+        this.height = 30;
+        this.width = 30;
         this.hp = 100;
         this.moveSpeed = 0;
         this.seed = Math.random() * 1000;
+        this.type = "player";
     }
 
     //Forcing singleton

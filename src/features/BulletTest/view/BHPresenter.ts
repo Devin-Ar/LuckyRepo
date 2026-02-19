@@ -25,6 +25,10 @@ export class BHPresenter extends BasePresenter {
         return Math.floor(this.sharedView[BHViewSchema.PPROJ_START_INDEX - 1] || 0);
     }
 
+    public get projEnemyCount(): number {
+        return Math.floor(this.sharedView[BHViewSchema.EPROJ_START_INDEX - 1] || 0);
+    }
+
     // Wave state
 
     public get currentWave(): number {
@@ -98,6 +102,14 @@ export class BHPresenter extends BasePresenter {
 
     public getPlayerProjData(index: number) {
         const offset = BHViewSchema.PPROJ_START_INDEX + (index * BHViewSchema.PPROJ_STRIDE);
+        return {
+            x: this.sharedView[offset] || 0,
+            y: this.sharedView[offset + 1] || 0,
+        };
+    }
+
+    public getEnemyProjData(index: number) {
+        const offset = BHViewSchema.EPROJ_START_INDEX + (index * BHViewSchema.EPROJ_STRIDE);
         return {
             x: this.sharedView[offset] || 0,
             y: this.sharedView[offset + 1] || 0,

@@ -28,6 +28,8 @@ export const BHLogicSchema: IBuffer = {
     ROCKS_START_INDEX: 20,
     PPROJ_START_INDEX: 200,
     PPROJ_STRIDE: 2,
+    EPROJ_START_INDEX: 300,
+    EPROJ_STRIDE: 2,
     ROCK_STRIDE: 6,
     MAX_ROCKS: 1000,
 

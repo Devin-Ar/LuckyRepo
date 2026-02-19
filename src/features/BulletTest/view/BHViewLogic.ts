@@ -55,6 +55,16 @@ export class BHViewLogic extends BaseViewLogic {
             this.outputView[vBase + 1] = this.logicView[lBase + 1];
         }
 
+        // Projectiles
+        const evilProjCount = this.logicView[BHLogicSchema.EPROJ_START_INDEX - 1];
+        this.outputView[BHViewSchema.EPROJ_START_INDEX - 1] = evilProjCount;
+        for (let i = 0; i < evilProjCount; i++) {
+            const lBase = BHLogicSchema.EPROJ_START_INDEX + (i * BHLogicSchema.EPROJ_STRIDE);
+            const vBase = BHViewSchema.EPROJ_START_INDEX + (i * BHViewSchema.EPROJ_STRIDE);
+            this.outputView[vBase] = this.logicView[lBase];
+            this.outputView[vBase + 1] = this.logicView[lBase + 1];
+        }
+
         // Wave state passthrough
         this.outputView[BHViewSchema.CURRENT_WAVE] = this.logicView[BHLogicSchema.CURRENT_WAVE];
         this.outputView[BHViewSchema.TOTAL_WAVES] = this.logicView[BHLogicSchema.TOTAL_WAVES];

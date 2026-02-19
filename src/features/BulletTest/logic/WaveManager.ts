@@ -2,7 +2,7 @@
 import { IEnemySpawn } from '../interfaces/IEnemy';
 import { IWaveDefinition } from '../interfaces/IRoom';
 import { BHConfig } from '../model/BHConfig';
-import { baseEntity, RockEntity } from '../interfaces/baseInterfaces/baseEntity';
+import {baseEntity, RockEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
 
 export type WaveState = 'IDLE' | 'DELAY' | 'ACTIVE' | 'CLEARED' | 'ALL_CLEARED';
 
@@ -96,7 +96,12 @@ export class WaveManager {
 
             // Currently only contact enemies use RockEntity
             // When ranged enemies are added, switch on spawn.damageType
-            const entity = new RockEntity(x, y);
+            let entity;
+            if (Math.random() > 0.5) {
+                entity = new ShotEntity(x, y);
+            } else {
+                entity = new RockEntity(x, y);
+            }
 
             // Apply per-enemy config from the wave definition
             entity.health = spawn.hp;
