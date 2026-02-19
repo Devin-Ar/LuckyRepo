@@ -6,10 +6,10 @@ import { Game3View } from '../view/Game3View';
 import { Game3Presenter } from '../view/Game3Presenter';
 import { Game3Controller } from '../view/Game3Controller';
 import { Game3Config, Game3Level, getGame3Config } from './Game3Config';
-import {StateId} from '../../../core/registry/StateId';
+import {FeatureEnum} from "../../FeatureEnum";
 
 export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, Game3Config> {
-    public name = StateId.GAME_3;
+    public name = FeatureEnum.GAME_3;
     protected logicSchema = Game3LogicSchema;
     protected viewSchema = Game3ViewSchema;
     protected viewComponent = Game3View;

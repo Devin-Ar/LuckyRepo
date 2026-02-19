@@ -1,12 +1,12 @@
 // src/features/shared-menus/states/PauseMenuState.ts
 import React, { JSX } from 'react';
 import { MenuState } from '../../../core/templates/MenuState';
-import { StateId } from '../../../core/registry/StateId';
+import { FeatureEnum } from '../../FeatureEnum';
 import { PauseMenuController } from '../controllers/PauseMenuController';
 import { PauseView } from "../views/PauseView";
 
 export class PauseMenuState extends MenuState<PauseMenuController> {
-    public name = StateId.PAUSE_MENU;
+    public name = FeatureEnum.PAUSE_MENU;
 
     constructor() {
         super(() => new PauseMenuController());

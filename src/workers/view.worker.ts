@@ -8,8 +8,9 @@ const logicViews: Map<string, Float32Array> = new Map();
 const logicIntViews: Map<string, Int32Array> = new Map();
 const outputViews: Map<string, Float32Array> = new Map();
 const states: Map<string, any> = new Map();
+const pendingStates: Map<string, Promise<any>> = new Map();
 
-self.onmessage = (e: MessageEvent) => {
+self.onmessage = async (e: MessageEvent) => {
     const {type, stateName, payload, dt, frameCount} = e.data;
 
     switch (type) {
@@ -48,12 +49,26 @@ self.onmessage = (e: MessageEvent) => {
 
         case 'CREATE_STATE':
             if (!states.has(stateName)) {
-                try {
-                    const instance = ViewRegistry.create(stateName);
-                    states.set(stateName, instance);
-                    instance.setBuffers(logicViews, logicIntViews, outputViews);
-                } catch (e) {
-                    console.error(`[ViewWorker] Failed to create view state: ${stateName}`, e);
+                if (pendingStates.has(stateName)) {
+                    await pendingStates.get(stateName);
+                } else {
+                    const loadPromise = (async () => {
+                        const instance = await ViewRegistry.create(stateName);
+                        instance.setBuffers(logicViews, logicIntViews, outputViews);
+                        return instance;
+                    })();
+
+                    pendingStates.set(stateName, loadPromise);
+
+                    try {
+                        const instance = await loadPromise;
+                        states.set(stateName, instance);
+                        console.log(`[ViewWorker] Loaded View: ${stateName}`);
+                    } catch (e) {
+                        console.error(`[ViewWorker] Failed to create view state: ${stateName}`, e);
+                    } finally {
+                        pendingStates.delete(stateName);
+                    }
                 }
             }
             break;
@@ -78,7 +93,15 @@ self.onmessage = (e: MessageEvent) => {
             break;
 
         case 'INPUT':
-            const target = states.get(stateName);
+            let target = states.get(stateName);
+
+            if (!target && pendingStates.has(stateName)) {
+                try {
+                    target = await pendingStates.get(stateName);
+                } catch(e) {
+                }
+            }
+
             if (!target) return;
 
             if (payload.action === 'GET_SNAPSHOT') {

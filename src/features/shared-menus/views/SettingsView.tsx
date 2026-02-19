@@ -38,7 +38,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ controller, res, set
 
     const [selectedProfile, setSelectedProfile] = useState<string>("Shared");
     const [bindingTarget, setBindingTarget] = useState<{action: string, slot: number} | null>(null);
-    const [viewBinds, setViewBinds] = useState<Record<string, string[]>>({});
+    const [viewBinds, setViewBinds] = useState<Record<string, { keys: string[], label: string }>>({});
 
     const refreshViewBinds = useCallback(() => {
         const merged = controller.getBindingsForGame(selectedProfile);
@@ -177,9 +177,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ controller, res, set
                                 CONFIGURING: {selectedProfile.toUpperCase()}
                             </p>
 
-                            {Object.entries(viewBinds).map(([action, keys]) => (
+                            {Object.entries(viewBinds).map(([action, data]) => (
                                 <div key={action} style={rowStyle}>
-                                    <span style={{ flex: 1 }}>{action.toUpperCase().replace('_', ' ')}</span>
+                                    <span style={{ flex: 1 }}>{data.label}</span>
                                     <div style={{ display: 'flex', gap: '1cqw' }}>
                                         {[0, 1].map(slotIndex => {
                                             const isBinding = bindingTarget?.action === action && bindingTarget?.slot === slotIndex;
@@ -194,7 +194,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ controller, res, set
                                                         color: isBinding ? '#fff' : '#00ff00'
                                                     }}
                                                 >
-                                                    {isBinding ? '???' : `[ ${keys[slotIndex] || '---'} ]`}
+                                                    {isBinding ? '???' : `[ ${data.keys[slotIndex] || '---'} ]`}
                                                 </button>
                                             );
                                         })}

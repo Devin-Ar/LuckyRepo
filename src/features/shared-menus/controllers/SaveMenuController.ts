@@ -24,7 +24,7 @@ export class SaveMenuController extends BaseMenuController {
     public async handleLoad(slotName: string): Promise<void> {
         try {
             const saveData = await this.saveManager.performLoad(slotName);
-            const targetState = StateRegistry.create(saveData.stateName, { reset: false });
+            const targetState = await StateRegistry.create(saveData.stateName, { reset: false });
 
             this.stateManager.pop();
             this.stateManager.replace(targetState);

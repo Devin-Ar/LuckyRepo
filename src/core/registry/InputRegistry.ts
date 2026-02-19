@@ -1,28 +1,28 @@
 // src/core/registry/InputRegistry.ts
-export const INPUT_REGISTRY: Record<string, Record<string, string[]>> = {
+export const INPUT_REGISTRY: Record<string, Record<string, { keys: string[], label: string }>> = {
     "Shared": {
-        "UI_BACK": ["ESCAPE", "BACKSPACE"],
-        "PAUSE": ["ESCAPE", "P"],
+        "UI_BACK": { keys: ["ESCAPE", "BACKSPACE"], label: "Back" },
+        "PAUSE": { keys: ["ESCAPE", "P"], label: "Pause" },
     },
     "Game1": {
-        "MOVE_UP": ["W", "ARROWUP"],
-        "MOVE_DOWN": ["S", "ARROWDOWN"],
-        "MOVE_LEFT": ["A", "ARROWLEFT"],
-        "MOVE_RIGHT": ["D", "ARROWRIGHT"],
+        "MOVE_UP": { keys: ["W", "ARROWUP"], label: "Move Up" },
+        "MOVE_DOWN": { keys: ["S", "ARROWDOWN"], label: "Move Down" },
+        "MOVE_LEFT": { keys: ["A", "ARROWLEFT"], label: "Move Left" },
+        "MOVE_RIGHT": { keys: ["D", "ARROWRIGHT"], label: "Move Right" },
     },
     "Game2": {
-        "MOVE_UP": ["G", "H"],
+        "MOVE_UP": { keys: ["G", "H"], label: "Unused" },
     },
     "BHGame": {
-        "MOVE_UP": ["W", "ARROWUP"],
-        "MOVE_DOWN": ["S", "ARROWDOWN"],
-        "MOVE_LEFT": ["A", "ARROWLEFT"],
-        "MOVE_RIGHT": ["D", "ARROWRIGHT"],
+        "MOVE_UP": { keys: ["W", "ARROWUP"], label: "Move Up" },
+        "MOVE_DOWN": { keys: ["S", "ARROWDOWN"], label: "Move Down" },
+        "MOVE_LEFT": { keys: ["A", "ARROWLEFT"], label: "Move Left" },
+        "MOVE_RIGHT": { keys: ["D", "ARROWRIGHT"], label: "Move Right" },
     },
     "Game3": {
-        "MOVE_LEFT": ["A", "ARROWLEFT"],
-        "MOVE_RIGHT": ["D", "ARROWRIGHT"],
-        "MOVE_DOWN": ["S", "ARROWDOWN"],
-        "JUMP": ["W", "ARROWUP", " "]
+        "MOVE_LEFT": { keys: ["A", "ARROWLEFT"], label: "Move Left" },
+        "MOVE_RIGHT": { keys: ["D", "ARROWRIGHT"], label: "Move Right" },
+        "MOVE_DOWN": { keys: ["S", "ARROWDOWN"], label: "Move Down" },
+        "JUMP": { keys: ["W", "ARROWUP", " "], label: "Jump" }
     }
 };

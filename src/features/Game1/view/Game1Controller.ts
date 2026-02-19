@@ -8,11 +8,11 @@ import {SaveManager} from "../../../core/managers/SaveManager";
 import {CampaignManager} from "../../../core/managers/CampaignManager";
 import {InputManager} from "../../../core/managers/InputManager";
 import {StateRegistry} from "../../../core/registry/StateRegistry";
-import {StateId} from "../../../core/registry/StateId";
+import {FeatureEnum} from "../../FeatureEnum";
 
 export class Game1Controller extends BaseController<Game1Presenter> {
     constructor(vm: Game1Presenter) {
-        super(vm, StateId.GAME_1);
+        super(vm, FeatureEnum.GAME_1);
     }
 
     public takeDamage() {
@@ -20,12 +20,12 @@ export class Game1Controller extends BaseController<Game1Presenter> {
     }
 
     public async jumpToGame2() {
-        const target = StateRegistry.create(StateId.GAME_2, { reset: false });
+        const target = await StateRegistry.create(FeatureEnum.GAME_2, { reset: false });
         await StateManager.getInstance().replace(target);
     }
 
     public async loadLevel(level: Game1Level) {
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level });
+        const target = await StateRegistry.create(FeatureEnum.GAME_1, { reset: false, level });
         await StateManager.getInstance().replace(target);
     }
 
@@ -40,7 +40,7 @@ export class Game1Controller extends BaseController<Game1Presenter> {
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
         const currentLevel = (this.vm as any).currentLevel || Game1Level.Level1;
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level: currentLevel });
+        const target = await StateRegistry.create(FeatureEnum.GAME_1, { reset: false, level: currentLevel });
         await StateManager.getInstance().replace(target);
     }
 
@@ -59,7 +59,8 @@ export class Game1Controller extends BaseController<Game1Presenter> {
     private async openPauseMenu() {
         const manager = StateManager.getInstance();
         if (manager.getCurrentStateName() === this.stateName) {
-            await manager.push(StateRegistry.create(StateId.PAUSE_MENU));
+            const target = await StateRegistry.create(FeatureEnum.PAUSE_MENU);
+            await manager.push(target);
         }
     }
 }

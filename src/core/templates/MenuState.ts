@@ -2,7 +2,7 @@
 import { JSX } from 'react';
 import { State } from './State';
 import { BaseMenuController } from './BaseMenuController';
-import {StateId} from "../registry/StateId";
+import {FeatureEnum} from "../../features/FeatureEnum";
 
 export abstract class MenuState<TController extends BaseMenuController> extends State {
     protected controller: TController;
@@ -14,7 +14,7 @@ export abstract class MenuState<TController extends BaseMenuController> extends 
 
     public async init(): Promise<void> {
         this.isRendering = true;
-        this.controller.init(this.name as StateId);
+        this.controller.init(this.name as FeatureEnum);
     }
 
     public destroy(): void {

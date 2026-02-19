@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { State } from "../../../core/templates/State";
 import { CampaignManager } from "../../../core/managers/CampaignManager";
-import { StateId } from "../../../core/registry/StateId";
+import { FeatureEnum } from "../../FeatureEnum";
 
 export class GameOverState extends State {
-    public name = StateId.GAME_OVER;
+    public name = FeatureEnum.GAME_OVER;
 
     public async init(): Promise<void> {
         this.isInitialized = true;

@@ -11,22 +11,28 @@ import { MapGenerator } from "../logic/MapGenerator";
 import { ParsedMapData } from "../data/Game3MapData";
 import { InputManager } from "../../../core/managers/InputManager";
 import { StateRegistry } from "../../../core/registry/StateRegistry";
-import { StateId } from "../../../core/registry/StateId";
+import { FeatureEnum } from "../../FeatureEnum";
 
 export class Game3Controller extends BaseController<Game3Presenter> {
     private currentLevel: Game3Level = Game3Level.Level1;
     private hasCompleted: boolean = false;
 
     constructor(vm: Game3Presenter) {
-        super(vm, StateId.GAME_3);
+        super(vm, FeatureEnum.GAME_3);
     }
 
     protected onWorkerEvent(name: string, payload?: any): void {
-        if (name === 'LEVEL_COMPLETE' && !this.hasCompleted) {
-            this.hasCompleted = true;
-            this.handleLevelComplete();
-        } else if (name === 'MAP_DATA_PRODUCED') {
-            this.vm.mapData = payload;
+        switch (name) {
+            case 'LEVEL_COMPLETE':
+                if (!this.hasCompleted) {
+                    this.hasCompleted = true;
+                    this.handleLevelComplete();
+                }
+                break;
+
+            case 'MAP_DATA_PRODUCED':
+                console.log("[Game3Controller] Worker confirmed map data ingestion.");
+                break;
         }
     }
 
@@ -38,99 +44,86 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     }
 
     /**
-     * Heavy lifting (Image Parsing) happens here on Main Thread
-     * to avoid Worker limitations with DOM/Canvas.
+     * Initializes the game. Map parsing stays on the main thread
+     * to utilize Canvas/Image APIs, then pure data is sent to the worker.
      */
     public async initialize(config: any, level: Game3Level = Game3Level.Level1) {
         this.currentLevel = level;
+        this.hasCompleted = false;
 
-        // Ensure the input manager is switched to this game's context
         InputManager.getInstance().refreshBindings("Game3");
 
         try {
             this.send('INITIALIZE', config);
 
             let parsedData: ParsedMapData;
-
             if (config.mapPath) {
                 try {
                     parsedData = await MapParser.parseMap(config.mapPath, config.mapScale ?? 1);
-                    console.log("[Game3Controller] Map parsed successfully.");
                 } catch (e) {
-                    console.error("[Game3Controller] Map parsing failed, using generator fallback:", e);
+                    console.warn("[Game3Controller] Map parse failed, falling back to generator.", e);
                     parsedData = MapGenerator.generateDefaultMap();
                 }
             } else {
-                console.log("[Game3Controller] No mapPath provided, generating default world.");
                 parsedData = MapGenerator.generateDefaultMap();
             }
-
-            // Send pure data to worker
             this.send('SET_MAP_DATA', parsedData);
 
-            console.log("[Game3Controller] Map data sent to worker.");
         } catch (e) {
             console.error("[Game3Controller] Critical initialization failure:", e);
         }
     }
 
-    // --- Actions ---
     public modifyHP(amount: number) {
         this.send('MOD_HP', { amount });
     }
 
     public async loadLevel(level: Game3Level) {
         const { Game3State } = await import("../model/Game3State");
-        StateManager.getInstance().replace(new Game3State(false, level));
+        await StateManager.getInstance().replace(new Game3State(false, level));
     }
 
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
 
-        const currentLevel = (this.vm as any).currentLevel || Game3Level.Level1;
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level: currentLevel });
+        const target = await StateRegistry.create(FeatureEnum.GAME_3, {
+            reset: false,
+            level: this.currentLevel
+        });
         await StateManager.getInstance().replace(target);
     }
 
     private handleLevelComplete(): void {
-        console.log(`[Game3Controller] Level complete (${this.currentLevel}).`);
-
         if (this.isInCampaign()) {
             CampaignManager.getInstance().completeCurrentStep();
         } else {
-            // Standalone / dev menu play: advance to next G3 level
-            const levelOrder: (Game3Level | null)[] = [
-                Game3Level.Level2,  // after Level1
-                Game3Level.Level3,  // after Level2
-                Game3Level.Level4,  // after Level3
-                null,               // after Level4 → menu
+            const levelOrder = [
+                Game3Level.Level1,
+                Game3Level.Level2,
+                Game3Level.Level3,
+                Game3Level.Level4
             ];
 
-            const currentIndex = [
-                Game3Level.Level1, Game3Level.Level2,
-                Game3Level.Level3, Game3Level.Level4
-            ].indexOf(this.currentLevel);
-
-            const next = levelOrder[currentIndex] ?? null;
+            const currentIndex = levelOrder.indexOf(this.currentLevel);
+            const next = levelOrder[currentIndex + 1];
 
             if (next) {
                 this.loadLevel(next);
             } else {
-                StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+                StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
             }
         }
     }
 
-    /** Check if we're currently inside a campaign run */
     private isInCampaign(): boolean {
-        const campaignId = SharedSession.getInstance().get<string>('campaign_id');
-        return !!campaignId;
+        return !!SharedSession.getInstance().get<string>('campaign_id');
     }
 
     private async openPauseMenu() {
         const manager = StateManager.getInstance();
         if (manager.getCurrentStateName() === this.stateName) {
-            await manager.push(StateRegistry.create(StateId.PAUSE_MENU));
+            const target = await StateRegistry.create(FeatureEnum.PAUSE_MENU);
+            await manager.push(target);
         }
     }
 }

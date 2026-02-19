@@ -7,11 +7,11 @@ import {SaveManager} from "../../../core/managers/SaveManager";
 import {CampaignManager} from "../../../core/managers/CampaignManager";
 import {InputManager} from "../../../core/managers/InputManager";
 import {StateRegistry} from "../../../core/registry/StateRegistry";
-import {StateId} from "../../../core/registry/StateId";
+import {FeatureEnum} from "../../FeatureEnum";
 
 export class Game2Controller extends BaseController<Game2Presenter> {
     constructor(vm: Game2Presenter) {
-        super(vm, StateId.GAME_2);
+        super(vm, FeatureEnum.GAME_2);
     }
 
     public modifyStat(action: 'MOD_HP' | 'MOD_ENERGY' | 'ADD_SCRAP', amount?: number) {
@@ -19,19 +19,19 @@ export class Game2Controller extends BaseController<Game2Presenter> {
     }
 
     public async jumpToGame1() {
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false });
+        const target = await StateRegistry.create(FeatureEnum.GAME_1, { reset: false });
         StateManager.getInstance().replace(target);
     }
 
     public async loadLevel(level: Game2Level) {
-        const target = StateRegistry.create(StateId.GAME_2, { reset: false, level });
+        const target = await StateRegistry.create(FeatureEnum.GAME_2, { reset: false, level });
         StateManager.getInstance().replace(target);
     }
 
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
         const currentLevel = (this.vm as any).currentLevel || Game2Level.Level1;
-        const target = StateRegistry.create(StateId.GAME_2, { reset: false, level: currentLevel });
+        const target = await StateRegistry.create(FeatureEnum.GAME_2, { reset: false, level: currentLevel });
         StateManager.getInstance().replace(target);
     }
 
@@ -44,7 +44,8 @@ export class Game2Controller extends BaseController<Game2Presenter> {
     protected onWorkerEvent(name: string): void {}
 
     private async handleEscape() {
-        StateManager.getInstance().push(StateRegistry.create(StateId.PAUSE_MENU));
+        const target = await StateRegistry.create(FeatureEnum.PAUSE_MENU);
+        StateManager.getInstance().push(target);
     }
 
     public nextLevel() {

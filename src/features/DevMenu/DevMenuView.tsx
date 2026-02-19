@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StateRegistry } from "../../core/registry/StateRegistry";
-import { StateId } from "../../core/registry/StateId";
+import { FeatureEnum } from "../FeatureEnum";
 import { DevMenuController } from './DevMenuController';
 
 interface DevBtnProps {
@@ -65,10 +65,10 @@ interface DevMenuViewProps {
 }
 
 export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRes }) => {
-    const game1 = StateRegistry.get(StateId.GAME_1);
-    const game2 = StateRegistry.get(StateId.GAME_2);
-    const game3 = StateRegistry.get(StateId.GAME_3);
-    const bhGame = StateRegistry.get(StateId.BH_GAME);
+    const game1 = StateRegistry.get(FeatureEnum.GAME_1);
+    const game2 = StateRegistry.get(FeatureEnum.GAME_2);
+    const game3 = StateRegistry.get(FeatureEnum.GAME_3);
+    const bhGame = StateRegistry.get(FeatureEnum.BH_GAME);
 
     const [vols, setVols] = useState(controller.getInitialVolumes());
 
@@ -142,14 +142,6 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                                         color="#f39c12"
                                     />
                                 </div>
-                                <div style={{flex:1}}>
-                                    <DevButton
-                                        label="CROSS GAME"
-                                        subLabel="BH + G3 Campaign"
-                                        onClick={() => controller.startCampaign('cross_game')}
-                                        color="#8e44ad"
-                                    />
-                                </div>
                             </div>
                         </div>
 
@@ -160,17 +152,17 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.GAME_1, game1?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_1, game1?.presets?.[0]?.params)}
                                     color="#27ae60"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.GAME_1, game1?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_1, game1?.presets?.[1]?.params)}
                                     color="#2980b9"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.GAME_1, game1?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_1, game1?.presets?.[2]?.params)}
                                     color="#8e44ad"
                                 />
                             </div>
@@ -183,41 +175,46 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_2, game2?.presets?.[0]?.params)}
                                     color="#c0392b"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_2, game2?.presets?.[1]?.params)}
                                     color="#d35400"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_2, game2?.presets?.[2]?.params)}
                                     color="#f39c12"
                                 />
                             </div>
                         </div>
 
                         <div style={{display: 'flex', flexDirection: 'column', gap: '0.5cqw'}}>
-                            <div style={{fontSize: '0.8cqw', color: '#00d2ff', marginBottom: '0.5cqw'}}>
-                                MODULE: {game3?.displayName.toUpperCase() ?? "GAME_03"}
+                            <div style={{fontSize: '0.8cqw', color: '#888', marginBottom: '0.5cqw'}}>
+                                MODULE: {game2?.displayName.toUpperCase() ?? "GAME_03"}
                             </div>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[0]?.params)}
-                                    color="#0984e3"
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[0]?.params)}
+                                    color="#c0392b"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[1]?.params)}
-                                    color="#6c5ce7"
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[1]?.params)}
+                                    color="#d35400"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[2]?.params)}
-                                    color="#a29bfe"
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[2]?.params)}
+                                    color="#f39c12"
+                                />
+                                <DevButton
+                                    label="LVL 4"
+                                    onClick={() => controller.handleNav(FeatureEnum.GAME_3, game3?.presets?.[3]?.params)}
+                                    color="#f39c12"
                                 />
                             </div>
                         </div>
@@ -229,17 +226,17 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.BH_GAME, bhGame?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.BH_GAME, bhGame?.presets?.[0]?.params)}
                                     color="#0984e3"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.BH_GAME, bhGame?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.BH_GAME, bhGame?.presets?.[1]?.params)}
                                     color="#6c5ce7"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.BH_GAME, bhGame?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(FeatureEnum.BH_GAME, bhGame?.presets?.[2]?.params)}
                                     color="#a29bfe"
                                 />
                             </div>
@@ -250,7 +247,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             </div>
                             <DevButton
                                 label="OPEN SAVE / LOAD MENU"
-                                onClick={() => controller.openPopup(StateId.SAVE_MENU)}
+                                onClick={() => controller.openPopup(FeatureEnum.SAVE_MENU)}
                                 color="#d35400"
                             />
                         </div>
@@ -296,7 +293,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                         <DevButton
                             label="[ SETTINGS_PANEL ]"
                             subLabel="INPUTS & OVERRIDES"
-                            onClick={() => controller.openPopup(StateId.SETTINGS_MENU, { res, setRes })}
+                            onClick={() => controller.openPopup(FeatureEnum.SETTINGS_MENU, { res, setRes })}
                             color="#000"
                         />
                     </div>

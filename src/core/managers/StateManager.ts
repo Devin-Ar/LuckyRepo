@@ -49,11 +49,13 @@ export class StateManager {
         this.notify();
     }
 
-    public async replace(state: IState, loadingConfig?: ILoadingConfig) {
+    public async replace(promise: IState | Promise<IState>, loadingConfig?: ILoadingConfig) {
         this.stack.forEach(s => s.destroy());
         this.stack = [];
 
         this.notify();
+
+        const state = await Promise.resolve(promise);
 
         const stateToLoad = loadingConfig ? new LoadingState(state, loadingConfig) : state;
 

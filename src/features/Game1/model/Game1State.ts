@@ -9,10 +9,10 @@ import {Game1Config, Game1Level, getGame1Config} from './Game1Config';
 import {SharedSession} from '../../../core/session/SharedSession';
 import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
 import {InputManager} from '../../../core/managers/InputManager';
-import {StateId} from '../../../core/registry/StateId';
+import {FeatureEnum} from '../../FeatureEnum';
 
 export class Game1State extends BaseGameState<Game1Presenter, Game1Controller, Game1Config> {
-    public name = StateId.GAME_1;
+    public name = FeatureEnum.GAME_1;
     protected logicSchema = Game1LogicSchema;
     protected viewSchema = Game1ViewSchema;
     protected viewComponent = Game1View;

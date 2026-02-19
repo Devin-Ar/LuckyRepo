@@ -1,11 +1,11 @@
 import React, { JSX } from 'react';
 import { MenuState } from '../../../core/templates/MenuState';
-import { StateId } from '../../../core/registry/StateId';
+import { FeatureEnum } from '../../FeatureEnum';
 import { SettingsMenuController } from '../controllers/SettingsMenuController';
 import { SettingsView } from '../views/SettingsView';
 
 export class SettingsMenuState extends MenuState<SettingsMenuController> {
-    public name = StateId.SETTINGS_MENU;
+    public name = FeatureEnum.SETTINGS_MENU;
     private params: any;
 
     constructor(params?: any) {

@@ -9,14 +9,14 @@ import {BHLevel} from "../model/BHConfig";
 import {SaveManager} from "../../../core/managers/SaveManager";
 import {InputManager} from "../../../core/managers/InputManager";
 import {StateRegistry} from "../../../core/registry/StateRegistry";
-import {StateId} from "../../../core/registry/StateId";
+import {FeatureEnum} from "../../FeatureEnum";
 
 export class BHController extends BaseController<BHPresenter> {
     private isDead: boolean = false;
     private hasExited: boolean = false;
 
     constructor(vm: BHPresenter) {
-        super(vm, StateId.BH_GAME);
+        super(vm, FeatureEnum.BH_GAME);
     }
 
     public takeDamage() {
@@ -24,19 +24,19 @@ export class BHController extends BaseController<BHPresenter> {
     }
 
     public async jumpToGame2() {
-        const target = StateRegistry.create(StateId.GAME_2, { reset: false });
+        const target = await StateRegistry.create(FeatureEnum.GAME_2, { reset: false });
         await StateManager.getInstance().replace(target);
     }
 
     public async loadLevel(level: BHLevel) {
-        const target = StateRegistry.create(StateId.BH_GAME, { reset: false, level });
+        const target = await StateRegistry.create(FeatureEnum.BH_GAME, { reset: false, level });
         await StateManager.getInstance().replace(target);
     }
 
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
         const currentLevel = (this.vm as any).currentLevel || BHLevel.Level1;
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level: currentLevel });
+        const target = await StateRegistry.create(FeatureEnum.BH_GAME, { reset: false, level: currentLevel });
         await StateManager.getInstance().replace(target);
     }
 
@@ -67,7 +67,7 @@ export class BHController extends BaseController<BHPresenter> {
         if (this.isInCampaign()) {
             CampaignManager.getInstance().failCurrentStep();
         } else {
-            StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+            StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
         }
     }
 
@@ -85,7 +85,7 @@ export class BHController extends BaseController<BHPresenter> {
             if (next) {
                 this.loadLevel(next);
             } else {
-                StateManager.getInstance().replace(StateRegistry.create(StateId.DEV_MENU));
+                StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
             }
         }
     }
@@ -99,7 +99,8 @@ export class BHController extends BaseController<BHPresenter> {
     private async openPauseMenu() {
         const manager = StateManager.getInstance();
         if (manager.getCurrentStateName() === this.stateName) {
-            await manager.push(StateRegistry.create(StateId.PAUSE_MENU));
+            const target = await StateRegistry.create(FeatureEnum.PAUSE_MENU);
+            await manager.push(target);
         }
     }
 }

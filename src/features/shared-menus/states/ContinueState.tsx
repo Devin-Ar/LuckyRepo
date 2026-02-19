@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { State } from "../../../core/templates/State";
 import { CampaignManager } from "../../../core/managers/CampaignManager";
-import { StateId } from "../../../core/registry/StateId";
+import { FeatureEnum } from "../../FeatureEnum";
 
 export class ContinueState extends State {
-    public name = StateId.CONTINUE;
+    public name = FeatureEnum.CONTINUE;
 
     public async init(): Promise<void> {
         this.isInitialized = true;

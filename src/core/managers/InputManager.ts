@@ -58,9 +58,18 @@ export class InputManager {
         this.currentGame = gameName;
         const session = SharedSession.getInstance();
 
+        const extractKeys = (category: string): Record<string, string[]> => {
+            const out: Record<string, string[]> = {};
+            const source = INPUT_REGISTRY[category] || {};
+            for (const [action, data] of Object.entries(source)) {
+                out[action] = data.keys;
+            }
+            return out;
+        };
+
         const merged: Record<string, string[]> = {
-            ...INPUT_REGISTRY["Shared"],
-            ...(INPUT_REGISTRY[gameName] || {})
+            ...extractKeys("Shared"),
+            ...extractKeys(gameName)
         };
 
         const sharedOverrides = session.get<Record<string, string[]>>(`bind_Shared`);

@@ -1,4 +1,5 @@
-export enum StateId {
+//src/features/FeatureEnum.ts
+export enum FeatureEnum {
     GAME_1 = "Game1",
     GAME_2 = "Game2",
     GAME_3 = "Game3",

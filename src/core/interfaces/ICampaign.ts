@@ -1,18 +1,18 @@
 // src/core/campaign/ICampaign.ts
-import { IState } from "./IState";
+import { FeatureEnum } from "../../features/FeatureEnum";
 import { ILoadingConfig } from "./ILoadingConfig";
-
-export type StateFactory<TConfig = any> = (config: TConfig) => IState;
+import { State } from "../templates/State";
 
 export interface ICampaignStep {
     name: string;
-    factory: StateFactory;
-    config: any;
+    stateId: FeatureEnum;
+    presetLabel: string;
     loadingConfig?: ILoadingConfig;
+    failFactory?: (context?: any) => State | Promise<State>;
 }
 
 export interface ICampaignDefinition {
     id: string;
     steps: ICampaignStep[];
-    failFactory?: (context?: any) => IState;
+    failFactory?: (context?: any) => State | Promise<State>;
 }
