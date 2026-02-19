@@ -9,6 +9,7 @@ export interface PlatformData {
     isPortal?: boolean;
     isVoid?: boolean;
     isExit?: boolean;
+    isFallthrough?: boolean;
     assetKey?: string;
 }
 

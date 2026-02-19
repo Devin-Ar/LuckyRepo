@@ -51,7 +51,8 @@ export const initializeStateRegistry = () => {
             { label: "LVL 1", params: { level: Game3Level.Level1 } },
             { label: "LVL 2", params: { level: Game3Level.Level2 } },
             { label: "LVL 3", params: { level: Game3Level.Level3 } },
-            { label: "LVL 4", params: { level: Game3Level.Level4 } }
+            { label: "LVL 4", params: { level: Game3Level.Level4 } },
+            { label: "LVL 5", params: { level: Game3Level.Level5 } }
         ]
     });
 

@@ -1,5 +1,5 @@
 // src/features/Game3/view/ui-components/Game3Simulation.tsx
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { Container, Graphics, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
@@ -11,7 +11,6 @@ export const Game3Simulation: React.FC<{
     height: number;
 }> = ({ vm, width, height }) => {
     const worldContainerRef = useRef<PIXI.Container>(null);
-    const [heroVisuals, setHeroVisuals] = useState(vm.heroVisuals);
     const worldScale = vm.worldScale;
 
     useTick((delta) => {
@@ -25,13 +24,16 @@ export const Game3Simulation: React.FC<{
         const targetX = (width / 2) - (heroCenterX * currentScale);
         const targetY = (height / 2) - (heroCenterY * currentScale);
 
-        // Smooth camera follow
-        worldContainerRef.current.x += (targetX - worldContainerRef.current.x) * 0.1 * delta;
-        worldContainerRef.current.y += (targetY - worldContainerRef.current.y) * 0.1 * delta;
+        // Smooth camera follow with rounding to prevent sub-pixel jitter on pixelated canvas
+        const followSpeed = 0.1;
+        const nextX = worldContainerRef.current.x + (targetX - worldContainerRef.current.x) * followSpeed * delta;
+        const nextY = worldContainerRef.current.y + (targetY - worldContainerRef.current.y) * followSpeed * delta;
 
-        setHeroVisuals({ ...hero });
+        worldContainerRef.current.x = Math.round(nextX);
+        worldContainerRef.current.y = Math.round(nextY);
     });
 
+    const heroVisuals = vm.heroVisuals;
 
     return (
         <Container ref={worldContainerRef} scale={worldScale}>
@@ -51,6 +53,7 @@ export const Game3Simulation: React.FC<{
                         if (p.isSpike) color = 0x1abc9c;
                         if (p.isPortal) color = 0x1c00ff;
                         if (p.isVoid) color = 0x000000;
+                        if (p.isFallthrough) color = 0x7a4b0d;
 
                         let alpha = 0.8;
                         if (p.isExit) {

@@ -51,7 +51,7 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                 <Stage
                     width={VIRTUAL_W}
                     height={VIRTUAL_H}
-                    options={{ backgroundColor: 0x000000, backgroundAlpha: 0, antialias: true }}
+                    options={{ backgroundColor: 0x000000, backgroundAlpha: 0, antialias: false }}
                     style={{
                         position: 'absolute', inset: 0,
                         width: '100%', height: '100%',
@@ -71,6 +71,7 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                 {/* HUD Layer */}
                 <Game3HUD
                     stats={stats}
+                    currentLevelName={controller.currentLevel}
                     onAction={(type, val) => {
                         if (type === 'MOD_HP') controller.modifyHP(val || 0);
                     }}
@@ -78,6 +79,7 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     onLevel2={() => controller.loadLevel(Game3Level.Level2)}
                     onLevel3={() => controller.loadLevel(Game3Level.Level3)}
                     onLevel4={() => controller.loadLevel(Game3Level.Level4)}
+                    onLevel5={() => controller.loadLevel(Game3Level.Level5)}
                     onQuickLoad={() => controller.resetLevel()}
                 />
             </div>

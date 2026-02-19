@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { StateRegistry } from "../../core/registry/StateRegistry";
 import { StateId } from "../../core/registry/StateId";
 import { DevMenuController } from './DevMenuController';
+import { Game1Level } from '../Game1/model/Game1Config';
+import { Game2Level } from '../Game2/model/Game2Config';
+import { Game3Level } from '../Game3/model/Game3Config';
+import { BHLevel } from '../BulletTest/model/BHConfig';
 
 interface DevBtnProps {
     label: string;
@@ -160,17 +164,17 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.GAME_1, game1?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_1, { level: Game1Level.Level1 })}
                                     color="#27ae60"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.GAME_1, game1?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_1, { level: Game1Level.Level2 })}
                                     color="#2980b9"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.GAME_1, game1?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_1, { level: Game1Level.Level3 })}
                                     color="#8e44ad"
                                 />
                             </div>
@@ -183,17 +187,17 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_2, { level: Game2Level.Level1 })}
                                     color="#c0392b"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_2, { level: Game2Level.Level2 })}
                                     color="#d35400"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.GAME_2, game2?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_2, { level: Game2Level.Level3 })}
                                     color="#f39c12"
                                 />
                             </div>
@@ -206,18 +210,28 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_3, { level: Game3Level.Level1 })}
                                     color="#0984e3"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_3, { level: Game3Level.Level2 })}
                                     color="#6c5ce7"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.GAME_3, bhGame?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(StateId.GAME_3, { level: Game3Level.Level3 })}
                                     color="#a29bfe"
+                                />
+                                <DevButton
+                                    label="LVL 4"
+                                    onClick={() => controller.handleNav(StateId.GAME_3, { level: Game3Level.Level4 })}
+                                    color="#00cec9"
+                                />
+                                <DevButton
+                                    label="LVL 5"
+                                    onClick={() => controller.handleNav(StateId.GAME_3, { level: Game3Level.Level5 })}
+                                    color="#fab1a0"
                                 />
                             </div>
                         </div>
@@ -229,17 +243,17 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
-                                    onClick={() => controller.handleNav(StateId.BH_GAME, bhGame?.presets?.[0]?.params)}
+                                    onClick={() => controller.handleNav(StateId.BH_GAME, { level: BHLevel.Level1 })}
                                     color="#0984e3"
                                 />
                                 <DevButton
                                     label="LVL 2"
-                                    onClick={() => controller.handleNav(StateId.BH_GAME, bhGame?.presets?.[1]?.params)}
+                                    onClick={() => controller.handleNav(StateId.BH_GAME, { level: BHLevel.Level2 })}
                                     color="#6c5ce7"
                                 />
                                 <DevButton
                                     label="LVL 3"
-                                    onClick={() => controller.handleNav(StateId.BH_GAME, bhGame?.presets?.[2]?.params)}
+                                    onClick={() => controller.handleNav(StateId.BH_GAME, { level: BHLevel.Level3 })}
                                     color="#a29bfe"
                                 />
                             </div>

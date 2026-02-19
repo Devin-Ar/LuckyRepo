@@ -9,6 +9,14 @@ export class Game3Collision {
         const checkY = this.logic.hero.y + this.logic.heroHeight + 0.1;
         for (const p of this.logic.platforms) {
             if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+            
+            if (p.isFallthrough) {
+                // Cannot stand on fallthrough platforms while pressing down
+                if (this.logic.isAction('MOVE_DOWN')) continue;
+                // Must be above the platform top to stand on it
+                if (this.logic.hero.y + this.logic.heroHeight > p.y + 0.1) continue;
+            }
+
             if (
                 this.logic.hero.x + this.logic.heroWidth > p.x &&
                 this.logic.hero.x < p.x + p.width &&
@@ -45,6 +53,8 @@ export class Game3Collision {
 
         for (const p of this.logic.platforms) {
             if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+            if (p.isFallthrough) continue; // Fallthrough platforms have no horizontal collision
+
             if (nextX + this.logic.heroWidth > p.x && nextX < p.x + p.width && this.logic.hero.y + this.logic.heroHeight > p.y && this.logic.hero.y < p.y + p.height) {
                 if (nextX > this.logic.hero.x) this.logic.hero.x = p.x - this.logic.heroWidth;
                 else if (nextX < this.logic.hero.x) this.logic.hero.x = p.x + p.width;
@@ -58,6 +68,16 @@ export class Game3Collision {
         let verticalCollided = false;
         for (const p of this.logic.platforms) {
             if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+
+            if (p.isFallthrough) {
+                // Ignore if moving upwards (one-way)
+                if (this.logic.hero.vy < 0) continue;
+                // Ignore if pressing down (fall-through)
+                if (this.logic.isAction('MOVE_DOWN')) continue;
+                // Ignore if we were already below the platform's top surface
+                if (this.logic.hero.y + this.logic.heroHeight > p.y + 0.1) continue;
+            }
+
             if (this.logic.hero.x + this.logic.heroWidth > p.x && this.logic.hero.x < p.x + p.width && nextY + this.logic.heroHeight > p.y && nextY < p.y + p.height) {
                 if (nextY > this.logic.hero.y) {
                     this.logic.hero.y = p.y - this.logic.heroHeight;

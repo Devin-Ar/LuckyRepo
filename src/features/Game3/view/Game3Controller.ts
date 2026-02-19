@@ -14,7 +14,7 @@ import { StateRegistry } from "../../../core/registry/StateRegistry";
 import { StateId } from "../../../core/registry/StateId";
 
 export class Game3Controller extends BaseController<Game3Presenter> {
-    private currentLevel: Game3Level = Game3Level.Level1;
+    public currentLevel: Game3Level = Game3Level.Level1;
     private hasCompleted: boolean = false;
 
     constructor(vm: Game3Presenter) {
@@ -55,13 +55,14 @@ export class Game3Controller extends BaseController<Game3Presenter> {
             if (config.mapPath) {
                 try {
                     parsedData = await MapParser.parseMap(config.mapPath, config.mapScale ?? 1);
-                    console.log("[Game3Controller] Map parsed successfully.");
+                    console.log(`[Game3Controller] Map parsed successfully: ${config.mapPath}`);
                 } catch (e) {
-                    console.error("[Game3Controller] Map parsing failed, using generator fallback:", e);
-                    parsedData = MapGenerator.generateDefaultMap();
+                    console.error(`[Game3Controller] Map parsing failed for ${config.mapPath}:`, e);
+                    // No fallback, let it fail so we can see the error
+                    throw new Error(`Failed to load map: ${config.mapPath}`);
                 }
             } else {
-                console.log("[Game3Controller] No mapPath provided, generating default world.");
+                console.warn("[Game3Controller] No mapPath provided.");
                 parsedData = MapGenerator.generateDefaultMap();
             }
 
@@ -87,8 +88,7 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     public async resetLevel() {
         await SaveManager.getInstance().performLoad(this.QUICK_SAVE_KEY);
 
-        const currentLevel = (this.vm as any).currentLevel || Game3Level.Level1;
-        const target = StateRegistry.create(StateId.GAME_1, { reset: false, level: currentLevel });
+        const target = StateRegistry.create(StateId.GAME_3, { reset: false, level: this.currentLevel });
         await StateManager.getInstance().replace(target);
     }
 
@@ -103,12 +103,14 @@ export class Game3Controller extends BaseController<Game3Presenter> {
                 Game3Level.Level2,  // after Level1
                 Game3Level.Level3,  // after Level2
                 Game3Level.Level4,  // after Level3
-                null,               // after Level4 → menu
+                Game3Level.Level5,  // after Level4
+                null,               // after Level5 → menu
             ];
 
             const currentIndex = [
                 Game3Level.Level1, Game3Level.Level2,
-                Game3Level.Level3, Game3Level.Level4
+                Game3Level.Level3, Game3Level.Level4,
+                Game3Level.Level5
             ].indexOf(this.currentLevel);
 
             const next = levelOrder[currentIndex] ?? null;

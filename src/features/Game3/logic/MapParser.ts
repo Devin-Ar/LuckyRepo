@@ -1,19 +1,8 @@
 // src/features/Game3/logic/MapParser.ts
-import { Jimp, rgbaToInt } from 'jimp';
+import { Jimp } from 'jimp';
 import { ParsedMapData, PlatformData } from '../data/Game3MapData';
 
 export class MapParser {
-    // Verified colors from "MapTest.png"
-    private static readonly COLOR_FLOOR = rgbaToInt(89, 103, 161, 255);
-    private static readonly COLOR_PLATFORM = rgbaToInt(74, 169, 8, 255);
-    private static readonly COLOR_PLAYER = rgbaToInt(214, 159, 96, 255);
-    private static readonly COLOR_EXIT = rgbaToInt(255, 0, 0, 255);
-    private static readonly COLOR_WALL = rgbaToInt(128, 0, 128, 255);
-    private static readonly COLOR_WALL_ALT = rgbaToInt(71, 13, 191, 255);
-    private static readonly COLOR_SPIKE = rgbaToInt(13, 191, 184, 255);
-    private static readonly COLOR_PORTAL = rgbaToInt(28, 0, 255, 255);
-    private static readonly COLOR_VOID = rgbaToInt(0, 0, 0, 255);
-
     /**
      * Parses a PNG map where each pixel represents a tile or an object.
      */
@@ -21,27 +10,12 @@ export class MapParser {
         console.log(`[MapParser] Parsing: ${imagePath}`);
 
         try {
-            let image: any;
-            try {
-                image = await Jimp.read(imagePath);
-            } catch (err: any) {
-                if (err.message?.includes('unrecognised content at end of stream')) {
-                    console.warn(`[MapParser] ${imagePath} has trailing bytes. Attempting to sanitize...`);
-                    const fs = require('fs');
-                    const buf = fs.readFileSync(imagePath);
-                    const iendPos = buf.lastIndexOf(Buffer.from('IEND', 'ascii'));
-                    if (iendPos !== -1) {
-                        const cleanBuf = buf.slice(0, iendPos + 8);
-                        image = await Jimp.read(cleanBuf);
-                    } else {
-                        throw err;
-                    }
-                } else {
-                    throw err;
-                }
-            }
+            const image = await Jimp.read(imagePath);
+            if (!image) throw new Error(`Jimp failed to load image: ${imagePath}`);
+            
             const width = image.bitmap.width;
             const height = image.bitmap.height;
+            console.log(`[MapParser] Image loaded: ${width}x${height}`);
 
             const platforms: PlatformData[] = [];
             let playerStart: { x: number; y: number; width?: number; height?: number } | undefined;
@@ -49,26 +23,46 @@ export class MapParser {
             for (let y = 0; y < height; y++) {
                 let currentPlat: PlatformData | null = null;
                 for (let x = 0; x < width; x++) {
-                    const color = image.getPixelColor(x, y);
-                    if ((color & 0xFF) < 128) {
+                    const idx = (image.bitmap.width * y + x) * 4;
+                    const r = image.bitmap.data[idx];
+                    const g = image.bitmap.data[idx + 1];
+                    const b = image.bitmap.data[idx + 2];
+                    const a = image.bitmap.data[idx + 3];
+                    
+                    if (a < 128) {
                         currentPlat = null;
                         continue;
                     }
 
-                    if (this.isColorMatch(color, this.COLOR_FLOOR) ||
-                        this.isColorMatch(color, this.COLOR_PLATFORM) ||
-                        this.isColorMatch(color, this.COLOR_WALL) ||
-                        this.isColorMatch(color, this.COLOR_WALL_ALT) ||
-                        this.isColorMatch(color, this.COLOR_SPIKE) ||
-                        this.isColorMatch(color, this.COLOR_PORTAL) ||
-                        this.isColorMatch(color, this.COLOR_VOID) ||
-                        this.isColorMatch(color, this.COLOR_EXIT)) {
-                        const isFloor = this.isColorMatch(color, this.COLOR_FLOOR);
-                        const isWall = this.isColorMatch(color, this.COLOR_WALL) || this.isColorMatch(color, this.COLOR_WALL_ALT);
-                        const isSpike = this.isColorMatch(color, this.COLOR_SPIKE);
-                        const isPortal = this.isColorMatch(color, this.COLOR_PORTAL);
-                        const isVoid = this.isColorMatch(color, this.COLOR_VOID);
-                        const isExit = this.isColorMatch(color, this.COLOR_EXIT);
+                    const isMatch = (targetColor: {r: number, g: number, b: number}) => {
+                        const threshold = 15;
+                        return Math.abs(r - targetColor.r) < threshold &&
+                               Math.abs(g - targetColor.g) < threshold &&
+                               Math.abs(b - targetColor.b) < threshold;
+                    };
+
+                    const floorColor = {r: 89, g: 103, b: 161};
+                    const platColor = {r: 74, g: 169, b: 8};
+                    const wallColor = {r: 128, g: 0, b: 128};
+                    const wallAltColor = {r: 71, g: 13, b: 191};
+                    const spikeColor = {r: 13, g: 191, b: 184};
+                    const portalColor = {r: 28, g: 0, b: 255};
+                    const voidColor = {r: 0, g: 0, b: 0};
+                    const exitColor = {r: 255, g: 0, b: 0};
+                    const fallthroughColor = {r: 122, g: 75, b: 13};
+                    const playerColor = {r: 214, g: 159, b: 96};
+
+                    if (isMatch(floorColor) || isMatch(platColor) || isMatch(wallColor) || 
+                        isMatch(wallAltColor) || isMatch(spikeColor) || isMatch(portalColor) || 
+                        isMatch(voidColor) || isMatch(exitColor) || isMatch(fallthroughColor)) {
+                        
+                        const isFloor = isMatch(floorColor);
+                        const isWall = isMatch(wallColor) || isMatch(wallAltColor);
+                        const isSpike = isMatch(spikeColor);
+                        const isPortal = isMatch(portalColor);
+                        const isVoid = isMatch(voidColor);
+                        const isExit = isMatch(exitColor);
+                        const isFallthrough = isMatch(fallthroughColor);
 
                         if (currentPlat &&
                             currentPlat.isFloor === isFloor &&
@@ -76,7 +70,8 @@ export class MapParser {
                             currentPlat.isSpike === isSpike &&
                             currentPlat.isPortal === isPortal &&
                             currentPlat.isVoid === isVoid &&
-                            currentPlat.isExit === isExit) {
+                            currentPlat.isExit === isExit &&
+                            currentPlat.isFallthrough === isFallthrough) {
                             currentPlat.width += 1 * mapScale;
                         } else {
                             currentPlat = {
@@ -90,13 +85,14 @@ export class MapParser {
                                 isPortal: isPortal,
                                 isVoid: isVoid,
                                 isExit: isExit,
-                                assetKey: isWall ? 'Platform Length' : (isFloor ? 'Platform Floor' : (isExit ? 'Exit Door' : 'Platform Length'))
+                                isFallthrough: isFallthrough,
+                                assetKey: isWall ? 'Platform Length' : (isFloor ? 'Platform Floor' : (isExit ? 'Exit Door' : (isFallthrough ? 'Platform Floor' : 'Platform Length')))
                             };
                             platforms.push(currentPlat);
                         }
                     } else {
                         currentPlat = null;
-                        if (this.isColorMatch(color, this.COLOR_PLAYER)) {
+                        if (isMatch(playerColor)) {
                             playerStart = {
                                 x: x * mapScale,
                                 y: y * mapScale,
@@ -109,11 +105,12 @@ export class MapParser {
             }
 
             if (!playerStart) {
-                console.warn("[MapParser] No player start found. Using default.");
+                console.warn("[MapParser] No player start found (Color match failed). Using default.");
                 playerStart = { x: 5, y: 5, width: 1, height: 1 };
             }
 
             const mergedPlatforms = this.mergeVertically(platforms);
+            console.log(`[MapParser] Parsing complete. Platforms found: ${platforms.length}, after merge: ${mergedPlatforms.length}`);
             return { platforms: mergedPlatforms, playerStart };
         } catch (error) {
             console.error(`[MapParser] Failed to parse map ${imagePath}:`, error);
@@ -151,6 +148,7 @@ export class MapParser {
                         p2.isPortal === current.isPortal &&
                         p2.isVoid === current.isVoid &&
                         p2.isExit === current.isExit &&
+                        p2.isFallthrough === current.isFallthrough &&
                         p2.assetKey === current.assetKey) {
 
                         current.height += p2.height;
@@ -163,18 +161,6 @@ export class MapParser {
             result.push(current);
         }
         return result;
-    }
-
-    private static isColorMatch(c1: number, c2: number): boolean {
-        // Extract RGB
-        const r1 = (c1 >> 24) & 0xFF, g1 = (c1 >> 16) & 0xFF, b1 = (c1 >> 8) & 0xFF;
-        const r2 = (c2 >> 24) & 0xFF, g2 = (c2 >> 16) & 0xFF, b2 = (c2 >> 8) & 0xFF;
-
-        // Use a small tolerance for compressed images or anti-aliasing
-        const threshold = 15;
-        return Math.abs(r1 - r2) < threshold &&
-            Math.abs(g1 - g2) < threshold &&
-            Math.abs(b1 - b2) < threshold;
     }
 
 }
