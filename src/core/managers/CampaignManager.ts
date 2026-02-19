@@ -44,7 +44,7 @@ export class CampaignManager {
         let index = session.get<number>('campaign_step_index');
 
         if (!campaignId || index === undefined) {
-            console.error("[CampaignManager] Cannot advance: No active campaign session.");
+            this.quitCampaign();
             return;
         }
 

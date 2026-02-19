@@ -11,6 +11,11 @@ import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
 import {InputManager} from "../../../core/managers/InputManager";
 import {FeatureEnum} from "../../FeatureEnum";
 
+export interface BHParams {
+    reset?: boolean;
+    level?: BHLevel;
+}
+
 export class BHState extends BaseGameState<BHPresenter, BHController, BHConfig> {
     public name = FeatureEnum.BH_GAME;
 
@@ -18,8 +23,11 @@ export class BHState extends BaseGameState<BHPresenter, BHController, BHConfig> 
     protected viewSchema = BHViewSchema;
     protected viewComponent = BHView;
 
-    constructor(forceReset: boolean = false, private currentLevel: BHLevel = BHLevel.Level1) {
-        super(forceReset);
+    private currentLevel: BHLevel;
+
+    constructor(params: BHParams = {}) {
+        super(params.reset ?? false);
+        this.currentLevel = params.level ?? BHLevel.Level1;
     }
 
     protected getConfig(): BHConfig {

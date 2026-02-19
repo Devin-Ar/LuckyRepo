@@ -10,14 +10,22 @@ import {SharedSession} from '../../../core/session/SharedSession';
 import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
 import {FeatureEnum} from '../../FeatureEnum';
 
+export interface Game2Params {
+    reset?: boolean;
+    level?: Game2Level;
+}
+
 export class Game2State extends BaseGameState<Game2Presenter, Game2Controller, Game2Config> {
     public name = FeatureEnum.GAME_2;
     protected logicSchema = Game2LogicSchema;
     protected viewSchema = Game2ViewSchema;
     protected viewComponent = Game2View;
 
-    constructor(forceReset: boolean = false, private currentLevel: Game2Level = Game2Level.Level1) {
-        super(forceReset);
+    private currentLevel: Game2Level;
+
+    constructor(params: Game2Params = {}) {
+        super(params.reset ?? false);
+        this.currentLevel = params.level ?? Game2Level.Level1;
     }
 
     protected getConfig(): Game2Config {

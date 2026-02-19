@@ -3,7 +3,6 @@ import { BaseController } from "../../../core/templates/BaseController";
 import { Game3Presenter } from "./Game3Presenter";
 import { StateManager } from "../../../core/managers/StateManager";
 import { CampaignManager } from "../../../core/managers/CampaignManager";
-import { SharedSession } from "../../../core/session/SharedSession";
 import { Game3Level } from "../model/Game3Config";
 import { SaveManager } from "../../../core/managers/SaveManager";
 import { MapParser } from "../logic/MapParser";
@@ -79,8 +78,8 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     }
 
     public async loadLevel(level: Game3Level) {
-        const { Game3State } = await import("../model/Game3State");
-        await StateManager.getInstance().replace(new Game3State(false, level));
+        const target = await StateRegistry.create(FeatureEnum.GAME_3, { reset: false, level });
+        await StateManager.getInstance().replace(target);
     }
 
     public async resetLevel() {
@@ -94,29 +93,7 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     }
 
     private handleLevelComplete(): void {
-        if (this.isInCampaign()) {
             CampaignManager.getInstance().completeCurrentStep();
-        } else {
-            const levelOrder = [
-                Game3Level.Level1,
-                Game3Level.Level2,
-                Game3Level.Level3,
-                Game3Level.Level4
-            ];
-
-            const currentIndex = levelOrder.indexOf(this.currentLevel);
-            const next = levelOrder[currentIndex + 1];
-
-            if (next) {
-                this.loadLevel(next);
-            } else {
-                StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
-            }
-        }
-    }
-
-    private isInCampaign(): boolean {
-        return !!SharedSession.getInstance().get<string>('campaign_id');
     }
 
     private async openPauseMenu() {

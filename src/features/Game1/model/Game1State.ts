@@ -11,14 +11,22 @@ import {GLOBAL_SESSION_MAP} from '../../../core/session/GlobalSessionMap';
 import {InputManager} from '../../../core/managers/InputManager';
 import {FeatureEnum} from '../../FeatureEnum';
 
+export interface Game1Params {
+    reset?: boolean;
+    level?: Game1Level;
+}
+
 export class Game1State extends BaseGameState<Game1Presenter, Game1Controller, Game1Config> {
     public name = FeatureEnum.GAME_1;
     protected logicSchema = Game1LogicSchema;
     protected viewSchema = Game1ViewSchema;
     protected viewComponent = Game1View;
 
-    constructor(forceReset: boolean = false, private currentLevel: Game1Level = Game1Level.Level1) {
-        super(forceReset);
+    private currentLevel: Game1Level;
+
+    constructor(params: Game1Params = {}) {
+        super(params.reset ?? false);
+        this.currentLevel = params.level ?? Game1Level.Level1;
     }
 
     protected getConfig(): Game1Config {

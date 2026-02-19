@@ -8,14 +8,22 @@ import { Game3Controller } from '../view/Game3Controller';
 import { Game3Config, Game3Level, getGame3Config } from './Game3Config';
 import {FeatureEnum} from "../../FeatureEnum";
 
+export interface Game3Params {
+    reset?: boolean;
+    level?: Game3Level;
+}
+
 export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, Game3Config> {
     public name = FeatureEnum.GAME_3;
     protected logicSchema = Game3LogicSchema;
     protected viewSchema = Game3ViewSchema;
     protected viewComponent = Game3View;
 
-    constructor(forceReset: boolean = false, private currentLevel: Game3Level = Game3Level.Level1) {
-        super(forceReset);
+    private currentLevel: Game3Level;
+
+    constructor(params: Game3Params = {}) {
+        super(params.reset ?? false);
+        this.currentLevel = params.level ?? Game3Level.Level1;
     }
 
     protected getConfig(): Game3Config {
