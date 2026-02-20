@@ -66,19 +66,24 @@ export class WaveManager {
 
         // CLEARED phase: advance to next wave or finish
         if (this.waveState === 'CLEARED') {
-            if (this.currentWave + 1 >= this.totalWaves) {
-                // Stay on the last wave index, don't overshoot
-                this.waveState = 'ALL_CLEARED';
-                return null;
-            }
-            // Advance to next wave
+            return null; // Logic will handle transitioning out of CLEARED
+        }
+        return null;
+    }
+
+    /**
+     * Move to next wave manually (used by logic when boss is ready)
+     */
+    public nextWave(): void {
+        if (this.waveState !== 'CLEARED') return;
+        
+        if (this.currentWave + 1 >= this.totalWaves) {
+            this.waveState = 'ALL_CLEARED';
+        } else {
             this.currentWave++;
             this.waveState = 'DELAY';
             this.delayTimer = this.waveDefinitions[this.currentWave]?.delayBeforeStart ?? 60;
-            return null;
         }
-
-        return null;
     }
 
     /**

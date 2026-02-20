@@ -236,7 +236,7 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                             <div style={{fontSize: '0.8cqw', color: '#00d2ff', marginBottom: '0.5cqw'}}>
                                 MODULE: {bhGame?.displayName.toUpperCase() ?? "BH_GAME"}
                             </div>
-                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5cqw'}}>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5cqw'}}>
                                 <DevButton
                                     label="LVL 1"
                                     onClick={() => controller.handleNav(FeatureEnum.BH_GAME, bhGame?.presets?.[0]?.params)}
@@ -251,6 +251,11 @@ export const DevMenuView: React.FC<DevMenuViewProps> = ({ controller, res, setRe
                                     label="LVL 3"
                                     onClick={() => controller.handleNav(FeatureEnum.BH_GAME, bhGame?.presets?.[2]?.params)}
                                     color="#a29bfe"
+                                />
+                                <DevButton
+                                    label="LVL 4"
+                                    onClick={() => controller.handleNav(FeatureEnum.BH_GAME, bhGame?.presets?.[3]?.params)}
+                                    color="#d63031"
                                 />
                             </div>
                         </div>

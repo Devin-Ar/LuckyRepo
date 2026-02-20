@@ -30,8 +30,8 @@ export class BHViewLogic extends BaseViewLogic {
         this.globalRockRotation += 0.02 * (dt / 16.67);
 
         for (let i = 0; i < rockCount; i++) {
-            const lBase = BHLogicSchema.ROCKS_START_INDEX + (i * BHLogicSchema.ROCK_STRIDE);
-            const vBase = BHViewSchema.ROCKS_START_INDEX + (i * BHViewSchema.ROCK_STRIDE);
+            const lBase = BHLogicSchema.ROCKS_START_INDEX_ACTUAL + (i * BHLogicSchema.ROCK_STRIDE);
+            const vBase = BHViewSchema.ROCKS_START_INDEX_ACTUAL + (i * BHViewSchema.ROCK_STRIDE);
 
             this.outputView[vBase] = this.logicView[lBase];
             this.outputView[vBase + 1] = this.logicView[lBase + 1];
@@ -76,6 +76,13 @@ export class BHViewLogic extends BaseViewLogic {
         this.outputView[BHViewSchema.EXIT_DOOR_X] = this.logicView[BHLogicSchema.EXIT_DOOR_X];
         this.outputView[BHViewSchema.EXIT_DOOR_Y] = this.logicView[BHLogicSchema.EXIT_DOOR_Y];
         this.outputView[BHViewSchema.CURRENT_LEVEL] = this.logicView[BHLogicSchema.CURRENT_LEVEL];
+
+        // Boss state passthrough
+        this.outputView[BHViewSchema.BOSS_HP] = this.logicView[BHLogicSchema.BOSS_HP];
+        this.outputView[BHViewSchema.BOSS_VULNERABLE] = this.logicView[BHLogicSchema.BOSS_VULNERABLE];
+        this.outputView[BHViewSchema.BOSS_X] = this.logicView[BHLogicSchema.BOSS_X];
+        this.outputView[BHViewSchema.BOSS_Y] = this.logicView[BHLogicSchema.BOSS_Y];
+        this.outputView[BHViewSchema.BOSS_ACTIVE] = this.logicView[BHLogicSchema.BOSS_ACTIVE];
     }
 
     public override getSnapshot() {

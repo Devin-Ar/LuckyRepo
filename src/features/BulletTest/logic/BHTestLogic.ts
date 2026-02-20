@@ -5,7 +5,7 @@ import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { BHCommands } from './BHCommands';
 import { BHConfig } from '../model/BHConfig';
 import { basePlayer } from '../interfaces/baseInterfaces/basePlayer';
-import {baseEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
+import {baseEntity, BossEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
 import {enemyProjectile, playerProjectile} from '../interfaces/baseInterfaces/baseProjectile';
 import { WaveManager } from './WaveManager';
 import { IWaveDefinition } from '../interfaces/IRoom';
@@ -22,6 +22,11 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     private playerProjectiles: playerProjectile[] = [];
     private enemyProjectiles: enemyProjectile[] = [];
     private currentFrame: number = 0;
+
+    // Boss system
+    private boss: BossEntity | null = null;
+    private bossLevel: boolean = false;
+    private bossTargetHp: number = 3;
 
     // Wave system
     private waveManager: WaveManager = new WaveManager();
@@ -64,6 +69,15 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.exitDoorEntered = false;
         this.exitDoorX = config.width / 2;
         this.exitDoorY = config.height / 2;
+
+        const levelLabel = this.config!.levelLabel || "Level 1";
+        this.bossLevel = levelLabel === "Level 4";
+        if (this.bossLevel) {
+            this.boss = new BossEntity(config.width / 2 - 100, 50);
+            this.bossTargetHp = 200; // Vulnerable after wave 1 until hits 200, then wave 2...
+        } else {
+            this.boss = null;
+        }
     }
 
     public override destroy(): void {
@@ -72,6 +86,8 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
         this.wavesStarted = false;
+        this.boss = null;
+        this.bossLevel = false;
     }
 
     public override getSnapshot(): any {
@@ -116,6 +132,36 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         const activeEnemyCount = this.entities.filter(e => e.active).length;
         const newSpawns = this.waveManager.update(activeEnemyCount);
 
+        // Transition waves automatically for non-boss levels
+        if (!this.bossLevel && this.waveManager.getState() === 'CLEARED') {
+            this.waveManager.nextWave();
+        }
+
+    // Boss logic
+        if (this.bossLevel && this.boss) {
+            const waveState = this.waveManager.getState();
+            
+            // Boss is vulnerable only if no enemies are present and it's between waves or all waves cleared
+            if (activeEnemyCount > 0 || waveState === 'ACTIVE' || waveState === 'DELAY') {
+                 this.boss.vulnerable = false;
+            } else if (waveState === 'CLEARED' || waveState === 'ALL_CLEARED') {
+                 // Boss becomes vulnerable when current wave is cleared, until it reaches next HP threshold
+                 if (this.boss.health > this.bossTargetHp) {
+                     this.boss.vulnerable = true;
+                 } else if (this.boss.vulnerable) {
+                     this.boss.vulnerable = false;
+                     this.bossTargetHp -= 100;
+                     // If boss reached target HP, advance to next wave if possible
+                     if (waveState === 'CLEARED') {
+                         this.waveManager.nextWave();
+                     }
+                 }
+            }
+
+            // If boss is vulnerable, it shoots
+            this.boss.updateAttacks(this.player, frameCount, this.enemyProjectiles);
+        }
+
         if (newSpawns) {
             const newEntities = WaveManager.spawnFromDefinitions(newSpawns, this.config);
             this.entities.push(...newEntities);
@@ -144,6 +190,9 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         for (const proj of this.playerProjectiles) {
             proj.update(this.player, this.config);
             proj.collided(this.entities);
+            if (this.boss) {
+                proj.collided([this.boss]);
+            }
         }
 
         // Update projectiles and check collisions
@@ -163,7 +212,8 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         }
 
         // Emit room cleared event when all waves done
-        if (this.waveManager.isAllCleared() && this.entities.length === 0) {
+        const bossCleared = this.bossLevel ? (this.boss && !this.boss.active) : true;
+        if (this.waveManager.isAllCleared() && this.entities.length === 0 && bossCleared) {
             self.postMessage({ type: 'EVENT', name: 'ROOM_CLEARED' });
 
             // Activate the exit door
@@ -211,14 +261,26 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         sharedView[BHLogicSchema.EXIT_DOOR_X] = this.exitDoorX;
         sharedView[BHLogicSchema.EXIT_DOOR_Y] = this.exitDoorY;
 
-        // Encode current level: "Level 1"=0, "Level 2"=1, "Level 3"=2
+        // Encode current level: "Level 1"=0, "Level 2"=1, "Level 3"=2, "Level 4"=3
         const levelLabel = this.config!.levelLabel || "Level 1";
-        const levelIndex = levelLabel === "Level 3" ? 2 : levelLabel === "Level 2" ? 1 : 0;
+        const levelIndex = levelLabel === "Level 4" ? 3 : levelLabel === "Level 3" ? 2 : levelLabel === "Level 2" ? 1 : 0;
         sharedView[BHLogicSchema.CURRENT_LEVEL] = levelIndex;
+
+        if (this.boss) {
+            sharedView[BHLogicSchema.BOSS_HP] = this.boss.health;
+            sharedView[BHLogicSchema.BOSS_VULNERABLE] = this.boss.vulnerable ? 1 : 0;
+            sharedView[BHLogicSchema.BOSS_X] = this.boss.x;
+            sharedView[BHLogicSchema.BOSS_Y] = this.boss.y;
+            sharedView[BHLogicSchema.BOSS_ACTIVE] = this.boss.active ? 1 : 0;
+        } else {
+            sharedView[BHLogicSchema.BOSS_HP] = 0;
+            sharedView[BHLogicSchema.BOSS_VULNERABLE] = 0;
+            sharedView[BHLogicSchema.BOSS_ACTIVE] = 0;
+        }
 
         // Entities
         this.entities.forEach((r, i) => {
-            const base = BHLogicSchema.ROCKS_START_INDEX + (i * BHLogicSchema.ROCK_STRIDE);
+            const base = BHLogicSchema.ROCKS_START_INDEX_ACTUAL + (i * BHLogicSchema.ROCK_STRIDE);
             r.syncToSAB(sharedView, base);
         });
 

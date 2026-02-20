@@ -278,6 +278,33 @@ const EnemyProjPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paus
     return <Container ref={containerRef}/>;
 };
 
+const BossRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
+    const graphicsRef = useRef<PIXI.Graphics>(null);
+
+    useTick(() => {
+        if (!graphicsRef.current) return;
+        
+        if (!vm.bossActive || paused) {
+            graphicsRef.current.visible = false;
+            return;
+        }
+
+        const pos = vm.bossPos;
+        const vulnerable = vm.bossVulnerable;
+        
+        graphicsRef.current.visible = true;
+        graphicsRef.current.clear();
+        
+        // Draw boss body
+        graphicsRef.current.beginFill(vulnerable ? 0xe74c3c : 0x444444);
+        graphicsRef.current.lineStyle(4, 0xffffff);
+        graphicsRef.current.drawRect(pos.x, pos.y, 200, 200);
+        graphicsRef.current.endFill();
+    });
+
+    return <Graphics ref={graphicsRef} />;
+};
+
 export const BHSimulation: React.FC<{
     vm: BHPresenter,
     paused: boolean,
@@ -315,6 +342,7 @@ export const BHSimulation: React.FC<{
                 <EnemyProjPool vm={vm} paused={paused}/>
                 <RockAttackPool vm={vm} paused={paused}/>
                 <RockPool vm={vm} paused={paused}/>
+                <BossRenderer vm={vm} paused={paused}/>
                 <Container ref={heroRef}>
                     <GameSprite
                         sheetName="hero_sheet"

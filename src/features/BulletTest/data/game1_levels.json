@@ -34,5 +34,17 @@
     "manifestPath": "res/manifest.json",
     "bgmKey": "bgm_level1",
     "levelLabel": "Level 3"
+  },
+  "Level 4": {
+    "width": 960,
+    "height": 540,
+    "initialHP": 100,
+    "spawnCount": 0,
+    "heroStartX": 480,
+    "heroStartY": 450,
+    "moveSpeed": 5,
+    "manifestPath": "res/manifest.json",
+    "bgmKey": "bgm_boss",
+    "levelLabel": "Level 4"
   }
 }
