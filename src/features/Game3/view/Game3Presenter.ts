@@ -1,8 +1,7 @@
 // src/features/Game3/view/Game3Presenter.ts
-import {BasePresenter} from "../../../core/templates/BasePresenter";
-import {Game3ViewSchema} from "../model/Game3ViewSchema";
+import { BasePresenter } from "../../../core/templates/BasePresenter";
+import { Game3ViewMainSchema, Game3ViewPlatformsSchema } from "../model/Game3ViewSchema";
 
-// Define a light structure for View usage
 export interface ViewObject {
     x: number;
     y: number;
@@ -14,47 +13,69 @@ export interface ViewObject {
 export class Game3Presenter extends BasePresenter {
 
     public get objects(): ViewObject[] {
-        const S = Game3ViewSchema;
-        const count = this.sharedView[S.OBJ_COUNT];
+        const vMain = this._sharedViews.get('main');
+        const vPlatforms = this._sharedViews.get('platforms');
+
+        if (!vMain || !vPlatforms) return [];
+
+        const count = vMain[Game3ViewMainSchema.OBJ_COUNT];
+        const stride = Game3ViewPlatformsSchema.STRIDE;
         const result: ViewObject[] = [];
 
-        for(let i=0; i<count; i++) {
-            const idx = S.OBJ_START_INDEX + (i * S.OBJ_STRIDE);
+        for (let i = 0; i < count; i++) {
+            const base = i * stride;
             result.push({
-                x: this.sharedView[idx],
-                y: this.sharedView[idx+1],
-                width: this.sharedView[idx+2],
-                height: this.sharedView[idx+3],
-                type: this.sharedView[idx+4]
+                x: vPlatforms[base],
+                y: vPlatforms[base + 1],
+                width: vPlatforms[base + 2],
+                height: vPlatforms[base + 3],
+                type: vPlatforms[base + 4]
             });
         }
         return result;
     }
 
+    /**
+     * Resolves hero visuals including the new Air and WallSlide states
+     */
     public get heroVisuals() {
-        const S = Game3ViewSchema;
-        const animState = this.sharedView[S.HERO_ANIM_STATE];
+        const S = Game3ViewMainSchema;
+        const view = this._sharedViews.get('main');
+        if (!view) return null;
+
+        const animState = view[S.HERO_ANIM_STATE];
 
         let assetKey = 'hero_idle';
         let animationName = 'idle';
-        if (animState === 1) {
-            assetKey = 'hero_walk';
-            animationName = 'walk';
-        }
-        if (animState === 2) {
-            assetKey = 'hero_walk';
-            animationName = 'walk';
+
+        switch (animState) {
+            case 1: // Walking
+                assetKey = 'hero_walk';
+                animationName = 'walk';
+                break;
+            case 2: // Air / Jumping
+                assetKey = 'hero_jump';
+                animationName = 'jump';
+                break;
+            case 3: // Wall Sliding
+                assetKey = 'hero_wall_slide';
+                animationName = 'slide';
+                break;
+            default: // 0 - Idle
+                assetKey = 'hero_idle';
+                animationName = 'idle';
+                break;
         }
 
         return {
-            x: this.sharedView[S.HERO_X] || 0,
-            y: this.sharedView[S.HERO_Y] || 0,
-            frame: Math.floor(this.sharedView[S.HERO_ANIM_FRAME] || 0),
-            flipX: this.sharedView[S.HERO_FLIP] > 0.5,
-            width: this.sharedView[S.HERO_WIDTH] || 1.0,
-            height: this.sharedView[S.HERO_HEIGHT] || 1.0,
-            playerScale: this.sharedView[S.PLAYER_SCALE] || 1.0,
-            playerOffsetY: this.sharedView[S.PLAYER_OFFSET_Y] || 0,
+            x: view[S.HERO_X] || 0,
+            y: view[S.HERO_Y] || 0,
+            frame: Math.floor(view[S.HERO_ANIM_FRAME] || 0),
+            flipX: view[S.HERO_FLIP] > 0.5,
+            width: view[S.HERO_WIDTH] || 1.0,
+            height: view[S.HERO_HEIGHT] || 1.0,
+            playerScale: view[S.PLAYER_SCALE] || 1.0,
+            playerOffsetY: view[S.PLAYER_OFFSET_Y] || 0,
             assetKey,
             animationName,
             animState
@@ -62,22 +83,27 @@ export class Game3Presenter extends BasePresenter {
     }
 
     public get worldScale(): number {
-        return this.sharedView[Game3ViewSchema.WORLD_SCALE] || 32;
+        const view = this._sharedViews.get('main');
+        return view ? view[Game3ViewMainSchema.WORLD_SCALE] : 32;
     }
 
     public get stats() {
-        const S = Game3ViewSchema;
+        const view = this._sharedViews.get('main');
+        const S = Game3ViewMainSchema;
         return {
-            hp: this.sharedView[S.HERO_HP] || 0
+            hp: view ? view[S.HERO_HP] : 0
         };
     }
 
     public get visualEffects() {
-        const S = Game3ViewSchema;
+        const view = this._sharedViews.get('main');
+        const S = Game3ViewMainSchema;
+        if (!view) return { uiOffset: 0, glitchIntensity: 0, vignettePulse: 0 };
+
         return {
-            uiOffset: this.sharedView[S.UI_BOUNCE] || 0,
-            glitchIntensity: this.sharedView[S.GLITCH_INTENSITY] || 0,
-            vignettePulse: this.sharedView[S.VIGNETTE_PULSE] || 0
+            uiOffset: view[S.UI_BOUNCE] || 0,
+            glitchIntensity: view[S.GLITCH_INTENSITY] || 0,
+            vignettePulse: view[S.VIGNETTE_PULSE] || 0
         };
     }
 }

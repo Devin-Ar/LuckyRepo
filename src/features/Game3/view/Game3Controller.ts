@@ -7,7 +7,7 @@ import { Game3Level } from "../model/Game3Config";
 import { SaveManager } from "../../../core/managers/SaveManager";
 import { MapParser } from "../logic/MapParser";
 import { MapGenerator } from "../logic/MapGenerator";
-import { ParsedMapData } from "../data/Game3MapData";
+import { ParsedMapData } from "../logic/Game3MapData";
 import { InputManager } from "../../../core/managers/InputManager";
 import { StateRegistry } from "../../../core/registry/StateRegistry";
 import { FeatureEnum } from "../../FeatureEnum";

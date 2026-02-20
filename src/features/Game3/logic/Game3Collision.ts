@@ -1,6 +1,6 @@
 // src/features/Game3/logic/Game3Collision.ts
 import { Game3Logic } from './Game3Logic';
-import { PlatformData } from '../data/Game3MapData';
+import { PlatformData } from './Game3MapData';
 
 export class Game3Collision {
     constructor(private logic: Game3Logic) {}

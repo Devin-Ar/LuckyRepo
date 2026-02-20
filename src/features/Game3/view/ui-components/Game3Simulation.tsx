@@ -1,8 +1,26 @@
 // src/features/Game3/view/ui-components/Game3Simulation.tsx
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { Container, Graphics, useTick } from '@pixi/react';
+import { Container, Graphics, useApp, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
+
+const PixiForceResizer: React.FC<{ w: number, h: number }> = ({ w, h }) => {
+    const app = useApp();
+    useEffect(() => {
+        if (app?.renderer) {
+            app.renderer.resize(w, h);
+            PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+            PIXI.settings.ROUND_PIXELS = true;
+
+            if (app.view instanceof HTMLCanvasElement) {
+                app.view.width = w;
+                app.view.height = h;
+                app.view.style.imageRendering = 'pixelated';
+            }
+        }
+    }, [app, w, h]);
+    return null;
+};
 
 export const Game3Simulation: React.FC<{
     vm: Game3Presenter;
@@ -10,90 +28,80 @@ export const Game3Simulation: React.FC<{
     height: number;
 }> = ({ vm, width, height }) => {
     const worldContainerRef = useRef<PIXI.Container>(null);
-    const [heroVisuals, setHeroVisuals] = useState(vm.heroVisuals);
-    // State to hold the dynamic object list
-    const [objects, setObjects] = useState(vm.objects);
+    const heroRef = useRef<PIXI.Graphics>(null);
+    const levelRef = useRef<PIXI.Graphics>(null);
 
-    const worldScale = vm.worldScale;
+    const dynamicScale = height / 256;
+    const renderScale = vm.worldScale * dynamicScale;
 
-    useTick((delta) => {
+    useEffect(() => {
+        const g = levelRef.current;
+        if (!g) return;
+
+        g.clear();
+        for (const p of vm.objects) {
+            let color = 0x2c3e50;
+            switch(p.type) {
+                case 1: color = 0x8e44ad; break; // Wall
+                case 2: color = 0x000000; break; // Void
+                case 3: color = 0x1abc9c; break; // Spike
+                case 4: color = 0x1c00ff; break; // Portal
+                case 5: color = 0xff0000; break; // Exit
+            }
+            g.beginFill(color, 0.8);
+            g.drawRect(p.x, p.y, p.width, p.height);
+            g.endFill();
+        }
+    }, [vm.objects]);
+
+    useTick(() => {
         const hero = vm.heroVisuals;
-        if (!worldContainerRef.current || !hero) return;
+        const world = worldContainerRef.current;
+        const heroGfx = heroRef.current;
 
-        // Fetch objects from SAB via Presenter
-        setObjects(vm.objects);
+        if (!world || !hero || !heroGfx) return;
 
-        const currentScale = worldScale;
-        const heroCenterX = hero.x + (hero.width / 2);
-        const heroCenterY = hero.y + (hero.height / 2);
+        heroGfx.x = hero.x;
+        heroGfx.y = hero.y;
 
-        const targetX = (width / 2) - (heroCenterX * currentScale);
-        const targetY = (height / 2) - (heroCenterY * currentScale);
+        const screenWidth = Math.round(hero.width * renderScale);
+        const screenHeight = Math.round(hero.height * renderScale);
 
-        worldContainerRef.current.x += (targetX - worldContainerRef.current.x) * 0.1 * delta;
-        worldContainerRef.current.y += (targetY - worldContainerRef.current.y) * 0.1 * delta;
+        const consistentWidth = screenWidth / renderScale;
+        const consistentHeight = screenHeight / renderScale;
 
-        setHeroVisuals({ ...hero });
+        heroGfx.clear();
+        let color = 0x27ae60;
+        if (hero.animState === 1) color = 0x2980b9; // Dash/Special
+        if (hero.animState === 2) color = 0xc0392b; // Hurt
+
+        heroGfx.beginFill(color, 1.0);
+        heroGfx.drawRect(0, 0, consistentWidth, consistentHeight);
+        heroGfx.endFill();
+
+        const indW = (Math.round(hero.width * 0.3 * renderScale)) / renderScale;
+        const indH = (Math.round(hero.height * 0.2 * renderScale)) / renderScale;
+        const indX = hero.flipX ? 0 : consistentWidth - indW;
+
+        heroGfx.beginFill(0xffffff, 0.5);
+        heroGfx.drawRect(indX, consistentHeight * 0.1, indW, indH);
+        heroGfx.endFill();
+
+        const heroCenterX = (hero.x + hero.width / 2) * renderScale;
+        const heroCenterY = (hero.y + hero.height / 2) * renderScale;
+
+        world.x = (width / 2) - heroCenterX;
+        world.y = (height / 2) - heroCenterY;
     });
 
     return (
-        <Container ref={worldContainerRef} scale={worldScale}>
-            {/* Dynamic Objects Rendering via SAB */}
-            <Graphics
-                draw={(g) => {
-                    g.clear();
+        <>
+            <PixiForceResizer w={width} h={height} />
+            <Container ref={worldContainerRef} scale={renderScale}>
+                <Graphics ref={levelRef} />
 
-                    // Iterate over the objects retrieved from the Buffer
-                    for (const p of objects) {
-                        g.lineStyle(1 / worldScale, 0xffffff, 0.3);
-
-                        // Decode Color based on Type
-                        // 0=Floor, 1=Wall, 2=Void, 3=Spike, 4=Portal, 5=Exit
-                        let color = 0x2c3e50; // default floor
-                        let alpha = 0.8;
-
-                        switch(p.type) {
-                            case 1: color = 0x8e44ad; break; // Wall
-                            case 2: color = 0x000000; break; // Void
-                            case 3: color = 0x1abc9c; break; // Spike
-                            case 4: color = 0x1c00ff; break; // Portal
-                            case 5:
-                                color = 0xff0000;
-                                alpha = 0.0;
-                                g.lineStyle(2 / worldScale, 0xff0000, 1.0);
-                                break; // Exit
-                        }
-
-                        g.beginFill(color, alpha);
-                        g.drawRect(p.x, p.y, p.width, p.height);
-                        g.endFill();
-                    }
-                }}
-            />
-
-            {/* Hero Visualization */}
-            <Graphics
-                draw={(g) => {
-                    g.clear();
-
-                    let color = 0x27ae60; // Idle
-                    if (heroVisuals.animState === 1) color = 0x2980b9; // Walk
-                    if (heroVisuals.animState === 2) color = 0xc0392b; // Jump
-                    if (heroVisuals.animState === 3) color = 0x8e44ad; // WallSlide
-
-                    g.lineStyle(2 / worldScale, 0xffffff, 0.8);
-
-                    g.beginFill(color, 0.6);
-                    g.drawRect(heroVisuals.x, heroVisuals.y, heroVisuals.width, heroVisuals.height);
-                    g.endFill();
-
-                    const indicatorW = heroVisuals.width * 0.2;
-                    const indicatorX = heroVisuals.flipX ? heroVisuals.x : heroVisuals.x + heroVisuals.width - indicatorW;
-                    g.beginFill(0xffffff, 0.5);
-                    g.drawRect(indicatorX, heroVisuals.y + heroVisuals.height * 0.1, indicatorW, heroVisuals.height * 0.2);
-                    g.endFill();
-                }}
-            />
-        </Container>
+                <Graphics ref={heroRef} />
+            </Container>
+        </>
     );
 };

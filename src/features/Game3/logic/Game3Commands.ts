@@ -1,6 +1,6 @@
 import { ICommand } from '../../../core/interfaces/ICommand';
 import { Game3Config } from '../model/Game3Config';
-import { ParsedMapData } from '../data/Game3MapData';
+import { ParsedMapData } from './Game3MapData';
 
 export const Game3Commands: Record<string, ICommand> = {
     INITIALIZE: {

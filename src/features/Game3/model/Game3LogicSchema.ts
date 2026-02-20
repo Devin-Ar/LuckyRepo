@@ -1,10 +1,10 @@
 // src/features/Game3/model/Game3LogicSchema.ts
-import {IBuffer} from "../../../core/interfaces/IBuffer";
+import { IBuffer, BufferMap } from "../../../core/interfaces/IBuffer";
 
-export const Game3LogicSchema: IBuffer = {
+export const Game3MainSchema: IBuffer = {
     REVISION: 1,
-    FRAME_COUNT: 1,
-    FPS: 2,
+    FRAME_COUNT: 2,
+    FPS: 3,
 
     // Hero State
     HERO_X: 10,
@@ -12,26 +12,45 @@ export const Game3LogicSchema: IBuffer = {
     HERO_VX: 12,
     HERO_VY: 13,
     HERO_HP: 14,
-
-    // Hero Logical State (Logic determines state, View determines frame)
-    HERO_WIDTH: 20,
-    HERO_HEIGHT: 21,
-    HERO_FLIP: 22,
-    HERO_ANIM_STATE: 23,
+    HERO_WIDTH: 15,
+    HERO_HEIGHT: 16,
 
     // Global Config
-    WORLD_SCALE: 30,
-    PLAYER_SCALE: 31,
-    PLAYER_OFFSET_Y: 32,
+    WORLD_SCALE: 20,
+    PLAYER_SCALE: 21,
+    PLAYER_OFFSET_Y: 22,
 
-    // Object System
-    OBJ_COUNT: 50,
-    // Start of the object block
-    OBJ_START_INDEX: 100,
-    // How many floats per object (X, Y, W, H, Type)
-    OBJ_STRIDE: 5,
-    // Max objects supported in SAB
-    MAX_OBJECTS: 1000,
+    // Extended Game Logic State
+    IS_ON_GROUND: 30,
+    IS_WALL_SLIDING: 31,
+    WALL_JUMP_TIMER: 32,
+    WALL_JUMP_DIRECTION: 33,
+    SPIKE_DAMAGE_TIMER: 34,
+    WAS_IN_SPIKE: 35,
+    PORTAL_COOLDOWN: 36,
+    IS_JUMPING_FROM_GROUND: 37,
+    HAS_COMPLETED_LEVEL: 38,
+    SPAWN_X: 39,
+    SPAWN_Y: 40,
 
-    BUFFER_SIZE: 10000 // Increased buffer size
+    // Movement Settings
+    MOVE_SPEED: 50,
+    JUMP_POWER: 51,
+    GRAVITY: 52,
+    FRICTION: 53,
+
+    OBJ_COUNT: 60,
+
+    BUFFER_SIZE: 256
+};
+
+export const Game3PlatformsSchema: IBuffer = {
+    START_INDEX: 0,
+    STRIDE: 5, // x, y, width, height, type
+    BUFFER_SIZE: 5000 // Support for up to 1000 objects
+};
+
+export const Game3LogicSchema: BufferMap = {
+    main: Game3MainSchema,
+    platforms: Game3PlatformsSchema
 };

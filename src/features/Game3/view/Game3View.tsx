@@ -1,5 +1,5 @@
 // src/features/Game3/view/Game3View.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Stage } from '@pixi/react';
 import { Game3Presenter } from './Game3Presenter';
 import { Game3Controller } from './Game3Controller';
@@ -9,7 +9,7 @@ import { Game3Level } from '../model/Game3Config';
 import { IGameViewProps } from '../../../core/interfaces/IViewProps';
 
 export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>> = ({
-                                                                                         vm, controller
+                                                                                         vm, controller, width = 960, height = 540
                                                                                      }) => {
     const [tick, setTick] = React.useState(0);
     React.useEffect(() => {
@@ -20,10 +20,23 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
     const stats = vm.stats;
     const visuals = vm.visualEffects;
 
-    // We define a fixed internal resolution for the simulation.
-    // CSS handle the scaling/letterboxing.
-    const VIRTUAL_W = 1920;
-    const VIRTUAL_H = 1080;
+    const stageOptions = useMemo(() => ({
+        backgroundColor: 0x000000,
+        backgroundAlpha: 0,
+        antialias: false,
+        roundPixels: true,
+        resolution: 1,
+        autoDensity: false
+    }), []);
+
+    const stageStyle = useMemo(() => ({
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        display: 'block',
+        imageRendering: 'pixelated'
+    } as React.CSSProperties), []);
 
     return (
         <div style={{
@@ -37,43 +50,33 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                 maxHeight: 'calc(100vw * (9 / 16))',
                 aspectRatio: '16 / 9',
                 background: '#050508',
-                overflow: 'hidden',
-                boxShadow: '0 0 50px rgba(0,0,0,0.5)'
+                overflow: 'hidden'
             }}>
-                {/* Background Layer */}
                 <div style={{
                     position: 'absolute', inset: 0,
                     background: 'radial-gradient(circle at center, #1a1a2e 0%, #050508 100%)',
                     opacity: 0.6
                 }}/>
 
-                {/* PixiJS Simulation: Set to 1080p internal resolution */}
                 <Stage
-                    width={VIRTUAL_W}
-                    height={VIRTUAL_H}
-                    options={{ backgroundColor: 0x000000, backgroundAlpha: 0, antialias: true }}
-                    style={{
-                        position: 'absolute', inset: 0,
-                        width: '100%', height: '100%',
-                        imageRendering: 'pixelated'
-                    }}
+                    key={`game3-stage-${width}-${height}`}
+                    width={width}
+                    height={height}
+                    options={stageOptions}
+                    style={stageStyle}
                 >
-                    <Game3Simulation vm={vm} width={VIRTUAL_W} height={VIRTUAL_H}/>
+                    <Game3Simulation vm={vm} width={width} height={height} />
                 </Stage>
 
-                {/* Cinematic Overlays */}
                 <div style={{
                     position: 'absolute', inset: 0, pointerEvents: 'none',
                     boxShadow: `inset 0 0 ${120 + visuals.vignettePulse * 40}px rgba(0,0,0,0.9)`,
                     mixBlendMode: 'multiply'
                 }}/>
 
-                {/* HUD Layer */}
                 <Game3HUD
                     stats={stats}
-                    onAction={(type, val) => {
-                        if (type === 'MOD_HP') controller.modifyHP(val || 0);
-                    }}
+                    onAction={(type, val) => { if (type === 'MOD_HP') controller.modifyHP(val || 0); }}
                     onLevel1={() => controller.loadLevel(Game3Level.Level1)}
                     onLevel2={() => controller.loadLevel(Game3Level.Level2)}
                     onLevel3={() => controller.loadLevel(Game3Level.Level3)}

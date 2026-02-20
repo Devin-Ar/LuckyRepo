@@ -1,10 +1,10 @@
 // src/features/Game3/logic/Game3Logic.ts
-import { Game3LogicSchema } from '../model/Game3LogicSchema';
+import { Game3MainSchema, Game3PlatformsSchema } from '../model/Game3LogicSchema';
 import { BaseLogic } from '../../../core/templates/BaseLogic';
 import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { Game3Commands } from './Game3Commands';
 import { Game3Config } from '../model/Game3Config';
-import { ParsedMapData, PlatformData } from '../data/Game3MapData';
+import { ParsedMapData, PlatformData } from './Game3MapData'; // Keep these imports
 import { Game3Collision } from './Game3Collision';
 import { Game3Hazards } from './Game3Hazards';
 
@@ -28,10 +28,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public hasCompletedLevel = false;
     public spawnPoint = { x: 0, y: 0 };
 
-    // Logical Visual State
-    public flipX = false;
-    public animState = 0; // 0:Idle, 1:Walk, 2:Jump, 3:WallSlide
-
     // Config
     public heroWidth = 1.0;
     public heroHeight = 1.0;
@@ -48,7 +44,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private friction = 0.5;
 
     constructor() {
-        super(Game3LogicSchema.REVISION);
+        super(Game3MainSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game3Commands, "Game3");
         this.collision = new Game3Collision(this);
         this.hazards = new Game3Hazards(this, this.collision);
@@ -78,9 +74,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.heroWidth = data.playerStart.width;
             this.heroHeight = data.playerStart.height;
         }
-
-        // We do NOT need to postMessage MAP_DATA_PRODUCED anymore for rendering,
-        // because we are now syncing via SAB. We might still send it for UI logic if needed.
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
@@ -90,11 +83,12 @@ export class Game3Logic extends BaseLogic<Game3Config> {
 
         this.updateHeroMovement();
         this.collision.resolveMovement();
-        this.determineAnimState(); // Replaces Game3Animation update
+
         this.hazards.updateExitLogic();
         this.hazards.updateSpikeLogic();
         this.hazards.updatePortalLogic();
         this.hazards.updateVoidLogic();
+
 
         this.syncToSAB(sharedView, frameCount, fps);
     }
@@ -163,59 +157,65 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (this.hero.vy > 0.8) this.hero.vy = 0.8;
     }
 
-    private determineAnimState() {
-        if (this.hero.vx > 0.01) this.flipX = false;
-        else if (this.hero.vx < -0.01) this.flipX = true;
-
-        if (this.isWallSliding) this.animState = 3;
-        else if (!this.isOnGround) this.animState = 2;
-        else if (Math.abs(this.hero.vx) > 0.01) this.animState = 1;
-        else this.animState = 0;
-    }
-
     private getPlatformType(p: PlatformData): number {
-        // Encoding type for SAB
         if (p.isExit) return 5;
         if (p.isPortal) return 4;
         if (p.isSpike) return 3;
         if (p.isVoid) return 2;
         if (p.isWall) return 1;
-        return 0; // Floor/Default
+        return 0;
     }
 
-    private syncToSAB(sharedView: Float32Array, frameCount: number, fps: number) {
-        const S = Game3LogicSchema;
-        sharedView[S.FRAME_COUNT] = frameCount;
-        sharedView[S.FPS] = fps;
+    private syncToSAB(sMain: Float32Array, frameCount: number, fps: number) {
+        // Access the additional platform buffer from the protected map in BaseLogic
+        const sPlatforms = this.sharedViews.get('platforms');
+        if (!sMain || !sPlatforms) return;
 
-        sharedView[S.HERO_X] = this.hero.x;
-        sharedView[S.HERO_Y] = this.hero.y;
-        sharedView[S.HERO_VX] = this.hero.vx;
-        sharedView[S.HERO_VY] = this.hero.vy;
-        sharedView[S.HERO_HP] = this.hp;
+        const M = Game3MainSchema;
+        sMain[M.FRAME_COUNT] = frameCount;
+        sMain[M.FPS] = fps;
 
-        sharedView[S.HERO_WIDTH] = this.heroWidth;
-        sharedView[S.HERO_HEIGHT] = this.heroHeight;
-        sharedView[S.HERO_FLIP] = this.flipX ? 1 : 0;
-        sharedView[S.HERO_ANIM_STATE] = this.animState;
+        sMain[M.HERO_X] = this.hero.x;
+        sMain[M.HERO_Y] = this.hero.y;
+        sMain[M.HERO_VX] = this.hero.vx;
+        sMain[M.HERO_VY] = this.hero.vy;
+        sMain[M.HERO_HP] = this.hp;
 
-        sharedView[S.WORLD_SCALE] = this.worldScale;
-        sharedView[S.PLAYER_SCALE] = this.playerScale;
-        sharedView[S.PLAYER_OFFSET_Y] = this.playerOffsetY;
+        sMain[M.HERO_WIDTH] = this.heroWidth;
+        sMain[M.HERO_HEIGHT] = this.heroHeight;
+        sMain[M.WORLD_SCALE] = this.worldScale;
+        sMain[M.PLAYER_SCALE] = this.playerScale;
+        sMain[M.PLAYER_OFFSET_Y] = this.playerOffsetY;
 
-        // SYNC OBJECTS TO SAB
-        // We limit to MAX_OBJECTS to prevent buffer overflow
-        const objCount = Math.min(this.platforms.length, S.MAX_OBJECTS);
-        sharedView[S.OBJ_COUNT] = objCount;
+        sMain[M.IS_ON_GROUND] = this.isOnGround ? 1 : 0;
+        sMain[M.IS_WALL_SLIDING] = this.isWallSliding ? 1 : 0;
+        sMain[M.WALL_JUMP_TIMER] = this.wallJumpTimer;
+        sMain[M.WALL_JUMP_DIRECTION] = this.wallJumpDirection;
+        sMain[M.SPIKE_DAMAGE_TIMER] = this.spikeDamageTimer;
+        sMain[M.WAS_IN_SPIKE] = this.wasInSpike ? 1 : 0;
+        sMain[M.PORTAL_COOLDOWN] = this.portalCooldown;
+        sMain[M.IS_JUMPING_FROM_GROUND] = this.isJumpingFromGround ? 1 : 0;
+        sMain[M.HAS_COMPLETED_LEVEL] = this.hasCompletedLevel ? 1 : 0;
+        sMain[M.SPAWN_X] = this.spawnPoint.x;
+        sMain[M.SPAWN_Y] = this.spawnPoint.y;
 
-        for(let i = 0; i < objCount; i++) {
+        sMain[M.MOVE_SPEED] = this.moveSpeed;
+        sMain[M.JUMP_POWER] = this.jumpPower;
+        sMain[M.GRAVITY] = this.gravity;
+        sMain[M.FRICTION] = this.friction;
+
+        const capacity = Math.floor(sPlatforms.length / Game3PlatformsSchema.STRIDE);
+        const objCount = Math.min(this.platforms.length, capacity);
+        sMain[M.OBJ_COUNT] = objCount;
+
+        for (let i = 0; i < objCount; i++) {
             const p = this.platforms[i];
-            const idx = S.OBJ_START_INDEX + (i * S.OBJ_STRIDE);
-            sharedView[idx] = p.x;
-            sharedView[idx + 1] = p.y;
-            sharedView[idx + 2] = p.width;
-            sharedView[idx + 3] = p.height;
-            sharedView[idx + 4] = this.getPlatformType(p);
+            const idx = i * Game3PlatformsSchema.STRIDE;
+            sPlatforms[idx] = p.x;
+            sPlatforms[idx + 1] = p.y;
+            sPlatforms[idx + 2] = p.width;
+            sPlatforms[idx + 3] = p.height;
+            sPlatforms[idx + 4] = this.getPlatformType(p);
         }
     }
 
@@ -231,9 +231,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             portalCooldown: this.portalCooldown,
             isJumpingFromGround: this.isJumpingFromGround,
             spawnPoint: { ...this.spawnPoint },
-            hasCompletedLevel: this.hasCompletedLevel,
-            animState: this.animState,
-            flipX: this.flipX
+            hasCompletedLevel: this.hasCompletedLevel
         };
     }
 
@@ -250,8 +248,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.isJumpingFromGround = data.isJumpingFromGround ?? false;
             this.spawnPoint = data.spawnPoint || this.spawnPoint;
             this.hasCompletedLevel = data.hasCompletedLevel ?? false;
-            this.animState = data.animState ?? 0;
-            this.flipX = data.flipX ?? false;
             this.isInitialized = true;
         }
     }

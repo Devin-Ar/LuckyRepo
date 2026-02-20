@@ -1,6 +1,6 @@
 // src/features/Game3/logic/MapParser.ts
 import { Jimp } from 'jimp';
-import { ParsedMapData, PlatformData } from '../data/Game3MapData';
+import { ParsedMapData, PlatformData } from './Game3MapData';
 
 export class MapParser {
 

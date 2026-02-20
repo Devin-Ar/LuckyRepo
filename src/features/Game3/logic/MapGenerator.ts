@@ -1,6 +1,5 @@
 // src/features/Game3/logic/MapGenerator.ts
-import { ParsedMapData, PlatformData } from '../data/Game3MapData';
-import { MapParser } from './MapParser';
+import { ParsedMapData } from './Game3MapData';
 
 export class MapGenerator {
     public static generateDefaultMap(): ParsedMapData {

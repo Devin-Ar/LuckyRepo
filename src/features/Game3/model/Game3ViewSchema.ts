@@ -1,7 +1,7 @@
 // src/features/Game3/model/Game3ViewSchema.ts
-import {IBuffer} from "../../../core/interfaces/IBuffer";
+import { IBuffer, BufferMap } from "../../../core/interfaces/IBuffer";
 
-export const Game3ViewSchema: IBuffer = {
+export const Game3ViewMainSchema: IBuffer = {
     HERO_X: 0,
     HERO_Y: 1,
     HERO_HP: 2,
@@ -21,11 +21,18 @@ export const Game3ViewSchema: IBuffer = {
     GLITCH_INTENSITY: 21,
     VIGNETTE_PULSE: 22,
 
-    // Object System (Mirrored from Logic)
-    OBJ_COUNT: 50,
-    OBJ_START_INDEX: 100,
-    OBJ_STRIDE: 5,
-    MAX_OBJECTS: 1000,
+    OBJ_COUNT: 30,
 
-    BUFFER_SIZE: 10000
+    BUFFER_SIZE: 128
+};
+
+export const Game3ViewPlatformsSchema: IBuffer = {
+    START_INDEX: 0,
+    STRIDE: 5,
+    BUFFER_SIZE: 5000
+};
+
+export const Game3ViewSchema: BufferMap = {
+    main: Game3ViewMainSchema,
+    platforms: Game3ViewPlatformsSchema
 };

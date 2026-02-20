@@ -1,6 +1,6 @@
 // src/features/Game3/logic/Game3ViewLogic.ts
-import { Game3LogicSchema } from '../model/Game3LogicSchema';
-import { Game3ViewSchema } from '../model/Game3ViewSchema';
+import { Game3MainSchema, Game3PlatformsSchema } from '../model/Game3LogicSchema';
+import { Game3ViewMainSchema, Game3ViewPlatformsSchema } from '../model/Game3ViewSchema';
 import { BaseViewLogic } from '../../../core/templates/BaseViewLogic';
 
 export class Game3ViewLogic extends BaseViewLogic {
@@ -12,32 +12,67 @@ export class Game3ViewLogic extends BaseViewLogic {
     private animFrame = 0;
     private animTimer = 0;
     private lastAnimState = 0;
+    private lastFlipX = false;
 
     public update(dt: number, frameCount: number) {
-        if (!this.hasBuffers()) return;
+        const lMain = this.logicViews.get('main');
+        const lPlatforms = this.logicViews.get('platforms');
+        const vMain = this.outputViews.get('main');
+        const vPlatforms = this.outputViews.get('platforms');
 
-        const L = Game3LogicSchema;
-        const V = Game3ViewSchema;
+        if (!lMain || !lPlatforms || !vMain || !vPlatforms) return;
 
-        // 1. Read Basic State from Logic
-        const hp = this.logicView[L.HERO_HP];
-        const animState = this.logicView[L.HERO_ANIM_STATE];
+        // 1. Handle Output Resizing Request (Mirroring Game1 behavior)
+        const objCount = lMain[Game3MainSchema.OBJ_COUNT];
+        const vCapacity = Math.floor(vPlatforms.length / Game3ViewPlatformsSchema.STRIDE);
 
-        // 2. Process Animation (Moved from Logic)
+        if (objCount > vCapacity) {
+            if ((this as any)._outResizePending !== vCapacity) {
+                self.postMessage({
+                    type: 'REQUEST_RESIZE_OUTPUT',
+                    payload: {
+                        bufferName: 'platforms',
+                        newSize: (objCount + 1000) * Game3ViewPlatformsSchema.STRIDE
+                    }
+                });
+                (this as any)._outResizePending = vCapacity;
+            }
+        } else {
+            (this as any)._outResizePending = 0;
+        }
+
+        // 2. Read Basic State & Physics from Logic
+        const hp = lMain[Game3MainSchema.HERO_HP];
+        const vx = lMain[Game3MainSchema.HERO_VX];
+        const isOnGround = lMain[Game3MainSchema.IS_ON_GROUND] === 1;
+        const isWallSliding = lMain[Game3MainSchema.IS_WALL_SLIDING] === 1;
+
+        // 3. Determine Animation State & Orientation (Moved from Logic)
+        let flipX = this.lastFlipX;
+        if (vx > 0.01) flipX = false;
+        else if (vx < -0.01) flipX = true;
+        this.lastFlipX = flipX;
+
+        let animState = 0;
+        if (isWallSliding) animState = 3;
+        else if (!isOnGround) animState = 2;
+        else if (Math.abs(vx) > 0.01) animState = 1;
+        else animState = 0;
+
+        // Process Animation Timer
         if (animState !== this.lastAnimState) {
             this.animFrame = 0;
             this.animTimer = 0;
             this.lastAnimState = animState;
         } else {
             this.animTimer++;
-            // Basic animation speed: changes every 6 ticks
             if (this.animTimer >= 6) {
-                this.animFrame = (this.animFrame + 1) % 12; // Modulo 12 assumed from sprite sheet
+                this.animFrame = (this.animFrame + 1) % 12;
                 this.animTimer = 0;
             }
         }
 
-        // 3. Visual Effects (UI Bounce, etc)
+        // 4. Visual Effects (UI Bounce, etc)
         if (this.lastHp !== -1 && hp < this.lastHp) {
             this.glitchIntensity = 1.0;
         }
@@ -48,34 +83,39 @@ export class Game3ViewLogic extends BaseViewLogic {
         this.uiBounce += 0.05 * timeFactor;
         const vignettePulse = 0.5 + Math.sin(frameCount * 0.05) * 0.2;
 
-        // 4. Write to View Buffer
-        this.outputView[V.HERO_X] = this.logicView[L.HERO_X];
-        this.outputView[V.HERO_Y] = this.logicView[L.HERO_Y];
-        this.outputView[V.HERO_HP] = hp;
+        // 5. Write to View Buffer Main
+        vMain[Game3ViewMainSchema.HERO_X] = lMain[Game3MainSchema.HERO_X];
+        vMain[Game3ViewMainSchema.HERO_Y] = lMain[Game3MainSchema.HERO_Y];
+        vMain[Game3ViewMainSchema.HERO_HP] = hp;
 
-        this.outputView[V.HERO_ANIM_FRAME] = this.animFrame; // Calculated here!
-        this.outputView[V.HERO_FLIP] = this.logicView[L.HERO_FLIP];
-        this.outputView[V.HERO_ANIM_STATE] = animState;
-        this.outputView[V.HERO_WIDTH] = this.logicView[L.HERO_WIDTH];
-        this.outputView[V.HERO_HEIGHT] = this.logicView[L.HERO_HEIGHT];
+        vMain[Game3ViewMainSchema.HERO_ANIM_FRAME] = this.animFrame;
+        vMain[Game3ViewMainSchema.HERO_FLIP] = flipX ? 1 : 0;
+        vMain[Game3ViewMainSchema.HERO_ANIM_STATE] = animState;
+        vMain[Game3ViewMainSchema.HERO_WIDTH] = lMain[Game3MainSchema.HERO_WIDTH];
+        vMain[Game3ViewMainSchema.HERO_HEIGHT] = lMain[Game3MainSchema.HERO_HEIGHT];
 
-        this.outputView[V.WORLD_SCALE] = this.logicView[L.WORLD_SCALE];
-        this.outputView[V.PLAYER_SCALE] = this.logicView[L.PLAYER_SCALE];
-        this.outputView[V.PLAYER_OFFSET_Y] = this.logicView[L.PLAYER_OFFSET_Y];
+        vMain[Game3ViewMainSchema.WORLD_SCALE] = lMain[Game3MainSchema.WORLD_SCALE];
+        vMain[Game3ViewMainSchema.PLAYER_SCALE] = lMain[Game3MainSchema.PLAYER_SCALE];
+        vMain[Game3ViewMainSchema.PLAYER_OFFSET_Y] = lMain[Game3MainSchema.PLAYER_OFFSET_Y];
 
-        this.outputView[V.UI_BOUNCE] = Math.sin(this.uiBounce) * 5;
-        this.outputView[V.GLITCH_INTENSITY] = this.glitchIntensity;
-        this.outputView[V.VIGNETTE_PULSE] = vignettePulse;
+        vMain[Game3ViewMainSchema.UI_BOUNCE] = Math.sin(this.uiBounce) * 5;
+        vMain[Game3ViewMainSchema.GLITCH_INTENSITY] = this.glitchIntensity;
+        vMain[Game3ViewMainSchema.VIGNETTE_PULSE] = vignettePulse;
 
-        // 5. Sync Objects (Pass-through from Logic SAB to View SAB)
-        const objCount = this.logicView[L.OBJ_COUNT];
-        this.outputView[V.OBJ_COUNT] = objCount;
+        // 6. Sync Objects (Pass-through from Logic Platforms SAB to View Platforms SAB)
+        const safeObjCount = Math.min(objCount, vCapacity);
+        vMain[Game3ViewMainSchema.OBJ_COUNT] = safeObjCount;
 
-        // Block copy object data
-        const startIdx = L.OBJ_START_INDEX;
-        const totalFloats = objCount * L.OBJ_STRIDE;
-        for(let i=0; i<totalFloats; i++) {
-            this.outputView[startIdx + i] = this.logicView[startIdx + i];
+        for (let i = 0; i < safeObjCount; i++) {
+            const lBase = i * Game3PlatformsSchema.STRIDE;
+            const vBase = i * Game3ViewPlatformsSchema.STRIDE;
+
+            // x, y, width, height, type
+            vPlatforms[vBase] = lPlatforms[lBase];
+            vPlatforms[vBase + 1] = lPlatforms[lBase + 1];
+            vPlatforms[vBase + 2] = lPlatforms[lBase + 2];
+            vPlatforms[vBase + 3] = lPlatforms[lBase + 3];
+            vPlatforms[vBase + 4] = lPlatforms[lBase + 4];
         }
     }
 
@@ -86,7 +126,8 @@ export class Game3ViewLogic extends BaseViewLogic {
             lastHp: this.lastHp,
             animFrame: this.animFrame,
             animTimer: this.animTimer,
-            lastAnimState: this.lastAnimState
+            lastAnimState: this.lastAnimState,
+            lastFlipX: this.lastFlipX
         };
     }
 
@@ -98,6 +139,7 @@ export class Game3ViewLogic extends BaseViewLogic {
             this.animFrame = data.animFrame ?? 0;
             this.animTimer = data.animTimer ?? 0;
             this.lastAnimState = data.lastAnimState ?? 0;
+            this.lastFlipX = data.lastFlipX ?? false;
         }
     }
 }
