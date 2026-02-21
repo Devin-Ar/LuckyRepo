@@ -255,4 +255,26 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public modifyHP(amount: number) {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
     }
+
+    public get heroState() { return this.hero; }
+    public get platformList() { return this.platforms; }
+    public get dimensions() {
+        return { width: this.heroWidth, height: this.heroHeight };
+    }
+    public get spawn() { return this.spawnPoint; }
+
+    public get spikeTimer() { return this.spikeDamageTimer; }
+    public set spikeTimer(val: number) { this.spikeDamageTimer = val; }
+
+    public get inSpike() { return this.wasInSpike; }
+    public set inSpike(val: boolean) { this.wasInSpike = val; }
+
+    public get portalTimer() { return this.portalCooldown; }
+    public set portalTimer(val: number) { this.portalCooldown = val; }
+
+    public get levelCompleted() { return this.hasCompletedLevel; }
+    public set levelCompleted(val: boolean) { this.hasCompletedLevel = val; }
+
+    public get isJumping() { return this.isJumpingFromGround; }
+    public set isJumping(val: boolean) { this.isJumpingFromGround = val; }
 }

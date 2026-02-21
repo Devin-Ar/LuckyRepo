@@ -6,20 +6,25 @@ export class Game3Collision {
     constructor(private logic: Game3Logic) {}
 
     public checkIsOnGround(): boolean {
-        const checkY = this.logic.hero.y + this.logic.heroHeight + 0.1;
-        for (const p of this.logic.platforms) {
+        const hero = this.logic.heroState;
+        const { width, height } = this.logic.dimensions;
+        const platforms = this.logic.platformList;
+
+        const checkY = hero.y + height + 0.1;
+
+        for (const p of platforms) {
             if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
 
             if (p.isFallthrough) {
                 if (this.logic.isAction('MOVE_DOWN')) continue;
-                if (this.logic.hero.y + this.logic.heroHeight > p.y + 0.1) continue;
+                if (hero.y + height > p.y + 0.1) continue;
             }
 
             if (
-                this.logic.hero.x + this.logic.heroWidth > p.x &&
-                this.logic.hero.x < p.x + p.width &&
+                hero.x + width > p.x &&
+                hero.x < p.x + p.width &&
                 checkY > p.y &&
-                this.logic.hero.y + this.logic.heroHeight <= p.y
+                hero.y + height <= p.y
             ) {
                 return true;
             }
@@ -28,18 +33,22 @@ export class Game3Collision {
     }
 
     public getWallCollision(): number {
+        const hero = this.logic.heroState;
+        const { width, height } = this.logic.dimensions;
+        const platforms = this.logic.platformList;
         const checkDist = 0.1;
-        for (const p of this.logic.platforms) {
+
+        for (const p of platforms) {
             if (p.isWall &&
-                this.logic.hero.x <= p.x + p.width && this.logic.hero.x + checkDist > p.x + p.width &&
-                this.logic.hero.y + this.logic.heroHeight > p.y && this.logic.hero.y < p.y + p.height) {
+                hero.x <= p.x + p.width && hero.x + checkDist > p.x + p.width &&
+                hero.y + height > p.y && hero.y < p.y + p.height) {
                 return -1;
             }
         }
-        for (const p of this.logic.platforms) {
+        for (const p of platforms) {
             if (p.isWall &&
-                this.logic.hero.x + this.logic.heroWidth >= p.x && this.logic.hero.x + this.logic.heroWidth - checkDist < p.x &&
-                this.logic.hero.y + this.logic.heroHeight > p.y && this.logic.hero.y < p.y + p.height) {
+                hero.x + width >= p.x && hero.x + width - checkDist < p.x &&
+                hero.y + height > p.y && hero.y < p.y + p.height) {
                 return 1;
             }
         }
@@ -47,43 +56,53 @@ export class Game3Collision {
     }
 
     public resolveMovement() {
-        const nextX = this.logic.hero.x + this.logic.hero.vx;
+        const hero = this.logic.heroState;
+        const { width, height } = this.logic.dimensions;
+        const platforms = this.logic.platformList;
 
-        for (const p of this.logic.platforms) {
+        const nextX = hero.x + hero.vx;
+
+        // Horizontal Collision
+        for (const p of platforms) {
             if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
             if (p.isFallthrough) continue;
-            if (nextX + this.logic.heroWidth > p.x && nextX < p.x + p.width && this.logic.hero.y + this.logic.heroHeight > p.y && this.logic.hero.y < p.y + p.height) {
-                if (nextX > this.logic.hero.x) this.logic.hero.x = p.x - this.logic.heroWidth;
-                else if (nextX < this.logic.hero.x) this.logic.hero.x = p.x + p.width;
-                this.logic.hero.vx = 0;
+
+            if (nextX + width > p.x && nextX < p.x + p.width && hero.y + height > p.y && hero.y < p.y + p.height) {
+                if (nextX > hero.x) hero.x = p.x - width;
+                else if (nextX < hero.x) hero.x = p.x + p.width;
+                hero.vx = 0;
                 break;
             }
         }
-        if (this.logic.hero.vx !== 0) this.logic.hero.x = nextX;
+        if (hero.vx !== 0) hero.x = nextX;
 
-        const nextY = this.logic.hero.y + this.logic.hero.vy;
+        // Vertical Collision
+        const nextY = hero.y + hero.vy;
         let verticalCollided = false;
-        for (const p of this.logic.platforms) {
+
+        for (const p of platforms) {
             if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+
             if (p.isFallthrough) {
-                if (this.logic.hero.vy < 0) continue;
+                if (hero.vy < 0) continue;
                 if (this.logic.isAction('MOVE_DOWN')) continue;
-                if (this.logic.hero.y + this.logic.heroHeight > p.y + 0.1) continue;
+                if (hero.y + height > p.y + 0.1) continue;
             }
-            if (this.logic.hero.x + this.logic.heroWidth > p.x && this.logic.hero.x < p.x + p.width && nextY + this.logic.heroHeight > p.y && nextY < p.y + p.height) {
-                if (nextY > this.logic.hero.y) {
-                    this.logic.hero.y = p.y - this.logic.heroHeight;
-                    this.logic.isJumpingFromGround = false;
-                } else if (nextY < this.logic.hero.y) {
-                    this.logic.hero.y = p.y + p.height;
-                    this.logic.isJumpingFromGround = false;
+
+            if (hero.x + width > p.x && hero.x < p.x + p.width && nextY + height > p.y && nextY < p.y + p.height) {
+                if (nextY > hero.y) {
+                    hero.y = p.y - height;
+                    this.logic.isJumping = false; // Using the public setter
+                } else if (nextY < hero.y) {
+                    hero.y = p.y + p.height;
+                    this.logic.isJumping = false; // Using the public setter
                 }
-                this.logic.hero.vy = 0;
+                hero.vy = 0;
                 verticalCollided = true;
                 break;
             }
         }
-        if (!verticalCollided) this.logic.hero.y = nextY;
+        if (!verticalCollided) hero.y = nextY;
     }
 
     public checkHazardCollision(property: 'isSpike' | 'isVoid' | 'isPortal' | 'isExit'): boolean {
@@ -91,13 +110,17 @@ export class Game3Collision {
     }
 
     public getCollidingPlatform(property: 'isSpike' | 'isVoid' | 'isPortal' | 'isExit'): PlatformData | undefined {
+        const hero = this.logic.heroState;
+        const { width, height } = this.logic.dimensions;
+        const platforms = this.logic.platformList;
         const padding = 0.05;
-        for (const p of this.logic.platforms) {
+
+        for (const p of platforms) {
             if (p[property] &&
-                this.logic.hero.x + this.logic.heroWidth - padding > p.x &&
-                this.logic.hero.x + padding < p.x + p.width &&
-                this.logic.hero.y + this.logic.heroHeight - padding > p.y &&
-                this.logic.hero.y + padding < p.y + p.height) {
+                hero.x + width - padding > p.x &&
+                hero.x + padding < p.x + p.width &&
+                hero.y + height - padding > p.y &&
+                hero.y + padding < p.y + p.height) {
                 return p;
             }
         }
