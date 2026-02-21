@@ -70,6 +70,25 @@ export class BHPresenter extends BasePresenter {
         return Math.floor(this.sharedView[BHViewSchema.CURRENT_LEVEL] || 0);
     }
 
+    public get bossHp(): number {
+        return this.sharedView[BHViewSchema.BOSS_HP] || 0;
+    }
+
+    public get bossVulnerable(): boolean {
+        return (this.sharedView[BHViewSchema.BOSS_VULNERABLE] || 0) === 1;
+    }
+
+    public get bossPos() {
+        return {
+            x: this.sharedView[BHViewSchema.BOSS_X] || 0,
+            y: this.sharedView[BHViewSchema.BOSS_Y] || 0
+        };
+    }
+
+    public get bossActive(): boolean {
+        return (this.sharedView[BHViewSchema.BOSS_ACTIVE] || 0) === 1;
+    }
+
     // Visuals
 
     public get heroVisuals() {
@@ -83,7 +102,7 @@ export class BHPresenter extends BasePresenter {
     }
 
     public getRockViewData(index: number) {
-        const offset = BHViewSchema.ROCKS_START_INDEX + (index * BHViewSchema.ROCK_STRIDE);
+        const offset = BHViewSchema.ROCKS_START_INDEX_ACTUAL + (index * BHViewSchema.ROCK_STRIDE);
         return {
             x: this.sharedView[offset] || 0,
             y: this.sharedView[offset + 1] || 0,
@@ -92,7 +111,7 @@ export class BHPresenter extends BasePresenter {
     }
 
     public getRockAttackData(index: number) {
-        const offset = BHViewSchema.ROCKS_START_INDEX + (index * BHViewSchema.ROCK_STRIDE);
+        const offset = BHViewSchema.ROCKS_START_INDEX_ACTUAL + (index * BHViewSchema.ROCK_STRIDE);
         return {
             primedMode: this.sharedView[offset + 3] || 0,
             endX: this.sharedView[offset + 4] || 0,

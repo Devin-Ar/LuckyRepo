@@ -263,3 +263,60 @@ export class ShotEntity extends baseEntity {
         }
     }
 }
+
+export class BossEntity extends baseEntity {
+    public vulnerable: boolean = false;
+    private lastShotFrame: number = 0;
+    private fireRate: number = 30; // frames between shots
+
+    constructor(x: number, y: number) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.width = 200;
+        this.height = 200;
+        this.health = 300;
+        this.active = true;
+        this.type = "boss";
+    }
+
+    update(player: basePlayer, config: BHConfig): void {
+        // Boss is static, no movement
+    }
+
+    updateAttacks(player: basePlayer, frameCount: number, enemyProjectiles: enemyProjectile[]): void {
+        if (this.active && this.vulnerable && frameCount - this.lastShotFrame >= this.fireRate) {
+            this.lastShotFrame = frameCount;
+            // Shoot at player
+            enemyProjectiles.push(new enemyProjectile(
+                this.x + this.width / 2,
+                this.y + this.height / 2,
+                player.x,
+                player.y
+            ));
+        }
+    }
+
+    orientation(player: basePlayer): void {
+        const dx = this.x + this.width / 2 - player.x;
+        const dy = this.y + this.height / 2 - player.y;
+        this.playerRelative = Math.atan2(dy, dx);
+    }
+
+    syncToSAB(sharedView: Float32Array, base: number): void {
+        sharedView[base] = this.x;
+        sharedView[base + 1] = this.y;
+        sharedView[base + 2] = this.seed;
+        sharedView[base + 3] = this.vulnerable ? 1 : 0;
+        sharedView[base + 4] = this.health;
+    }
+
+    modifyHP(points: number) {
+        if (this.active && this.vulnerable) {
+            this.health += points;
+        }
+        if (this.health <= 0) {
+            this.active = false;
+        }
+    }
+}

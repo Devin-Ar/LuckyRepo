@@ -12,6 +12,8 @@ interface HUDProps {
     exitDoorActive: boolean;
     exitDoorX: number;
     exitDoorY: number;
+    bossHp: number;
+    bossVulnerable: boolean;
     gameWidth: number;
     gameHeight: number;
     shieldBarRef: React.RefObject<HTMLDivElement>;
@@ -22,14 +24,15 @@ interface HUDProps {
     onLevel1: () => void;
     onLevel2: () => void;
     onLevel3: () => void;
+    onLevel4: () => void;
     onResetG1: () => void;
 }
 
 export const BH_HUD: React.FC<HUDProps> = ({
                                                hp, rockCount, currentWave, totalWaves, waveState, waveDelayTimer, isRoomCleared,
-                                               exitDoorActive, exitDoorX, exitDoorY, gameWidth, gameHeight,
+                                               exitDoorActive, exitDoorX, exitDoorY, bossHp, bossVulnerable, gameWidth, gameHeight,
                                                shieldBarRef, shieldTextRef, damageBtnRef,
-                                               onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onResetG1
+                                               onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onLevel4, onResetG1
                                            }) => {
     const btnStyle: React.CSSProperties = {
         padding: '0.6cqw 1cqw',
@@ -86,6 +89,34 @@ export const BH_HUD: React.FC<HUDProps> = ({
                     }} />
                 </div>
             </div>
+
+            {/* Boss Health Bar - Top Center (below Shield Bar) */}
+            {bossHp > 0 && (
+                <div style={{
+                    position: 'absolute', top: '15cqh', left: '50%',
+                    transform: 'translateX(-50%)', width: '50cqw'
+                }}>
+                    <div style={{
+                        display: 'flex', justifyContent: 'space-between',
+                        color: bossVulnerable ? '#e74c3c' : '#888', marginBottom: '0.5cqh',
+                        fontWeight: 'bold', fontFamily: 'monospace', fontSize: '1cqw'
+                    }}>
+                        <span>THE CORE {bossVulnerable ? '(VULNERABLE)' : '(PROTECTED)'}</span>
+                        <span>{Math.max(0, bossHp)} / 300</span>
+                    </div>
+                    <div style={{
+                        width: '100%', height: '1.5cqh', backgroundColor: '#111',
+                        borderRadius: '0.75cqw', border: `0.2cqw solid ${bossVulnerable ? '#e74c3c' : '#444'}`,
+                        overflow: 'hidden', boxShadow: bossVulnerable ? '0 0 10px rgba(231, 76, 60, 0.4)' : 'none'
+                    }}>
+                        <div style={{
+                            width: `${(Math.max(0, bossHp) / 300) * 100}%`, height: '100%',
+                            backgroundColor: bossVulnerable ? '#e74c3c' : '#444',
+                            transition: 'width 0.3s ease-out, background-color 0.3s ease'
+                        }} />
+                    </div>
+                </div>
+            )}
 
             {/* Wave Info - Top Right */}
             <div style={{
@@ -193,6 +224,7 @@ export const BH_HUD: React.FC<HUDProps> = ({
                     <button onClick={onLevel1} style={{ ...btnStyle, background: '#408240', flex: 1 }}>LVL 1</button>
                     <button onClick={onLevel2} style={{ ...btnStyle, background: '#C29F19', flex: 1 }}>LVL 2</button>
                     <button onClick={onLevel3} style={{ ...btnStyle, background: '#C21919', flex: 1 }}>LVL 3</button>
+                    <button onClick={onLevel4} style={{ ...btnStyle, background: '#8E44AD', flex: 1 }}>LVL 4</button>
                 </div>
 
                 <button onClick={onJumpToG2} style={{ ...btnStyle, background: '#2980b9' }}>

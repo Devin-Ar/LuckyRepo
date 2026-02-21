@@ -114,6 +114,15 @@ const CrossGameCampaign: ICampaignStep[] = [
             props: { message: "Moonlight breaks through the clouds. One final climb to the peak — or a long fall down." }
         }
     },
+    {
+        name: "The Core: Final Confrontation",
+        stateId: FeatureEnum.BH_GAME,
+        presetLabel: "LVL 4",
+        loadingConfig: {
+            view: LoreLoadingView,
+            props: { message: "The tower's true master waits at the very peak. Steel your resolve for the final wave." }
+        }
+    },
 ];
 
 export const initializeCampaigns = () => {

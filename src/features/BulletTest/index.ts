@@ -11,6 +11,7 @@ export const BHFeature: StateDefinition = {
     presets: [
         { label: "LVL 1", params: { level: BHLevel.Level1 } },
         { label: "LVL 2", params: { level: BHLevel.Level2 } },
-        { label: "LVL 3", params: { level: BHLevel.Level3 } }
+        { label: "LVL 3", params: { level: BHLevel.Level3 } },
+        { label: "LVL 4", params: { level: BHLevel.Level4 } }
     ]
 };
