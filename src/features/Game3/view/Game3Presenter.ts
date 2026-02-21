@@ -106,4 +106,9 @@ export class Game3Presenter extends BasePresenter {
             vignettePulse: view[S.VIGNETTE_PULSE] || 0
         };
     }
+
+    public get hp(): number {
+        const view = this._sharedViews.get('main');
+        return view ? view[Game3ViewMainSchema.HERO_HP] : 0;
+    }
 }

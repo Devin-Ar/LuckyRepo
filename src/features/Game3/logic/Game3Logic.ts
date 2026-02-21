@@ -15,27 +15,26 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private hazards: Game3Hazards;
 
     // State
-    public hp = 100;
-    public hero = { x: 0, y: 0, vx: 0, vy: 0 };
-    public isOnGround = false;
-    public isWallSliding = false;
-    public wallJumpTimer = 0;
-    public wallJumpDirection = 0;
-    public spikeDamageTimer = 0;
-    public wasInSpike = false;
-    public portalCooldown = 0;
-    public isJumpingFromGround = false;
-    public hasCompletedLevel = false;
-    public spawnPoint = { x: 0, y: 0 };
+    private hp = 100;
+    private hero = { x: 0, y: 0, vx: 0, vy: 0 };
+    private isOnGround = false;
+    private isWallSliding = false;
+    private wallJumpTimer = 0;
+    private wallJumpDirection = 0;
+    private spikeDamageTimer = 0;
+    private wasInSpike = false;
+    private portalCooldown = 0;
+    private isJumpingFromGround = false;
+    private hasCompletedLevel = false;
+    private spawnPoint = { x: 0, y: 0 };
 
     // Config
-    public heroWidth = 1.0;
-    public heroHeight = 1.0;
-    public worldScale = 32;
-    public playerScale = 1.0;
-    public playerOffsetY = 0;
-    public platforms: PlatformData[] = [];
-    public mapData: ParsedMapData | null = null;
+    private heroWidth = 1.0;
+    private heroHeight = 1.0;
+    private worldScale = 32;
+    private playerScale = 1.0;
+    private playerOffsetY = 0;
+    private platforms: PlatformData[] = [];
 
     // Movement settings
     private moveSpeed = 0.25;
@@ -61,7 +60,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     }
 
     public setMapData(data: ParsedMapData) {
-        this.mapData = data;
         this.platforms = data.platforms;
         this.hero.x = data.playerStart.x;
         this.hero.y = data.playerStart.y;
@@ -163,6 +161,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (p.isSpike) return 3;
         if (p.isVoid) return 2;
         if (p.isWall) return 1;
+        if (p.isFallthrough) return 6;
+        if (p.isFloor) return 0;
         return 0;
     }
 

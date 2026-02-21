@@ -1,8 +1,11 @@
 // src/features/Game3/view/ui-components/Game3Simulation.tsx
 import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { Container, Graphics, useApp, useTick } from '@pixi/react';
+import { Container, useApp, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
+import { Game3Background } from './Game3Background';
+import { Game3Foreground } from './Game3Foreground';
+import { Game3Hitboxes } from './Game3Hitboxes';
 
 const PixiForceResizer: React.FC<{ w: number, h: number }> = ({ w, h }) => {
     const app = useApp();
@@ -30,34 +33,16 @@ export const Game3Simulation: React.FC<{
     const worldContainerRef = useRef<PIXI.Container>(null);
     const heroRef = useRef<PIXI.Graphics>(null);
     const levelRef = useRef<PIXI.Graphics>(null);
+    const heroSprRef = useRef<PIXI.Container>(null);
 
     const dynamicScale = height / 256;
     const renderScale = vm.worldScale * dynamicScale;
-
-    useEffect(() => {
-        const g = levelRef.current;
-        if (!g) return;
-
-        g.clear();
-        for (const p of vm.objects) {
-            let color = 0x2c3e50;
-            switch(p.type) {
-                case 1: color = 0x8e44ad; break; // Wall
-                case 2: color = 0x000000; break; // Void
-                case 3: color = 0x1abc9c; break; // Spike
-                case 4: color = 0x1c00ff; break; // Portal
-                case 5: color = 0xff0000; break; // Exit
-            }
-            g.beginFill(color, 0.8);
-            g.drawRect(p.x, p.y, p.width, p.height);
-            g.endFill();
-        }
-    }, [vm.objects]);
 
     useTick(() => {
         const hero = vm.heroVisuals;
         const world = worldContainerRef.current;
         const heroGfx = heroRef.current;
+        const heroSpr = heroSprRef.current;
 
         if (!world || !hero || !heroGfx) return;
 
@@ -72,8 +57,8 @@ export const Game3Simulation: React.FC<{
 
         heroGfx.clear();
         let color = 0x27ae60;
-        if (hero.animState === 1) color = 0x2980b9; // Dash/Special
-        if (hero.animState === 2) color = 0xc0392b; // Hurt
+        if (hero.animState === 1) color = 0x2980b9;
+        if (hero.animState === 2) color = 0xc0392b;
 
         heroGfx.beginFill(color, 1.0);
         heroGfx.drawRect(0, 0, consistentWidth, consistentHeight);
@@ -87,6 +72,12 @@ export const Game3Simulation: React.FC<{
         heroGfx.drawRect(indX, consistentHeight * 0.1, indW, indH);
         heroGfx.endFill();
 
+        if (heroSpr) {
+            heroSpr.x = hero.x + (hero.width / 2);
+            heroSpr.y = hero.y + hero.height;
+            heroSpr.scale.x = hero.flipX ? -1 : 1;
+        }
+
         const heroCenterX = (hero.x + hero.width / 2) * renderScale;
         const heroCenterY = (hero.y + hero.height / 2) * renderScale;
 
@@ -98,9 +89,9 @@ export const Game3Simulation: React.FC<{
         <>
             <PixiForceResizer w={width} h={height} />
             <Container ref={worldContainerRef} scale={renderScale}>
-                <Graphics ref={levelRef} />
-
-                <Graphics ref={heroRef} />
+                <Game3Background />
+                <Game3Foreground vm={vm} heroSprRef={heroSprRef} />
+                <Game3Hitboxes vm={vm} levelRef={levelRef} heroRef={heroRef} />
             </Container>
         </>
     );

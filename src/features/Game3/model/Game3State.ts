@@ -7,6 +7,9 @@ import { Game3Presenter } from '../view/Game3Presenter';
 import { Game3Controller } from '../view/Game3Controller';
 import { Game3Config, Game3Level, getGame3Config } from './Game3Config';
 import {FeatureEnum} from "../../FeatureEnum";
+import {SharedSession} from "../../../core/session/SharedSession";
+import {GLOBAL_SESSION_MAP} from "../../../core/session/GlobalSessionMap";
+import {InputManager} from "../../../core/managers/InputManager";
 
 export interface Game3Params {
     reset?: boolean;
@@ -30,8 +33,9 @@ export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, G
         return getGame3Config(this.currentLevel);
     }
 
-    protected getSessionOverrides(): Partial<Game3Config> {
-        return {};
+    protected getSessionOverrides(session: SharedSession): Partial<Game3Config> {
+        const hp = session.get<number>(GLOBAL_SESSION_MAP.hp);
+        return hp !== undefined ? {initialHP: hp} : {};
     }
 
     protected initMVC(): void {
@@ -40,12 +44,16 @@ export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, G
     }
 
     public override async init(): Promise<void> {
+        InputManager.getInstance().refreshBindings(this.name);
         await super.init();
 
-        // Orchestration: Config -> Controller -> Parse Map -> Send to Worker
-        const config = this.getConfig();
-        if (this.controller && config.mapPath) {
-            await this.controller.initialize(config, this.currentLevel);
+        const session = SharedSession.getInstance();
+        const baseConfig = this.getConfig();
+        const overrides = this.getSessionOverrides(session);
+        const finalConfig = { ...baseConfig, ...overrides };
+
+        if (this.controller && finalConfig.mapPath) {
+            await this.controller.initialize(finalConfig, this.currentLevel);
         }
     }
 }

@@ -52,7 +52,10 @@
     "static_rock": "res/sprite/static/rock.png",
     "Platform Floor": "res/sprite/static/Platform Floor.png",
     "Platform Length": "res/sprite/static/Platform Length.png",
-    "Exit Door": "res/sprite/sheets/static/Exit Door.png"
+    "Exit Door": "res/sprite/static/exit_door.png",
+    "Void Pit": "res/sprite/static/void_pit.png",
+    "Spike Trap": "res/sprite/static/spike_trap.png",
+    "Portal Gate": "res/sprite/static/portal_gate.png"
   },
   "audio": {
     "bgm_level1": {

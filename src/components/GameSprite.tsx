@@ -7,20 +7,21 @@ interface Props {
     sheetName?: string;
     animationName?: string;
     imageName?: string;
-    x: number;
-    y: number;
-    scale?: number;
+    x?: number;
+    y?: number;
+    scale?: number | [number, number];
     rotation?: number;
-    anchor?: number | [number, number];
+    anchor?: number | [number, number]; // Ensures array anchors are accepted
     isPlaying?: boolean;
     currentFrame?: number;
+    alpha?: number; // NEW: Alpha support
 }
 
 export const GameSprite = ({
                                sheetName, animationName, imageName,
-                               x, y, scale = 1, rotation = 0, anchor = 0.5,
-                               isPlaying = true,
-                               currentFrame = 0
+                               x = 0, y = 0, scale = 1, rotation = 0, anchor = 0.5,
+                               isPlaying = true, currentFrame = 0,
+                               alpha = 1 // Default to fully opaque
                            }: Props) => {
     const manager = SpriteManager.getInstance();
     const spriteRef = useRef<PIXI.AnimatedSprite>(null);
@@ -44,7 +45,7 @@ export const GameSprite = ({
     }, [currentFrame, frames]);
 
     if (imageName && staticTexture) {
-        return <Sprite texture={staticTexture} x={x} y={y} scale={scale} rotation={rotation} anchor={anchor}/>;
+        return <Sprite texture={staticTexture} x={x} y={y} scale={scale} rotation={rotation} anchor={anchor} alpha={alpha} />;
     }
 
     if (frames && frames.length > 0) {
@@ -58,6 +59,7 @@ export const GameSprite = ({
                 scale={scale}
                 rotation={rotation}
                 anchor={anchor}
+                alpha={alpha}
             />
         );
     }
