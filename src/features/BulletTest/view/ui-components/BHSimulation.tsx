@@ -1,4 +1,4 @@
-// src/features/Game1/view/ui-components/Game1Simulation.tsx
+// src/features/BulletTest/view/ui-components/BHSimulation.tsx
 import React, {useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, Graphics, useApp, useTick} from '@pixi/react';
@@ -98,6 +98,64 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
             sprite.x = data.x;
             sprite.y = data.y;
             sprite.rotation = data.rotation;
+        }
+    });
+
+    return <Container ref={containerRef}/>;
+};
+
+const GoldShipGunPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const spritePool = useRef<PIXI.Sprite[]>([]);
+    const manager = SpriteManager.getInstance();
+
+    useEffect(() => {
+        return () => {
+            spritePool.current.forEach(s => {
+                if (s && !s.destroyed) {
+                    s.destroy();
+                }
+            });
+            spritePool.current = [];
+        };
+    }, []);
+
+    useTick(() => {
+        if (!containerRef.current) return;
+
+        const currentCount = 1; //We don't need more than this...
+        const pool = spritePool.current;
+
+        if (currentCount > pool.length) {
+            for (let i = pool.length; i < currentCount; i++) {
+                const texture = manager.getTexture('Gold Ship Gun');
+                if (texture) {
+                    const sprite = new PIXI.Sprite(texture);
+                    sprite.anchor.set(0.5, 0.7);
+                    containerRef.current.addChild(sprite);
+                    pool.push(sprite);
+                }
+            }
+        }
+
+        const heroVisuals = vm.heroVisuals;
+        for (let i = 0; i < pool.length; i++) {
+            const sprite = pool[i];
+            if (paused) {
+                sprite.visible = false;
+                continue;
+            }
+            sprite.visible = true;
+            sprite.x = heroVisuals.x;
+            sprite.y = heroVisuals.y + 12;
+            if (heroVisuals.mousePos >= 1.5 || heroVisuals.mousePos <= -1.5) {
+                sprite.scale.set(-1, 1);
+                sprite.rotation = heroVisuals.mousePos + Math.PI;
+            } else {
+                sprite.scale.set(1, 1);
+                sprite.rotation = heroVisuals.mousePos;
+            }
+            console.log(heroVisuals.mousePos);
         }
     });
 
@@ -305,6 +363,7 @@ const BossRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pause
     return <Graphics ref={graphicsRef} />;
 };
 
+
 export const BHSimulation: React.FC<{
     vm: BHPresenter,
     paused: boolean,
@@ -323,8 +382,12 @@ export const BHSimulation: React.FC<{
 
         heroRef.current.x = visuals.x;
         heroRef.current.y = visuals.y;
-        heroRef.current.rotation = visuals.rotation;
-        heroRef.current.scale.set(visuals.scale);
+
+        if (heroVisuals.mousePos >= 1.5 || heroVisuals.mousePos <= -1.5) {
+            heroRef.current.scale.set(-1, 1);
+        } else {
+            heroRef.current.scale.set(1, 1);
+        }
 
         heroPos.current.x = visuals.x;
         heroPos.current.y = visuals.y;
@@ -345,14 +408,16 @@ export const BHSimulation: React.FC<{
                 <BossRenderer vm={vm} paused={paused}/>
                 <Container ref={heroRef}>
                     <GameSprite
-                        sheetName="hero_sheet"
+                        sheetName="gold_shipBH"
                         animationName="idle"
                         x={0} y={0}
                         scale={1}
                         anchor={0.5}
                         currentFrame={heroVisuals.currentFrame}
                     />
+
                 </Container>
+                <GoldShipGunPool vm={vm} paused={paused}/>
             </Container>
         </>
     );

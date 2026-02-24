@@ -34,6 +34,8 @@ export const BHMainViewSchema: IBuffer = {
     PPROJ_COUNT: 31,
     EPROJ_COUNT: 32,
 
+    MOUSE_RELATIVE: 33,
+
     BUFFER_SIZE: 128
 };
 

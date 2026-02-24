@@ -102,7 +102,8 @@ export class BHPresenter extends BasePresenter {
             y: this.mainView[BHMainViewSchema.HERO_Y] || 0,
             rotation: this.mainView[BHMainViewSchema.HERO_ROTATION] || 0,
             scale: this.mainView[BHMainViewSchema.HERO_SCALE] || 1,
-            currentFrame: this.mainView[BHMainViewSchema.HERO_FRAME] || 0
+            currentFrame: this.mainView[BHMainViewSchema.HERO_FRAME] || 0,
+            mousePos: this.mainView[BHMainViewSchema.MOUSE_RELATIVE] || 0,
         };
     }
 

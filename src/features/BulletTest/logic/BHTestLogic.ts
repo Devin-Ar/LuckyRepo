@@ -254,6 +254,11 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         sMain[M.HERO_WIDTH] = this.player.width;
         sMain[M.HERO_HEIGHT] = this.player.height;
         sMain[M.FRAME_COUNT] = frameCount;
+        if (this.config) {
+            const dx = -this.config.width*this.inputState.mouseX + this.player.x;
+            const dy = -this.config.height*this.inputState.mouseY + this.player.y;
+            sMain[M.MOUSE_RELATIVE] = Math.atan2(dy, dx);
+        }
         sMain[M.FPS] = fps;
 
         // Wave state info
