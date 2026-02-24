@@ -43,6 +43,8 @@ export class BHViewLogic extends BaseViewLogic {
             this.outputView[vBase + 3] = this.logicView[lBase + 3];
             this.outputView[vBase + 4] = this.logicView[lBase + 4];
             this.outputView[vBase + 5] = this.logicView[lBase + 5];
+            this.outputView[vBase + 6] = this.logicView[lBase + 6];
+            this.outputView[vBase + 7] = this.logicView[lBase + 7];
         }
 
         // Projectiles
@@ -53,6 +55,9 @@ export class BHViewLogic extends BaseViewLogic {
             const vBase = BHViewSchema.PPROJ_START_INDEX + (i * BHViewSchema.PPROJ_STRIDE);
             this.outputView[vBase] = this.logicView[lBase];
             this.outputView[vBase + 1] = this.logicView[lBase + 1];
+            this.outputView[vBase + 3] = this.logicView[lBase + 3];
+            this.outputView[vBase + 4] = this.logicView[lBase + 4];
+            this.outputView[vBase + 5] = this.logicView[lBase + 5];
         }
 
         // Projectiles
@@ -63,6 +68,9 @@ export class BHViewLogic extends BaseViewLogic {
             const vBase = BHViewSchema.EPROJ_START_INDEX + (i * BHViewSchema.EPROJ_STRIDE);
             this.outputView[vBase] = this.logicView[lBase];
             this.outputView[vBase + 1] = this.logicView[lBase + 1];
+            this.outputView[vBase + 3] = this.logicView[lBase + 3];
+            this.outputView[vBase + 4] = this.logicView[lBase + 4];
+            this.outputView[vBase + 5] = this.logicView[lBase + 5];
         }
 
         // Wave state passthrough

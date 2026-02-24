@@ -89,6 +89,8 @@ export class RockEntity extends baseEntity {
         sharedView[base + 3] = this.primedMode ? 1 : 0;
         sharedView[base + 4] = this.atkBox.eX;
         sharedView[base + 5] = this.atkBox.eY;
+        sharedView[base + 6] = this.width;
+        sharedView[base + 7] = this.height;
     }
 
     private processRock(player: basePlayer, config: BHConfig): void {
@@ -204,6 +206,8 @@ export class ShotEntity extends baseEntity {
         sharedView[base + 1] = this.y;
         sharedView[base + 2] = this.seed;
         sharedView[base + 3] = this.primedMode ? 1 : 0;
+        sharedView[base + 4] = this.width;
+        sharedView[base + 5] = this.height;
     }
 
     private processShot(player: basePlayer, config: BHConfig): void {

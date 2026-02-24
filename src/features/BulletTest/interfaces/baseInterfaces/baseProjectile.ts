@@ -81,6 +81,9 @@ export class playerProjectile extends baseProjectile {
     syncToSAB(sharedView: Float32Array, base: number): void {
         sharedView[base] = this.x;
         sharedView[base + 1] = this.y;
+        sharedView[base + 2] = this.width;
+        sharedView[base + 3] = this.height;
+        sharedView[base + 4] = this.seed;
     }
 }
 
@@ -124,5 +127,8 @@ export class enemyProjectile extends baseProjectile {
     syncToSAB(sharedView: Float32Array, base: number): void {
         sharedView[base] = this.x;
         sharedView[base + 1] = this.y;
+        sharedView[base + 2] = this.width;
+        sharedView[base + 3] = this.height;
+        sharedView[base + 4] = this.seed;
     }
 }

@@ -106,7 +106,9 @@ export class BHPresenter extends BasePresenter {
         return {
             x: this.sharedView[offset] || 0,
             y: this.sharedView[offset + 1] || 0,
-            rotation: this.sharedView[offset + 2] || 0
+            rotation: this.sharedView[offset + 2] || 0,
+            width: this.sharedView[offset + 6] || 0,
+            height: this.sharedView[offset + 7] || 0,
         };
     }
 
@@ -124,6 +126,9 @@ export class BHPresenter extends BasePresenter {
         return {
             x: this.sharedView[offset] || 0,
             y: this.sharedView[offset + 1] || 0,
+            width: this.sharedView[offset + 2] || 0,
+            height: this.sharedView[offset + 3] || 0,
+            seed: this.sharedView[offset + 4] || 0,
         };
     }
 
@@ -132,6 +137,9 @@ export class BHPresenter extends BasePresenter {
         return {
             x: this.sharedView[offset] || 0,
             y: this.sharedView[offset + 1] || 0,
+            width: this.sharedView[offset + 2] || 0,
+            height: this.sharedView[offset + 3] || 0,
+            seed: this.sharedView[offset + 4] || 0,
         };
     }
 }
