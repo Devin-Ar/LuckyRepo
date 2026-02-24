@@ -49,8 +49,8 @@ export class Game3ViewLogic extends BaseViewLogic {
 
         // 3. Determine Animation State & Orientation (Moved from Logic)
         let flipX = this.lastFlipX;
-        if (vx > 0.01) flipX = false;
-        else if (vx < -0.01) flipX = true;
+        if (vx > 0.01) flipX = true;
+        else if (vx < -0.01) flipX = false;
         this.lastFlipX = flipX;
 
         let animState = 0;

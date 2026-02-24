@@ -50,19 +50,19 @@ export class Game3Presenter extends BasePresenter {
 
         switch (animState) {
             case 1: // Walking
-                assetKey = 'hero_walk';
+                assetKey = 'gol_sheet';
                 animationName = 'walk';
                 break;
             case 2: // Air / Jumping
-                assetKey = 'hero_jump';
+                assetKey = 'gol_sheet';
                 animationName = 'jump';
                 break;
             case 3: // Wall Sliding
-                assetKey = 'hero_wall_slide';
+                assetKey = 'gol_sheet';
                 animationName = 'slide';
                 break;
             default: // 0 - Idle
-                assetKey = 'hero_idle';
+                assetKey = 'gol_sheet';
                 animationName = 'idle';
                 break;
         }
