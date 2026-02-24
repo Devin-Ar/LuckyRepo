@@ -1,6 +1,6 @@
 // src/features/BulletTest/view/BHViewLogic.ts
-import { BHLogicSchema } from '../model/BHLogicSchema';
-import { BHViewSchema } from '../model/BHViewSchema';
+import {  BHMainLogicSchema, BHRocksLogicSchema, BHPProjLogicSchema, BHEProjLogicSchema } from '../model/BHLogicSchema';
+import {  BHMainViewSchema, BHRocksViewSchema, BHPProjViewSchema, BHEProjViewSchema } from '../model/BHViewSchema';
 import { BaseViewLogic } from '../../../core/templates/BaseViewLogic';
 
 export class BHViewLogic extends BaseViewLogic {
@@ -9,88 +9,104 @@ export class BHViewLogic extends BaseViewLogic {
     private heroFrame: number = 0;
 
     public update(dt: number, frameCount: number) {
-        if (!this.hasBuffers()) return;
+        const lMain = this.logicViews.get('main');
+        const lRocks = this.logicViews.get('rocks');
+        const lPProjs = this.logicViews.get('pProjs');
+        const lEProjs = this.logicViews.get('eProjs');
 
-        const rawX = this.logicView[BHLogicSchema.HERO_X];
-        const rawY = this.logicView[BHLogicSchema.HERO_Y];
-        const rawHP = this.logicView[BHLogicSchema.HERO_HP];
+        const vMain = this.outputViews.get('main');
+        const vRocks = this.outputViews.get('rocks');
+        const vPProjs = this.outputViews.get('pProjs');
+        const vEProjs = this.outputViews.get('eProjs');
+
+        if (!lMain || !lRocks || !lPProjs || !lEProjs || !vMain || !vRocks || !vPProjs || !vEProjs) return;
+
+        const LM = BHMainLogicSchema;
+        const VM = BHMainViewSchema;
+
+        const rawX = lMain[LM.HERO_X];
+        const rawY = lMain[LM.HERO_Y];
+        const rawHP = lMain[LM.HERO_HP];
 
         this.heroRotation += 0.03 * (dt / 16.67);
         this.heroFrame += 0.15 * (dt / 16.67);
 
-        this.outputView[BHViewSchema.HERO_X] = rawX;
-        this.outputView[BHViewSchema.HERO_Y] = rawY;
-        this.outputView[BHViewSchema.HERO_ROTATION] = this.heroRotation;
-        this.outputView[BHViewSchema.HERO_SCALE] = 0.5 + (rawHP / 100);
-        this.outputView[BHViewSchema.HERO_HP_DISPLAY] = rawHP;
-        this.outputView[BHViewSchema.HERO_FRAME] = this.heroFrame;
+        vMain[VM.HERO_X] = rawX;
+        vMain[VM.HERO_Y] = rawY;
+        vMain[VM.HERO_WIDTH] = lMain[LM.HERO_WIDTH];
+        vMain[VM.HERO_HEIGHT] = lMain[LM.HERO_HEIGHT];
+        vMain[VM.HERO_ROTATION] = this.heroRotation;
+        vMain[VM.HERO_SCALE] = 0.5 + (rawHP / 100);
+        vMain[VM.HERO_HP_DISPLAY] = rawHP;
+        vMain[VM.HERO_FRAME] = this.heroFrame;
 
-        const rockCount = this.logicView[BHLogicSchema.ENTITY_COUNT];
-        this.outputView[BHViewSchema.ACTIVE_ROCK_COUNT] = rockCount;
+        // Rocks
+        const rockCount = lMain[LM.ROCK_COUNT];
+        vMain[VM.ROCK_COUNT] = rockCount;
         this.globalRockRotation += 0.02 * (dt / 16.67);
 
         for (let i = 0; i < rockCount; i++) {
-            const lBase = BHLogicSchema.ROCKS_START_INDEX_ACTUAL + (i * BHLogicSchema.ROCK_STRIDE);
-            const vBase = BHViewSchema.ROCKS_START_INDEX_ACTUAL + (i * BHViewSchema.ROCK_STRIDE);
+            const lBase = i * BHRocksLogicSchema.STRIDE;
+            const vBase = i * BHRocksViewSchema.STRIDE;
 
-            this.outputView[vBase] = this.logicView[lBase];
-            this.outputView[vBase + 1] = this.logicView[lBase + 1];
+            vRocks[vBase] = lRocks[lBase];
+            vRocks[vBase + 1] = lRocks[lBase + 1];
 
-            const rockSeed = this.logicView[lBase + 2];
+            const rockSeed = lRocks[lBase + 2];
             const individualSpeed = ((Math.floor(rockSeed) % 5) + 1) * 0.5;
-            this.outputView[vBase + 2] = (this.globalRockRotation * individualSpeed) + rockSeed;
+            vRocks[vBase + 2] = (this.globalRockRotation * individualSpeed) + rockSeed;
 
-            this.outputView[vBase + 3] = this.logicView[lBase + 3];
-            this.outputView[vBase + 4] = this.logicView[lBase + 4];
-            this.outputView[vBase + 5] = this.logicView[lBase + 5];
-            this.outputView[vBase + 6] = this.logicView[lBase + 6];
-            this.outputView[vBase + 7] = this.logicView[lBase + 7];
+            vRocks[vBase + 3] = lRocks[lBase + 3];
+            vRocks[vBase + 4] = lRocks[lBase + 4];
+            vRocks[vBase + 5] = lRocks[lBase + 5];
+            vRocks[vBase + 6] = lRocks[lBase + 6];
+            vRocks[vBase + 7] = lRocks[lBase + 7];
         }
 
-        // Projectiles
-        const projCount = this.logicView[BHLogicSchema.PPROJ_START_INDEX - 1];
-        this.outputView[BHViewSchema.PPROJ_START_INDEX - 1] = projCount;
-        for (let i = 0; i < projCount; i++) {
-            const lBase = BHLogicSchema.PPROJ_START_INDEX + (i * BHLogicSchema.PPROJ_STRIDE);
-            const vBase = BHViewSchema.PPROJ_START_INDEX + (i * BHViewSchema.PPROJ_STRIDE);
-            this.outputView[vBase] = this.logicView[lBase];
-            this.outputView[vBase + 1] = this.logicView[lBase + 1];
-            this.outputView[vBase + 3] = this.logicView[lBase + 3];
-            this.outputView[vBase + 4] = this.logicView[lBase + 4];
-            this.outputView[vBase + 5] = this.logicView[lBase + 5];
+        // Player Projectiles
+        const pProjCount = lMain[LM.PPROJ_COUNT];
+        vMain[VM.PPROJ_COUNT] = pProjCount;
+        for (let i = 0; i < pProjCount; i++) {
+            const lBase = i * BHPProjLogicSchema.STRIDE;
+            const vBase = i * BHPProjViewSchema.STRIDE;
+            vPProjs[vBase] = lPProjs[lBase];
+            vPProjs[vBase + 1] = lPProjs[lBase + 1];
+            vPProjs[vBase + 2] = lPProjs[lBase + 2];
+            vPProjs[vBase + 3] = lPProjs[lBase + 3];
+            vPProjs[vBase + 4] = lPProjs[lBase + 4];
         }
 
-        // Projectiles
-        const evilProjCount = this.logicView[BHLogicSchema.EPROJ_START_INDEX - 1];
-        this.outputView[BHViewSchema.EPROJ_START_INDEX - 1] = evilProjCount;
-        for (let i = 0; i < evilProjCount; i++) {
-            const lBase = BHLogicSchema.EPROJ_START_INDEX + (i * BHLogicSchema.EPROJ_STRIDE);
-            const vBase = BHViewSchema.EPROJ_START_INDEX + (i * BHViewSchema.EPROJ_STRIDE);
-            this.outputView[vBase] = this.logicView[lBase];
-            this.outputView[vBase + 1] = this.logicView[lBase + 1];
-            this.outputView[vBase + 3] = this.logicView[lBase + 3];
-            this.outputView[vBase + 4] = this.logicView[lBase + 4];
-            this.outputView[vBase + 5] = this.logicView[lBase + 5];
+        // Enemy Projectiles
+        const eProjCount = lMain[LM.EPROJ_COUNT];
+        vMain[VM.EPROJ_COUNT] = eProjCount;
+        for (let i = 0; i < eProjCount; i++) {
+            const lBase = i * BHEProjLogicSchema.STRIDE;
+            const vBase = i * BHEProjViewSchema.STRIDE;
+            vEProjs[vBase] = lEProjs[lBase];
+            vEProjs[vBase + 1] = lEProjs[lBase + 1];
+            vEProjs[vBase + 2] = lEProjs[lBase + 2];
+            vEProjs[vBase + 3] = lEProjs[lBase + 3];
+            vEProjs[vBase + 4] = lEProjs[lBase + 4];
         }
 
         // Wave state passthrough
-        this.outputView[BHViewSchema.CURRENT_WAVE] = this.logicView[BHLogicSchema.CURRENT_WAVE];
-        this.outputView[BHViewSchema.TOTAL_WAVES] = this.logicView[BHLogicSchema.TOTAL_WAVES];
-        this.outputView[BHViewSchema.WAVE_STATE] = this.logicView[BHLogicSchema.WAVE_STATE];
-        this.outputView[BHViewSchema.WAVE_DELAY_TIMER] = this.logicView[BHLogicSchema.WAVE_DELAY_TIMER];
+        vMain[VM.CURRENT_WAVE] = lMain[LM.CURRENT_WAVE];
+        vMain[VM.TOTAL_WAVES] = lMain[LM.TOTAL_WAVES];
+        vMain[VM.WAVE_STATE] = lMain[LM.WAVE_STATE];
+        vMain[VM.WAVE_DELAY_TIMER] = lMain[LM.WAVE_DELAY_TIMER];
 
         // Exit door passthrough
-        this.outputView[BHViewSchema.EXIT_DOOR_ACTIVE] = this.logicView[BHLogicSchema.EXIT_DOOR_ACTIVE];
-        this.outputView[BHViewSchema.EXIT_DOOR_X] = this.logicView[BHLogicSchema.EXIT_DOOR_X];
-        this.outputView[BHViewSchema.EXIT_DOOR_Y] = this.logicView[BHLogicSchema.EXIT_DOOR_Y];
-        this.outputView[BHViewSchema.CURRENT_LEVEL] = this.logicView[BHLogicSchema.CURRENT_LEVEL];
+        vMain[VM.EXIT_DOOR_ACTIVE] = lMain[LM.EXIT_DOOR_ACTIVE];
+        vMain[VM.EXIT_DOOR_X] = lMain[LM.EXIT_DOOR_X];
+        vMain[VM.EXIT_DOOR_Y] = lMain[LM.EXIT_DOOR_Y];
+        vMain[VM.CURRENT_LEVEL] = lMain[LM.CURRENT_LEVEL];
 
         // Boss state passthrough
-        this.outputView[BHViewSchema.BOSS_HP] = this.logicView[BHLogicSchema.BOSS_HP];
-        this.outputView[BHViewSchema.BOSS_VULNERABLE] = this.logicView[BHLogicSchema.BOSS_VULNERABLE];
-        this.outputView[BHViewSchema.BOSS_X] = this.logicView[BHLogicSchema.BOSS_X];
-        this.outputView[BHViewSchema.BOSS_Y] = this.logicView[BHLogicSchema.BOSS_Y];
-        this.outputView[BHViewSchema.BOSS_ACTIVE] = this.logicView[BHLogicSchema.BOSS_ACTIVE];
+        vMain[VM.BOSS_HP] = lMain[LM.BOSS_HP];
+        vMain[VM.BOSS_VULNERABLE] = lMain[LM.BOSS_VULNERABLE];
+        vMain[VM.BOSS_X] = lMain[LM.BOSS_X];
+        vMain[VM.BOSS_Y] = lMain[LM.BOSS_Y];
+        vMain[VM.BOSS_ACTIVE] = lMain[LM.BOSS_ACTIVE];
     }
 
     public override getSnapshot() {

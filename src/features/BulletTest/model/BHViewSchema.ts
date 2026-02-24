@@ -1,41 +1,60 @@
-// src/features/BulletTest/model/BHViewSchema.ts
-import { IBuffer } from "../../../core/interfaces/IBuffer";
+import { IBuffer, BufferMap } from "../../../core/interfaces/IBuffer";
 
-export const BHViewSchema: IBuffer = {
+export const BHMainViewSchema: IBuffer = {
     HERO_X: 0,
     HERO_Y: 1,
     HERO_ROTATION: 2,
     HERO_SCALE: 3,
     HERO_HP_DISPLAY: 4,
     HERO_FRAME: 5,
+    HERO_WIDTH: 6,
+    HERO_HEIGHT: 7,
 
-    ACTIVE_ROCK_COUNT: 8,
-
-    // Wave display
-    CURRENT_WAVE: 9,
-    TOTAL_WAVES: 12,
-    WAVE_STATE: 13,
-    WAVE_DELAY_TIMER: 14,
+    // Wave state
+    CURRENT_WAVE: 10,
+    TOTAL_WAVES: 11,
+    WAVE_STATE: 12,
+    WAVE_DELAY_TIMER: 13,
 
     // Exit door
-    EXIT_DOOR_ACTIVE: 15,
-    EXIT_DOOR_X: 16,
-    EXIT_DOOR_Y: 17,
-    CURRENT_LEVEL: 18,
-    BOSS_HP: 19,
-    BOSS_VULNERABLE: 20,
+    EXIT_DOOR_ACTIVE: 14,
+    EXIT_DOOR_X: 15,
+    EXIT_DOOR_Y: 16,
+    CURRENT_LEVEL: 17,
 
-    ROCKS_START_INDEX: 21,
-    BOSS_X: 21,
-    BOSS_Y: 22,
-    BOSS_ACTIVE: 23,
+    // Boss state
+    BOSS_HP: 18,
+    BOSS_VULNERABLE: 19,
+    BOSS_X: 20,
+    BOSS_Y: 21,
+    BOSS_ACTIVE: 22,
 
-    ROCKS_START_INDEX_ACTUAL: 24,
-    ROCK_STRIDE: 8,
-    PPROJ_START_INDEX: 200,
-    PPROJ_STRIDE: 5,
-    EPROJ_START_INDEX: 300,
-    EPROJ_STRIDE: 5,
+    // Counts for other buffers
+    ROCK_COUNT: 30,
+    PPROJ_COUNT: 31,
+    EPROJ_COUNT: 32,
 
-    BUFFER_SIZE: 4096
+    BUFFER_SIZE: 128
+};
+
+export const BHRocksViewSchema: IBuffer = {
+    STRIDE: 8,
+    BUFFER_SIZE: 8000
+};
+
+export const BHPProjViewSchema: IBuffer = {
+    STRIDE: 5,
+    BUFFER_SIZE: 500
+};
+
+export const BHEProjViewSchema: IBuffer = {
+    STRIDE: 5,
+    BUFFER_SIZE: 5000
+};
+
+export const BHViewSchema: BufferMap = {
+    main: BHMainViewSchema,
+    rocks: BHRocksViewSchema,
+    pProjs: BHPProjViewSchema,
+    eProjs: BHEProjViewSchema
 };

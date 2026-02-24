@@ -1,44 +1,63 @@
-// src/features/BulletTest/model/BHLogicSchema.ts
-import { IBuffer } from "../../../core/interfaces/IBuffer";
+import { IBuffer, BufferMap } from "../../../core/interfaces/IBuffer";
 
-export const BHLogicSchema: IBuffer = {
-    HERO_HP: 0,
-    HERO_X: 1,
-    HERO_Y: 2,
-
+export const BHMainLogicSchema: IBuffer = {
+    REVISION: 0,
+    FRAME_COUNT: 1,
+    FPS: 2,
     TICK_COUNT: 3,
-    FRAME_COUNT: 4,
-    FPS: 5,
-    REVISION: 6,
-    LAST_HIT_FRAME: 7,
-    ENTITY_COUNT: 8,
 
-    // Wave state (new)
-    CURRENT_WAVE: 9,
-    TOTAL_WAVES: 12,
-    WAVE_STATE: 13,        // 0=IDLE, 1=DELAY, 2=ACTIVE, 3=CLEARED, 4=ALL_CLEARED
-    WAVE_DELAY_TIMER: 14,
+    HERO_HP: 4,
+    HERO_X: 5,
+    HERO_Y: 6,
+    HERO_WIDTH: 7,
+    HERO_HEIGHT: 8,
+    LAST_HIT_FRAME: 9,
+
+    // Wave state
+    CURRENT_WAVE: 10,
+    TOTAL_WAVES: 11,
+    WAVE_STATE: 12,
+    WAVE_DELAY_TIMER: 13,
 
     // Exit door
-    EXIT_DOOR_ACTIVE: 15,  // 1 = visible, 0 = hidden
-    EXIT_DOOR_X: 16,
-    EXIT_DOOR_Y: 17,
-    CURRENT_LEVEL: 18,     // 0=Level1, 1=Level2, 2=Level3, 3=Level4
-    BOSS_HP: 19,
-    BOSS_VULNERABLE: 20,
+    EXIT_DOOR_ACTIVE: 14,
+    EXIT_DOOR_X: 15,
+    EXIT_DOOR_Y: 16,
+    CURRENT_LEVEL: 17,
 
-    ROCKS_START_INDEX: 21,
-    BOSS_X: 21,
-    BOSS_Y: 22,
-    BOSS_ACTIVE: 23,
+    // Boss state
+    BOSS_HP: 18,
+    BOSS_VULNERABLE: 19,
+    BOSS_X: 20,
+    BOSS_Y: 21,
+    BOSS_ACTIVE: 22,
 
-    ROCKS_START_INDEX_ACTUAL: 24,
-    PPROJ_START_INDEX: 200,
-    PPROJ_STRIDE: 5,
-    EPROJ_START_INDEX: 300,
-    EPROJ_STRIDE: 5,
-    ROCK_STRIDE: 8,
-    MAX_ROCKS: 1000,
+    // Counts for other buffers
+    ROCK_COUNT: 30,
+    PPROJ_COUNT: 31,
+    EPROJ_COUNT: 32,
 
-    BUFFER_SIZE: 4096
+    BUFFER_SIZE: 128
+};
+
+export const BHRocksLogicSchema: IBuffer = {
+    STRIDE: 8,
+    BUFFER_SIZE: 8000 // 1000 rocks * 8
+};
+
+export const BHPProjLogicSchema: IBuffer = {
+    STRIDE: 5,
+    BUFFER_SIZE: 500 // 100 projectiles * 5
+};
+
+export const BHEProjLogicSchema: IBuffer = {
+    STRIDE: 5,
+    BUFFER_SIZE: 5000 // 1000 projectiles * 5
+};
+
+export const BHLogicSchema: BufferMap = {
+    main: BHMainLogicSchema,
+    rocks: BHRocksLogicSchema,
+    pProjs: BHPProjLogicSchema,
+    eProjs: BHEProjLogicSchema
 };

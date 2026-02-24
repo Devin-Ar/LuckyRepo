@@ -1,5 +1,5 @@
 // src/features/BulletTest/logic/BHTestLogic.ts
-import { BHLogicSchema } from '../model/BHLogicSchema';
+import { BHMainLogicSchema, BHRocksLogicSchema, BHPProjLogicSchema, BHEProjLogicSchema } from '../model/BHLogicSchema';
 import { BaseLogic } from '../../../core/templates/BaseLogic';
 import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { BHCommands } from './BHCommands';
@@ -40,7 +40,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     private exitDoorEntered: boolean = false;
 
     constructor() {
-        super(BHLogicSchema.REVISION);
+        super(BHMainLogicSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, BHCommands, "BHTest");
         this.player = basePlayer.getInstance();
     }
@@ -239,62 +239,81 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.syncToSAB(sharedView, frameCount, fps);
     }
 
-    private syncToSAB(sharedView: Float32Array, frameCount: number, fps: number): void {
-        sharedView[BHLogicSchema.HERO_HP] = this.player.hp;
-        sharedView[BHLogicSchema.HERO_X] = this.player.x;
-        sharedView[BHLogicSchema.HERO_Y] = this.player.y;
-        sharedView[BHLogicSchema.ENTITY_COUNT] = this.entities.length;
+    private syncToSAB(sMain: Float32Array, frameCount: number, fps: number): void {
+        const sRocks = this.sharedViews.get('rocks');
+        const sPProjs = this.sharedViews.get('pProjs');
+        const sEProjs = this.sharedViews.get('eProjs');
+
+        if (!sMain || !sRocks || !sPProjs || !sEProjs) return;
+
+        const M = BHMainLogicSchema;
+
+        sMain[M.HERO_HP] = this.player.hp;
+        sMain[M.HERO_X] = this.player.x;
+        sMain[M.HERO_Y] = this.player.y;
+        sMain[M.HERO_WIDTH] = this.player.width;
+        sMain[M.HERO_HEIGHT] = this.player.height;
+        sMain[M.FRAME_COUNT] = frameCount;
+        sMain[M.FPS] = fps;
 
         // Wave state info
-        sharedView[BHLogicSchema.CURRENT_WAVE] = this.waveManager.getCurrentWave();
-        sharedView[BHLogicSchema.TOTAL_WAVES] = this.waveManager.getTotalWaves();
-        sharedView[BHLogicSchema.WAVE_DELAY_TIMER] = this.waveManager.getDelayTimer();
+        sMain[M.CURRENT_WAVE] = this.waveManager.getCurrentWave();
+        sMain[M.TOTAL_WAVES] = this.waveManager.getTotalWaves();
+        sMain[M.WAVE_DELAY_TIMER] = this.waveManager.getDelayTimer();
 
         // Encode wave state as a number: IDLE=0, DELAY=1, ACTIVE=2, CLEARED=3, ALL_CLEARED=4
         const stateMap: Record<string, number> = {
             'IDLE': 0, 'DELAY': 1, 'ACTIVE': 2, 'CLEARED': 3, 'ALL_CLEARED': 4
         };
-        sharedView[BHLogicSchema.WAVE_STATE] = stateMap[this.waveManager.getState()] ?? 0;
+        sMain[M.WAVE_STATE] = stateMap[this.waveManager.getState()] ?? 0;
 
         // Exit door
-        sharedView[BHLogicSchema.EXIT_DOOR_ACTIVE] = this.exitDoorActive ? 1 : 0;
-        sharedView[BHLogicSchema.EXIT_DOOR_X] = this.exitDoorX;
-        sharedView[BHLogicSchema.EXIT_DOOR_Y] = this.exitDoorY;
+        sMain[M.EXIT_DOOR_ACTIVE] = this.exitDoorActive ? 1 : 0;
+        sMain[M.EXIT_DOOR_X] = this.exitDoorX;
+        sMain[M.EXIT_DOOR_Y] = this.exitDoorY;
 
         // Encode current level: "Level 1"=0, "Level 2"=1, "Level 3"=2, "Level 4"=3
         const levelLabel = this.config!.levelLabel || "Level 1";
         const levelIndex = levelLabel === "Level 4" ? 3 : levelLabel === "Level 3" ? 2 : levelLabel === "Level 2" ? 1 : 0;
-        sharedView[BHLogicSchema.CURRENT_LEVEL] = levelIndex;
+        sMain[M.CURRENT_LEVEL] = levelIndex;
 
         if (this.boss) {
-            sharedView[BHLogicSchema.BOSS_HP] = this.boss.health;
-            sharedView[BHLogicSchema.BOSS_VULNERABLE] = this.boss.vulnerable ? 1 : 0;
-            sharedView[BHLogicSchema.BOSS_X] = this.boss.x;
-            sharedView[BHLogicSchema.BOSS_Y] = this.boss.y;
-            sharedView[BHLogicSchema.BOSS_ACTIVE] = this.boss.active ? 1 : 0;
+            sMain[M.BOSS_HP] = this.boss.health;
+            sMain[M.BOSS_VULNERABLE] = this.boss.vulnerable ? 1 : 0;
+            sMain[M.BOSS_X] = this.boss.x;
+            sMain[M.BOSS_Y] = this.boss.y;
+            sMain[M.BOSS_ACTIVE] = this.boss.active ? 1 : 0;
         } else {
-            sharedView[BHLogicSchema.BOSS_HP] = 0;
-            sharedView[BHLogicSchema.BOSS_VULNERABLE] = 0;
-            sharedView[BHLogicSchema.BOSS_ACTIVE] = 0;
+            sMain[M.BOSS_HP] = 0;
+            sMain[M.BOSS_VULNERABLE] = 0;
+            sMain[M.BOSS_ACTIVE] = 0;
         }
 
-        // Entities
-        this.entities.forEach((r, i) => {
-            const base = BHLogicSchema.ROCKS_START_INDEX_ACTUAL + (i * BHLogicSchema.ROCK_STRIDE);
-            r.syncToSAB(sharedView, base);
-        });
+        // Entities (Rocks)
+        const rockCapacity = Math.floor(sRocks.length / BHRocksLogicSchema.STRIDE);
+        const rockCount = Math.min(this.entities.length, rockCapacity);
+        sMain[M.ROCK_COUNT] = rockCount;
+        for (let i = 0; i < rockCount; i++) {
+            const base = i * BHRocksLogicSchema.STRIDE;
+            this.entities[i].syncToSAB(sRocks, base);
+        }
 
         // Player projectiles
-        sharedView[BHLogicSchema.PPROJ_START_INDEX - 1] = this.playerProjectiles.length;
-        this.playerProjectiles.forEach((r, i) => {
-            const base = BHLogicSchema.PPROJ_START_INDEX + (i * BHLogicSchema.PPROJ_STRIDE);
-            r.syncToSAB(sharedView, base);
-        });
+        const pProjCapacity = Math.floor(sPProjs.length / BHPProjLogicSchema.STRIDE);
+        const pProjCount = Math.min(this.playerProjectiles.length, pProjCapacity);
+        sMain[M.PPROJ_COUNT] = pProjCount;
+        for (let i = 0; i < pProjCount; i++) {
+            const base = i * BHPProjLogicSchema.STRIDE;
+            this.playerProjectiles[i].syncToSAB(sPProjs, base);
+        }
 
-        sharedView[BHLogicSchema.EPROJ_START_INDEX - 1] = this.enemyProjectiles.length;
-        this.enemyProjectiles.forEach((r, i) => {
-            const base = BHLogicSchema.EPROJ_START_INDEX + (i * BHLogicSchema.EPROJ_STRIDE);
-            r.syncToSAB(sharedView, base);
-        });
+        // Enemy projectiles
+        const eProjCapacity = Math.floor(sEProjs.length / BHEProjLogicSchema.STRIDE);
+        const eProjCount = Math.min(this.enemyProjectiles.length, eProjCapacity);
+        sMain[M.EPROJ_COUNT] = eProjCount;
+        for (let i = 0; i < eProjCount; i++) {
+            const base = i * BHEProjLogicSchema.STRIDE;
+            this.enemyProjectiles[i].syncToSAB(sEProjs, base);
+        }
     }
 }
