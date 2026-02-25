@@ -258,6 +258,8 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             const dx = -this.config.width*this.inputState.mouseX + this.player.x;
             const dy = -this.config.height*this.inputState.mouseY + this.player.y;
             sMain[M.MOUSE_RELATIVE] = Math.atan2(dy, dx);
+            sMain[M.MAP_WIDTH] = this.config.width;
+            sMain[M.MAP_HEIGHT] = this.config.height;
         }
         sMain[M.FPS] = fps;
 

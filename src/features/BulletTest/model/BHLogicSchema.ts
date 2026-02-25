@@ -38,6 +38,8 @@ export const BHMainLogicSchema: IBuffer = {
     EPROJ_COUNT: 32,
 
     MOUSE_RELATIVE: 33,
+    MAP_WIDTH: 34,
+    MAP_HEIGHT: 35,
 
     BUFFER_SIZE: 128
 };

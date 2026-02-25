@@ -41,7 +41,7 @@ const App = () => {
 
             initializeCampaigns();
 
-            StateRegistry.create(FeatureEnum.DEV_MENU).then(startState => {
+            StateRegistry.create(FeatureEnum.MAIN_MENU).then(startState => {
                 manager.replace(startState);
             });
 

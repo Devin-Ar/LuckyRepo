@@ -3,6 +3,9 @@ export const INPUT_REGISTRY: Record<string, Record<string, { keys: string[], lab
     "Shared": {
         "UI_BACK": { keys: ["ESCAPE", "BACKSPACE"], label: "Back" },
         "PAUSE": { keys: ["ESCAPE", "P"], label: "Pause" },
+        "UI_UP": { keys: ["W", "ARROWUP"], label: "Menu Up" },
+        "UI_DOWN": { keys: ["S", "ARROWDOWN"], label: "Menu Down" },
+        "UI_ACCEPT": { keys: ["ENTER", " ", "E"], label: "Accept" },
     },
     "Game1": {
         "MOVE_UP": { keys: ["W", "ARROWUP"], label: "Move Up" },

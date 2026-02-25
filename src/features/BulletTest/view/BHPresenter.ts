@@ -104,6 +104,8 @@ export class BHPresenter extends BasePresenter {
             scale: this.mainView[BHMainViewSchema.HERO_SCALE] || 1,
             currentFrame: this.mainView[BHMainViewSchema.HERO_FRAME] || 0,
             mousePos: this.mainView[BHMainViewSchema.MOUSE_RELATIVE] || 0,
+            width: this.mainView[BHMainViewSchema.HERO_WIDTH] || 0,
+            height: this.mainView[BHMainViewSchema.HERO_HEIGHT] || 0,
         };
     }
 
@@ -147,5 +149,13 @@ export class BHPresenter extends BasePresenter {
             height: this.eProjsView[offset + 3] || 0,
             seed: this.eProjsView[offset + 4] || 0,
         };
+    }
+
+    public get worldWidth(): number {
+        return this.mainView[BHMainViewSchema.MAP_WIDTH] || 960;
+    }
+
+    public get worldHeight(): number {
+        return this.mainView[BHMainViewSchema.MAP_HEIGHT] || 540;
     }
 }

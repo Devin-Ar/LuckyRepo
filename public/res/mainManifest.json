@@ -1,0 +1,17 @@
+{
+  "spritesheets": {},
+  "audio": {
+    "bgm_menu": {
+      "url": "res/audio/ost/dungeon_ambient.wav",
+      "type": "ost",
+      "loop": true,
+      "volume": 0.7
+    },
+    "sfx_nav": {
+      "url": "res/audio/sfx/bomb_explosion.wav",
+      "type": "sfx",
+      "loop": false,
+      "volume": 2
+    }
+  }
+}

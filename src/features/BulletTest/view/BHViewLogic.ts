@@ -38,6 +38,8 @@ export class BHViewLogic extends BaseViewLogic {
         vMain[VM.HERO_ROTATION] = this.heroRotation;
         vMain[VM.HERO_SCALE] = 0.5 + (rawHP / 100);
         vMain[VM.MOUSE_RELATIVE] = lMain[LM.MOUSE_RELATIVE];
+        vMain[VM.MAP_WIDTH] = lMain[LM.MAP_WIDTH];
+        vMain[VM.MAP_HEIGHT] = lMain[LM.MAP_HEIGHT];
         vMain[VM.HERO_HP_DISPLAY] = rawHP;
         vMain[VM.HERO_FRAME] = this.heroFrame;
 
