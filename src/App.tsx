@@ -2,10 +2,9 @@
 import {cloneElement, JSX, useEffect, useMemo, useRef, useState} from "react";
 import {StateManager} from "./core/managers/StateManager";
 import {DebugOverlay} from "./components/DebugOverlay";
-import { StateRegistry } from "./core/registry/StateRegistry";
-import { FeatureEnum } from "./features/FeatureEnum";
 import { initializeStateRegistry } from "./config/StateManifest";
 import { initializeCampaigns } from "./config/CampaignManifest";
+import {CampaignManager} from "./core/managers/CampaignManager";
 
 type Resolution = '540p' | '720p' | '1080p' | '1440p' | '4k' | 'fit';
 
@@ -41,9 +40,7 @@ const App = () => {
 
             initializeCampaigns();
 
-            StateRegistry.create(FeatureEnum.MAIN_MENU).then(startState => {
-                manager.replace(startState);
-            });
+            CampaignManager.getInstance().startCampaign('main_menu');
 
             isInitialized.current = true;
         }

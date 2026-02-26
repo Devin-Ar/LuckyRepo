@@ -20,6 +20,10 @@ export class SpriteManager {
         }
 
         const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`[SpriteManager] Failed to fetch manifest: ${url} (Status: ${response.status})`);
+        }
+
         const data = await response.json();
 
         if (!this.stateAssets.has(stateName)) {
@@ -35,12 +39,12 @@ export class SpriteManager {
             if (onProgress) onProgress(loadedItems / totalItems);
         };
 
-        for (const [sheetName, config] of Object.entries(data.spritesheets) as any) {
+        for (const [sheetName, config] of Object.entries(data.spritesheets || {}) as any) {
             const baseTexture = await PIXI.Assets.load(config.url);
 
             currentStateKeys.add(config.url);
 
-            for (const [frameName, rect] of Object.entries(config.frames) as any) {
+            for (const [frameName, rect] of Object.entries(config.frames || {}) as any) {
                 const frame = new PIXI.Texture(
                     baseTexture,
                     new PIXI.Rectangle(rect.x, rect.y, rect.w, rect.h)
@@ -49,7 +53,7 @@ export class SpriteManager {
                 currentStateKeys.add(frameName);
             }
 
-            for (const [animName, frameList] of Object.entries(config.animations) as any) {
+            for (const [animName, frameList] of Object.entries(config.animations || {}) as any) {
                 const animKey = `${sheetName}_${animName}`;
                 const frames = (frameList as string[])
                     .map(f => this.textures.get(f))

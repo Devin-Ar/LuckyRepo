@@ -7,6 +7,7 @@ import { SharedMenuFeatures } from "./shared-menus";
 import { StateDefinition } from "./FeatureTypes";
 import {BHFeature} from "./BulletTest";
 import {Game3Feature} from "./Game3";
+import {CinematicFeature} from "./Cinematic";
 
 export const UIFeatures: StateDefinition[] = [
     Game1Feature,
@@ -14,6 +15,7 @@ export const UIFeatures: StateDefinition[] = [
     Game3Feature,
     BHFeature,
     MainMenuFeature,
+    CinematicFeature,
     DevMenuFeature,
     ...SharedMenuFeatures
 ];

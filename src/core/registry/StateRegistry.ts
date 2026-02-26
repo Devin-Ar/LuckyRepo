@@ -19,24 +19,23 @@ export class StateRegistry {
         return this.states.get(id);
     }
 
-    public static async create(id: string | FeatureEnum, params?: any): Promise<State> {
-        const def = this.get(id);
-        if (!def) throw new Error(`StateRegistry: ID "${id}" not found.`);
-        const StateClass = await def.loader();
-        return new StateClass(params);
-    }
-
-    public static async createFromPreset(id: FeatureEnum, presetLabel: string): Promise<State> {
+    public static async create(id: string | FeatureEnum, params: any = {}, presetLabel?: string): Promise<State> {
         const def = this.get(id);
         if (!def) throw new Error(`StateRegistry: ID "${id}" not found.`);
 
-        const preset = def.presets?.find(p => p.label === presetLabel);
-        if (!preset) {
-            throw new Error(`StateRegistry: Preset "${presetLabel}" not found for ID "${id}".`);
+        let finalParams = { ...params };
+
+        if (presetLabel) {
+            const preset = def.presets?.find(p => p.label === presetLabel);
+            if (!preset) {
+                console.warn(`StateRegistry: Preset "${presetLabel}" not found for ID "${id}". Falling back to raw params.`);
+            } else {
+                finalParams = { ...preset.params, ...finalParams };
+            }
         }
 
         const StateClass = await def.loader();
-        return new StateClass(preset.params);
+        return new StateClass(finalParams);
     }
 
     public static getAllGames(): StateDefinition[] {

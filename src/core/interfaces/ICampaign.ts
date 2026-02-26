@@ -6,7 +6,8 @@ import { State } from "../templates/State";
 export interface ICampaignStep {
     name: string;
     stateId: FeatureEnum;
-    presetLabel: string;
+    presetLabel?: string;
+    params?: any;
     loadingConfig?: ILoadingConfig;
     failFactory?: (context?: any) => State | Promise<State>;
 }

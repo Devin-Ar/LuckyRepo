@@ -1,4 +1,5 @@
 // src/core/managers/CampaignManager.ts
+// This in the long term beyond this class needs to handle branching and be a general flow manager, not just games.
 import { SharedSession } from "../session/SharedSession";
 import { CampaignRegistry } from "../registry/CampaignRegistry";
 import { StateManager } from "./StateManager";
@@ -115,11 +116,15 @@ export class CampaignManager {
         StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
     }
 
-    private loadCurrentStep(def: ICampaignDefinition, index: number) {
+    private async loadCurrentStep(def: ICampaignDefinition, index: number) {
         const step = def.steps[index];
         console.log(`[CampaignManager] Loading Step ${index}: ${step.name}`);
 
-        const nextState = StateRegistry.createFromPreset(step.stateId, step.presetLabel);
+        const nextState = await StateRegistry.create(
+            step.stateId,
+            step.params || {},
+            step.presetLabel
+        );
 
         StateManager.getInstance().replace(nextState, step.loadingConfig);
     }

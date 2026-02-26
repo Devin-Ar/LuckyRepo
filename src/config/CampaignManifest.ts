@@ -6,6 +6,7 @@ import { FeatureEnum } from "../features/FeatureEnum";
 
 import { DemoLoadingView } from "../components/loading/DemoLoadingView";
 import { LoreLoadingView } from "../components/loading/LoreLoadingView";
+import {DefaultLoadingView} from "../components/loading/DefaultLoadingView";
 
 const StoryCampaign: ICampaignStep[] = [
     {
@@ -125,6 +126,21 @@ const CrossGameCampaign: ICampaignStep[] = [
     },
 ];
 
+const MainMenuFlow: ICampaignStep[] = [
+    {
+        name: "Intro Splash",
+        stateId: FeatureEnum.CINEMATIC,
+        params: {
+            imageName: "lucky_group",
+            manifestPath: "res/cinematic_manifest.json"
+        }
+    },
+    {
+        name: "Main Menu",
+        stateId: FeatureEnum.MAIN_MENU,
+    },
+];
+
 export const initializeCampaigns = () => {
     CampaignRegistry.register({
         id: "story_mode",
@@ -142,5 +158,10 @@ export const initializeCampaigns = () => {
         id: "cross_game",
         steps: CrossGameCampaign,
         failFactory: () => StateRegistry.create(FeatureEnum.CONTINUE)
+    });
+
+    CampaignRegistry.register({
+        id: "main_menu",
+        steps: MainMenuFlow,
     });
 };

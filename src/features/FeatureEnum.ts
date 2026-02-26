@@ -11,4 +11,5 @@ export enum FeatureEnum {
     CONTINUE = "ContinueScreen",
     GAME_OVER = "GameOverScreen",
     MAIN_MENU = "MainMenu",
+    CINEMATIC = "Cinematic",
 }
