@@ -20,6 +20,7 @@
       },
       "animations": {
         "walk": ["h_walk_0", "h_walk_1", "h_walk_2"],
+        "walk_r": ["h_walk_2", "h_walk_1", "h_walk_0"],
         "idle": ["h_idle_0"]
       }
     }
