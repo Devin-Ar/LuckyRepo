@@ -5,6 +5,7 @@ import { Game3Presenter } from './Game3Presenter';
 import { Game3Controller } from './Game3Controller';
 import { Game3HUD } from './ui-components/Game3HUD';
 import { Game3Simulation } from './ui-components/Game3Simulation';
+import { Game3Minimap } from './ui-components/Game3Minimap';
 import { Game3Level } from '../model/Game3Config';
 import { IGameViewProps } from '../../../core/interfaces/IViewProps';
 
@@ -73,6 +74,9 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     boxShadow: `inset 0 0 ${120 + visuals.vignettePulse * 40}px rgba(0,0,0,0.9)`,
                     mixBlendMode: 'multiply'
                 }}/>
+
+                {/* Minimap overlay - bottom right corner */}
+                <Game3Minimap vm={vm} size={250} />
 
                 <Game3HUD
                     stats={stats}
