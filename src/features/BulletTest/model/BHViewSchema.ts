@@ -3,6 +3,8 @@ import { IBuffer, BufferMap } from "../../../core/interfaces/IBuffer";
 export const BHMainViewSchema: IBuffer = {
     HERO_X: 0,
     HERO_Y: 1,
+    HERO_VX: 36,
+    HERO_VY: 37,
     HERO_ROTATION: 2,
     HERO_SCALE: 3,
     HERO_HP_DISPLAY: 4,

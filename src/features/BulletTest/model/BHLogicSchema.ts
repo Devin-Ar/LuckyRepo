@@ -9,6 +9,8 @@ export const BHMainLogicSchema: IBuffer = {
     HERO_HP: 4,
     HERO_X: 5,
     HERO_Y: 6,
+    HERO_VX: 36,
+    HERO_VY: 37,
     HERO_WIDTH: 7,
     HERO_HEIGHT: 8,
     LAST_HIT_FRAME: 9,

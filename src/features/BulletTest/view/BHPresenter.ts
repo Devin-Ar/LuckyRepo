@@ -100,6 +100,8 @@ export class BHPresenter extends BasePresenter {
         return {
             x: this.mainView[BHMainViewSchema.HERO_X] || 0,
             y: this.mainView[BHMainViewSchema.HERO_Y] || 0,
+            vx: this.mainView[BHMainViewSchema.HERO_VX] || 0,
+            vy: this.mainView[BHMainViewSchema.HERO_VY] || 0,
             rotation: this.mainView[BHMainViewSchema.HERO_ROTATION] || 0,
             scale: this.mainView[BHMainViewSchema.HERO_SCALE] || 1,
             currentFrame: this.mainView[BHMainViewSchema.HERO_FRAME] || 0,

@@ -1,9 +1,42 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, useTick} from '@pixi/react';
 import {BHPresenter} from '../BHPresenter';
 import {GameSprite} from '../../../../components/GameSprite';
 import {SpriteManager} from "../../../../core/managers/SpriteManager";
+
+const GoldshiSprite: React.FC<{ vm: BHPresenter, paused: boolean, heroRef: React.RefObject<PIXI.Container> }> = ({ vm, paused, heroRef }) => {
+    // We use local state to trigger a redraw of just this component every tick
+    const [visuals, setVisuals] = useState(vm.heroVisuals);
+    const [anim, setAnim] = useState("idle");
+
+    useTick(() => {
+        if (paused) return;
+        const latest = vm.heroVisuals;
+
+        console.log(visuals.mousePos)
+        if (latest.vx != 0 || latest.vy != 0) {
+            setAnim("walk");
+        }else {
+            setAnim("idle");
+        }
+
+        if (latest.currentFrame !== visuals.currentFrame) {
+            setVisuals(latest);
+        }
+    });
+
+    return (
+        <Container ref={heroRef}>
+            <GameSprite
+                sheetName="gold_shipBH"
+                animationName={anim}
+                anchor={0.5}
+                currentFrame={visuals.currentFrame}
+            />
+        </Container>
+    );
+};
 
 const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
@@ -82,14 +115,7 @@ export const BHForeground: React.FC<{ vm: BHPresenter, paused: boolean, heroRef:
     return (
         <Container name="foreground">
             <RockPool vm={vm} paused={paused}/>
-            <Container ref={heroRef}>
-                <GameSprite
-                    sheetName="gold_shipBH"
-                    animationName="idle"
-                    anchor={0.5}
-                    currentFrame={vm.heroVisuals.currentFrame}
-                />
-            </Container>
+            <GoldshiSprite vm={vm} paused={paused} heroRef={heroRef} />
             <GoldShipGunPool vm={vm} paused={paused}/>
         </Container>
     );

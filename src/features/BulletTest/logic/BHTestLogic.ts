@@ -251,6 +251,8 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         sMain[M.HERO_HP] = this.player.hp;
         sMain[M.HERO_X] = this.player.x;
         sMain[M.HERO_Y] = this.player.y;
+        sMain[M.HERO_VX] = this.player.vx;
+        sMain[M.HERO_VY] = this.player.vy;
         sMain[M.HERO_WIDTH] = this.player.width;
         sMain[M.HERO_HEIGHT] = this.player.height;
         sMain[M.FRAME_COUNT] = frameCount;

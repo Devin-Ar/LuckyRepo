@@ -6,7 +6,9 @@ import { BaseViewLogic } from '../../../core/templates/BaseViewLogic';
 export class BHViewLogic extends BaseViewLogic {
     private heroRotation: number = 0;
     private globalRockRotation: number = 0;
-    private heroFrame: number = 0;
+
+    private animFrame = 0;
+    private animTimer = 0;
 
     public update(dt: number, frameCount: number) {
         const lMain = this.logicViews.get('main');
@@ -28,11 +30,19 @@ export class BHViewLogic extends BaseViewLogic {
         const rawY = lMain[LM.HERO_Y];
         const rawHP = lMain[LM.HERO_HP];
 
-        this.heroRotation += 0.03 * (dt / 16.67);
-        this.heroFrame += 0.15 * (dt / 16.67);
+        const timeFactor = dt / 16.67;
+        this.heroRotation += 0.03 * timeFactor;
+
+        this.animTimer++;
+        if (this.animTimer >= 6) {
+            this.animFrame = (this.animFrame + 1) % 3;
+            this.animTimer = 0;
+        }
 
         vMain[VM.HERO_X] = rawX;
         vMain[VM.HERO_Y] = rawY;
+        vMain[VM.HERO_VX] = lMain[LM.HERO_VX];
+        vMain[VM.HERO_VY] = lMain[LM.HERO_VY];
         vMain[VM.HERO_WIDTH] = lMain[LM.HERO_WIDTH];
         vMain[VM.HERO_HEIGHT] = lMain[LM.HERO_HEIGHT];
         vMain[VM.HERO_ROTATION] = this.heroRotation;
@@ -41,24 +51,21 @@ export class BHViewLogic extends BaseViewLogic {
         vMain[VM.MAP_WIDTH] = lMain[LM.MAP_WIDTH];
         vMain[VM.MAP_HEIGHT] = lMain[LM.MAP_HEIGHT];
         vMain[VM.HERO_HP_DISPLAY] = rawHP;
-        vMain[VM.HERO_FRAME] = this.heroFrame;
+        vMain[VM.HERO_FRAME] = this.animFrame;
 
         // Rocks
         const rockCount = lMain[LM.ROCK_COUNT];
         vMain[VM.ROCK_COUNT] = rockCount;
-        this.globalRockRotation += 0.02 * (dt / 16.67);
+        this.globalRockRotation += 0.02 * timeFactor;
 
         for (let i = 0; i < rockCount; i++) {
             const lBase = i * BHRocksLogicSchema.STRIDE;
             const vBase = i * BHRocksViewSchema.STRIDE;
-
             vRocks[vBase] = lRocks[lBase];
             vRocks[vBase + 1] = lRocks[lBase + 1];
-
             const rockSeed = lRocks[lBase + 2];
             const individualSpeed = ((Math.floor(rockSeed) % 5) + 1) * 0.5;
             vRocks[vBase + 2] = (this.globalRockRotation * individualSpeed) + rockSeed;
-
             vRocks[vBase + 3] = lRocks[lBase + 3];
             vRocks[vBase + 4] = lRocks[lBase + 4];
             vRocks[vBase + 5] = lRocks[lBase + 5];
@@ -66,7 +73,7 @@ export class BHViewLogic extends BaseViewLogic {
             vRocks[vBase + 7] = lRocks[lBase + 7];
         }
 
-        // Player Projectiles
+        // Projectiles
         const pProjCount = lMain[LM.PPROJ_COUNT];
         vMain[VM.PPROJ_COUNT] = pProjCount;
         for (let i = 0; i < pProjCount; i++) {
@@ -79,7 +86,6 @@ export class BHViewLogic extends BaseViewLogic {
             vPProjs[vBase + 4] = lPProjs[lBase + 4];
         }
 
-        // Enemy Projectiles
         const eProjCount = lMain[LM.EPROJ_COUNT];
         vMain[VM.EPROJ_COUNT] = eProjCount;
         for (let i = 0; i < eProjCount; i++) {
@@ -92,19 +98,14 @@ export class BHViewLogic extends BaseViewLogic {
             vEProjs[vBase + 4] = lEProjs[lBase + 4];
         }
 
-        // Wave state passthrough
         vMain[VM.CURRENT_WAVE] = lMain[LM.CURRENT_WAVE];
         vMain[VM.TOTAL_WAVES] = lMain[LM.TOTAL_WAVES];
         vMain[VM.WAVE_STATE] = lMain[LM.WAVE_STATE];
         vMain[VM.WAVE_DELAY_TIMER] = lMain[LM.WAVE_DELAY_TIMER];
-
-        // Exit door passthrough
         vMain[VM.EXIT_DOOR_ACTIVE] = lMain[LM.EXIT_DOOR_ACTIVE];
         vMain[VM.EXIT_DOOR_X] = lMain[LM.EXIT_DOOR_X];
         vMain[VM.EXIT_DOOR_Y] = lMain[LM.EXIT_DOOR_Y];
         vMain[VM.CURRENT_LEVEL] = lMain[LM.CURRENT_LEVEL];
-
-        // Boss state passthrough
         vMain[VM.BOSS_HP] = lMain[LM.BOSS_HP];
         vMain[VM.BOSS_VULNERABLE] = lMain[LM.BOSS_VULNERABLE];
         vMain[VM.BOSS_X] = lMain[LM.BOSS_X];
@@ -116,7 +117,8 @@ export class BHViewLogic extends BaseViewLogic {
         return {
             heroRotation: this.heroRotation,
             globalRockRotation: this.globalRockRotation,
-            heroFrame: this.heroFrame
+            animFrame: this.animFrame,
+            animTimer: this.animTimer
         };
     }
 
@@ -124,7 +126,8 @@ export class BHViewLogic extends BaseViewLogic {
         if (data) {
             this.heroRotation = data.heroRotation ?? 0;
             this.globalRockRotation = data.globalRockRotation ?? 0;
-            this.heroFrame = data.heroFrame ?? 0;
+            this.animFrame = data.animFrame ?? 0;
+            this.animTimer = data.animTimer ?? 0;
         }
     }
 }
