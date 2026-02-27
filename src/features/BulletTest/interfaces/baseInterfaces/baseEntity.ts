@@ -2,7 +2,6 @@
 import { IEntity, IHitbox } from "../IEntity";
 import { IContactEnemy } from "../IEnemy";
 import { IRangedEnemy } from "../IEnemy";
-import { IPlayer } from "../IPlayer";
 import { basePlayer } from "./basePlayer";
 import { BHConfig } from "../../model/BHConfig";
 import { enemyProjectile } from "./baseProjectile";
@@ -20,6 +19,7 @@ export abstract class baseEntity implements IEntity {
     vx: number;
     vy: number;
     type: string;
+    currentFrame: number;
 
     protected constructor() {
         this.x = 0;
@@ -34,6 +34,7 @@ export abstract class baseEntity implements IEntity {
         this.active = false;
         this.playerRelative = 0;
         this.type = "unknown";
+        this.currentFrame = 0;
     }
 
     abstract update(player: basePlayer, config: BHConfig): void;
@@ -84,7 +85,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         this.hp = hp;
         this.maxHp = hp;
         this.health = hp;
-        this.moveSpeed = 2;
+        this.moveSpeed = moveSpeed;
         this.contactDamage = contactDamage;
         this.wave = wave;
     }
@@ -93,6 +94,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         this.orientation(player);
         this.processRock(player, config);
         this.processRockAttacks(player, config);
+        this.currentFrame += 0.05;
     }
 
     orientation(player: basePlayer): void {
@@ -110,6 +112,8 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         sharedView[base + 5] = this.atkBox.eY;
         sharedView[base + 6] = this.width;
         sharedView[base + 7] = this.height;
+        sharedView[base + 8] = this.currentFrame;
+        sharedView[base + 9] = 0; //contact
     }
 
     private processRock(player: basePlayer, config: BHConfig): void {
@@ -214,7 +218,7 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         this.hp = hp;
         this.maxHp = hp;
         this.health = hp;
-        this.moveSpeed = 2;
+        this.moveSpeed = moveSpeed;
         this.fireRate = fireRate;
         this.projectileDamage = projectileDamage;
         this.wave = wave;
@@ -228,6 +232,7 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
     update(player: basePlayer, config: BHConfig): void {
         this.orientation(player);
         this.processShot(player, config);
+        this.currentFrame += 0.05;
     }
 
     fireProjectiles(player: basePlayer, currentShots: enemyProjectile[]): void {
@@ -245,8 +250,11 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         sharedView[base + 1] = this.y;
         sharedView[base + 2] = this.seed;
         sharedView[base + 3] = this.primedMode ? 1 : 0;
-        sharedView[base + 4] = this.width;
-        sharedView[base + 5] = this.height;
+        // 4 and 5 are for atkBox in RockEntity, leaving empty here
+        sharedView[base + 6] = this.width;
+        sharedView[base + 7] = this.height;
+        sharedView[base + 8] = this.currentFrame;
+        sharedView[base + 9] = 1; //ranged
     }
 
     private processShot(player: basePlayer, config: BHConfig): void {
@@ -257,12 +265,14 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         const sqDistance = Math.floor(Math.sqrt(dx * dx + dy * dy));
         const speed = this.moveSpeed > 0 ? this.moveSpeed : config.moveSpeed - 1;
 
+        this.followRun = sqDistance > 200 && sqDistance < 250;
+
         if (this.followRun) {
             this.vx *= 0;
             this.vy *= 0;
         } else {
-            this.vx = speed;
-            this.vy = speed;
+            this.vx = Math.floor(Math.abs(Math.cos(this.playerRelative)*speed));
+            this.vy = Math.floor(Math.abs(Math.sin(this.playerRelative)*speed));
             if (sqDistance > 200) {
                 this.vx *= dx > 0 ? -1 : 1;
                 this.vy *= dy > 0 ? -1 : 1;
@@ -280,8 +290,6 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
 
         this.x = Math.floor(this.x + this.vx);
         this.y = Math.floor(this.y + this.vy);
-
-        this.followRun = sqDistance > 200 && sqDistance < 250;
 
         if (distance < 1600) {
             this.vx *= -1;

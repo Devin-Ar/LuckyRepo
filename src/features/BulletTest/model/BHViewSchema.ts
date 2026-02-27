@@ -44,8 +44,9 @@ export const BHMainViewSchema: IBuffer = {
 };
 
 export const BHRocksViewSchema: IBuffer = {
-    STRIDE: 8,
-    BUFFER_SIZE: 8000
+    STRIDE: 10,
+    FRAME: 8,
+    BUFFER_SIZE: 9000
 };
 
 export const BHPProjViewSchema: IBuffer = {

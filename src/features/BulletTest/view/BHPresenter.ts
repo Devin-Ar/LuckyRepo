@@ -119,6 +119,8 @@ export class BHPresenter extends BasePresenter {
             rotation: this.rocksView[offset + 2] || 0,
             width: this.rocksView[offset + 6] || 0,
             height: this.rocksView[offset + 7] || 0,
+            currentFrame: this.rocksView[offset + 8] || 0,
+            type: this.rocksView[offset + 9] || 0, //0 is contact, 1 is ranged
         };
     }
 

@@ -25,14 +25,25 @@
       }
     },
     "laser_drone": {
-      "url": "res/sprite/sheets/laser_drone_.png",
+      "url": "res/sprite/sheets/drone_laser_.png",
       "frames": {
-        "ld_drift_0": {"x":0, "y":0, "w":48, "h":48},
-        "ld_drift_1": {"x":48, "y":0, "w":48, "h":48},
-        "ld_drift_2": {"x":96, "y":0, "w":48, "h":48}
+        "ld_drift_0": {"x":0, "y":0, "w":64, "h":64},
+        "ld_drift_1": {"x":64, "y":0, "w":64, "h":64},
+        "ld_drift_2": {"x":128, "y":0, "w":64, "h":64}
       },
       "animations": {
         "movement": ["ld_drift_0", "ld_drift_1", "ld_drift_2"]
+      }
+    },
+    "shot_drone": {
+      "url": "res/sprite/sheets/shot_drone_c.png",
+      "frames": {
+        "sd_drift_0": {"x":0, "y":0, "w":64, "h":64},
+        "sd_drift_1": {"x":64, "y":0, "w":64, "h":64},
+        "sd_drift_2": {"x":128, "y":0, "w":64, "h":64}
+      },
+      "animations": {
+        "movement": ["sd_drift_0", "sd_drift_1", "sd_drift_2"]
       }
     }
   },

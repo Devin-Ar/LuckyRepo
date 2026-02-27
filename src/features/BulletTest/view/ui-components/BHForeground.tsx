@@ -38,7 +38,7 @@ const GoldshiSprite: React.FC<{ vm: BHPresenter, paused: boolean, heroRef: React
 
 const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
-    const spritePool = useRef<PIXI.Sprite[]>([]);
+    const spritePool = useRef<PIXI.AnimatedSprite[]>([]);
     const manager = SpriteManager.getInstance();
 
     useTick(() => {
@@ -48,11 +48,17 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
 
         if (currentCount > pool.length) {
             for (let i = pool.length; i < currentCount; i++) {
-                const texture = manager.getTexture('static_rock');
-                if (texture) {
-                    const sprite = new PIXI.Sprite(texture);
+                const data = vm.getRockViewData(i);
+                let textures;
+                if ( data.type === 1 ) {
+                    textures = manager.getAnimation('shot_drone_movement');
+                } else {
+                    textures = manager.getAnimation('laser_drone_movement');
+                }
+                if (textures.length > 0) {
+                    const sprite = new PIXI.AnimatedSprite(textures);
                     sprite.anchor.set(0.5);
-                    sprite.scale.set(0.8);
+                    sprite.scale.set(1.5);
                     containerRef.current.addChild(sprite);
                     pool.push(sprite);
                 }
@@ -69,7 +75,14 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
             const data = vm.getRockViewData(i);
             if (!data || paused) { if (sprite) sprite.visible = false; continue; }
             sprite.visible = true;
-            sprite.x = data.x; sprite.y = data.y; sprite.rotation = data.rotation;
+            sprite.x = data.x;
+            sprite.y = data.y;
+            sprite.rotation = data.rotation;
+
+            if (sprite.textures.length > 0) {
+                const frameIndex = Math.floor(data.currentFrame) % sprite.textures.length;
+                sprite.gotoAndStop(frameIndex);
+            }
         }
     });
     return <Container ref={containerRef}/>;

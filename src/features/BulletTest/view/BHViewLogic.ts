@@ -71,6 +71,8 @@ export class BHViewLogic extends BaseViewLogic {
             vRocks[vBase + 5] = lRocks[lBase + 5];
             vRocks[vBase + 6] = lRocks[lBase + 6];
             vRocks[vBase + 7] = lRocks[lBase + 7];
+            vRocks[vBase + 8] = lRocks[lBase + 8];
+            vRocks[vBase + 9] = lRocks[lBase + 9];
         }
 
         // Projectiles

@@ -17,6 +17,7 @@ export abstract class baseProjectile implements IProjectile {
     hitbox: IHitbox;
     playerRelative: number;
     type: string;
+    health: number;
 
     protected constructor(x: number, y: number) {
         this.x = x;
@@ -30,9 +31,19 @@ export abstract class baseProjectile implements IProjectile {
         this.active = false;
         this.hitbox = {offsetX: 0, offsetY: 0};
         this.playerRelative = 0;
+        this.health = 0;
         this.type = "projectile";
     }
 
+    orientation(target: any): void {
+        throw new Error("Method not implemented.");
+    }
+
+    modifyHP(points: number): void {
+        this.active = false;
+    }
+
+    abstract syncToSAB(sharedView: Float32Array, base: number): void;
     abstract update(player: basePlayer, config: BHConfig): void;
 
 }

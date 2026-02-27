@@ -47,8 +47,9 @@ export const BHMainLogicSchema: IBuffer = {
 };
 
 export const BHRocksLogicSchema: IBuffer = {
-    STRIDE: 8,
-    BUFFER_SIZE: 8000 // 1000 rocks * 8
+    STRIDE: 10,
+    FRAME: 8,
+    BUFFER_SIZE: 9000 // 1000 rocks * 9
 };
 
 export const BHPProjLogicSchema: IBuffer = {

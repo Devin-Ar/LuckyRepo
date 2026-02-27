@@ -5,40 +5,40 @@
         "waveIndex": 0,
         "delayBeforeStart": 60,
         "enemies": [
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.2, "spawnX": 0.2, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.2, "spawnX": 0.4, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.2, "spawnX": 0.6, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.2, "spawnX": 0.8, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.2, "spawnX": 0.5, "spawnY": 0.1 }
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.2, "spawnX": 0.2, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.2, "spawnX": 0.4, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.2, "spawnX": 0.6, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 10, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.2, "spawnX": 0.8, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 10, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.2, "spawnX": 0.5, "spawnY": 0.1 }
         ]
       },
       {
         "waveIndex": 1,
         "delayBeforeStart": 90,
         "enemies": [
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.15, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.35, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.55, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.75, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 10, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.9, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.3, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4, "contactDamage": 0.3, "spawnX": 0.7, "spawnY": 0.05 }
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.15, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.35, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.55, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 10, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.75, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 10, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.9, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.3, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.7, "spawnY": 0.05 }
         ]
       },
       {
         "waveIndex": 2,
         "delayBeforeStart": 120,
         "enemies": [
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4.5, "contactDamage": 0.4, "spawnX": 0.1, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4.5, "contactDamage": 0.4, "spawnX": 0.25, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4.5, "contactDamage": 0.4, "spawnX": 0.4, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4.5, "contactDamage": 0.4, "spawnX": 0.55, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4.5, "contactDamage": 0.4, "spawnX": 0.7, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 4.5, "contactDamage": 0.4, "spawnX": 0.85, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 4.5, "contactDamage": 0.5, "spawnX": 0.3, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 4.5, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 4.5, "contactDamage": 0.5, "spawnX": 0.7, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 4.5, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.02 }
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.1, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.25, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.4, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.55, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.7, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.85, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 15, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.3, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 15, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 15, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.7, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.02 }
         ]
       }
     ]
@@ -49,47 +49,47 @@
         "waveIndex": 0,
         "delayBeforeStart": 60,
         "enemies": [
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.2, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.4, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.6, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.8, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.3, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.5, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 12, "moveSpeed": 5, "contactDamage": 0.3, "spawnX": 0.7, "spawnY": 0.05 }
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.2, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.4, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 12, "moveSpeed": 3, "contactDamage": 0.3, "spawnX": 0.6, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.8, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.3, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.5, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 12, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.3, "spawnX": 0.7, "spawnY": 0.05 }
         ]
       },
       {
         "waveIndex": 1,
         "delayBeforeStart": 90,
         "enemies": [
-          { "damageType": "contact", "hp": 14, "moveSpeed": 5.5, "contactDamage": 0.4, "spawnX": 0.1, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 14, "moveSpeed": 5.5, "contactDamage": 0.4, "spawnX": 0.25, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 14, "moveSpeed": 5.5, "contactDamage": 0.4, "spawnX": 0.4, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 14, "moveSpeed": 5.5, "contactDamage": 0.4, "spawnX": 0.55, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 14, "moveSpeed": 5.5, "contactDamage": 0.4, "spawnX": 0.7, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 14, "moveSpeed": 5.5, "contactDamage": 0.4, "spawnX": 0.85, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.3, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.5, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.7, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.02 }
+          { "damageType": "ranged", "hp": 14, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.1, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 14, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.25, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 14, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.4, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 14, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.55, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 14, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.7, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 14, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.4, "spawnX": 0.85, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 16, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.3, "spawnY": 0.05 },
+          { "damageType": "contact", "hp": 16, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.5, "spawnY": 0.05 },
+          { "damageType": "contact", "hp": 16, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.7, "spawnY": 0.05 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.02 }
         ]
       },
       {
         "waveIndex": 2,
         "delayBeforeStart": 120,
         "enemies": [
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.1, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.3, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.4, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.6, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.7, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 16, "moveSpeed": 6, "contactDamage": 0.5, "spawnX": 0.9, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7, "contactDamage": 0.6, "spawnX": 0.3, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7, "contactDamage": 0.6, "spawnX": 0.5, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7, "contactDamage": 0.6, "spawnX": 0.7, "spawnY": 0.02 }
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.1, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.3, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.4, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.6, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.7, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 16, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.9, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.3, "spawnY": 0.02 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.5, "spawnY": 0.02 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.7, "spawnY": 0.02 }
         ]
       }
     ]
@@ -100,54 +100,54 @@
         "waveIndex": 0,
         "delayBeforeStart": 45,
         "enemies": [
-          { "damageType": "contact", "hp": 15, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.15, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.3, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.45, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.6, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.75, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 15, "moveSpeed": 6, "contactDamage": 0.4, "spawnX": 0.9, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.05 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.05 }
+          { "damageType": "contact", "hp": 15, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.15, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 15, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.3, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 15, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.45, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 15, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.6, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 15, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.75, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 15, "moveSpeed": 3, "contactDamage": 0.4, "spawnX": 0.9, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 18, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 18, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.05 },
+          { "damageType": "ranged", "hp": 18, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.05 }
         ]
       },
       {
         "waveIndex": 1,
         "delayBeforeStart": 75,
         "enemies": [
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.1, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.3, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.4, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.6, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.7, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 18, "moveSpeed": 7, "contactDamage": 0.5, "spawnX": 0.9, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 22, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.25, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 22, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.5, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 22, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.75, "spawnY": 0.02 }
+          { "damageType": "contact", "hp": 18, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.1, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 18, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 18, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.3, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 18, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.4, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 18, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.5, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 18, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.6, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 18, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.7, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 18, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 18, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.9, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 22, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.25, "spawnY": 0.02 },
+          { "damageType": "ranged", "hp": 22, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.5, "spawnY": 0.02 },
+          { "damageType": "ranged", "hp": 22, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.75, "spawnY": 0.02 }
         ]
       },
       {
         "waveIndex": 2,
         "delayBeforeStart": 90,
         "enemies": [
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.05, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.15, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.25, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.35, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.45, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.55, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.65, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.75, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.85, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 7.5, "contactDamage": 0.6, "spawnX": 0.95, "spawnY": 0.1 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 8, "contactDamage": 0.7, "spawnX": 0.2, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 8, "contactDamage": 0.7, "spawnX": 0.4, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 8, "contactDamage": 0.7, "spawnX": 0.6, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 8, "contactDamage": 0.7, "spawnX": 0.8, "spawnY": 0.02 },
-          { "damageType": "contact", "hp": 30, "moveSpeed": 8, "contactDamage": 1.0, "spawnX": 0.5, "spawnY": 0.01 }
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.05, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.15, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.25, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.35, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.45, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.55, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.65, "spawnY": 0.1 },
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.6, "spawnX": 0.75, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.85, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.95, "spawnY": 0.1 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.7, "spawnX": 0.2, "spawnY": 0.02 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.7, "spawnX": 0.4, "spawnY": 0.02 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.7, "spawnX": 0.6, "spawnY": 0.02 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.7, "spawnX": 0.8, "spawnY": 0.02 },
+          { "damageType": "contact", "hp": 30, "moveSpeed": 3, "contactDamage": 1.0, "spawnX": 0.5, "spawnY": 0.01 }
         ]
       }
     ]
@@ -158,30 +158,30 @@
         "waveIndex": 0,
         "delayBeforeStart": 60,
         "enemies": [
-          { "damageType": "contact", "hp": 20, "moveSpeed": 5, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.5 },
-          { "damageType": "contact", "hp": 20, "moveSpeed": 5, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.5 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 6, "contactDamage": 0.6, "spawnX": 0.5, "spawnY": 0.6 }
+          { "damageType": "ranged", "hp": 20, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.5, "spawnX": 0.2, "spawnY": 0.5 },
+          { "damageType": "contact", "hp": 20, "moveSpeed": 3, "contactDamage": 0.5, "spawnX": 0.8, "spawnY": 0.5 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.5, "spawnY": 0.6 }
         ]
       },
       {
         "waveIndex": 1,
         "delayBeforeStart": 60,
         "enemies": [
-          { "damageType": "contact", "hp": 25, "moveSpeed": 6, "contactDamage": 0.6, "spawnX": 0.1, "spawnY": 0.5 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 6, "contactDamage": 0.6, "spawnX": 0.9, "spawnY": 0.5 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 6, "contactDamage": 0.6, "spawnX": 0.3, "spawnY": 0.6 },
-          { "damageType": "contact", "hp": 25, "moveSpeed": 6, "contactDamage": 0.6, "spawnX": 0.7, "spawnY": 0.6 }
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.1, "spawnY": 0.5 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.9, "spawnY": 0.5 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.3, "spawnY": 0.6 },
+          { "damageType": "contact", "hp": 25, "moveSpeed": 3, "contactDamage": 0.6, "spawnX": 0.7, "spawnY": 0.6 }
         ]
       },
       {
         "waveIndex": 2,
         "delayBeforeStart": 60,
         "enemies": [
-          { "damageType": "contact", "hp": 30, "moveSpeed": 7, "contactDamage": 0.7, "spawnX": 0.2, "spawnY": 0.4 },
-          { "damageType": "contact", "hp": 30, "moveSpeed": 7, "contactDamage": 0.7, "spawnX": 0.8, "spawnY": 0.4 },
-          { "damageType": "contact", "hp": 30, "moveSpeed": 7, "contactDamage": 0.7, "spawnX": 0.4, "spawnY": 0.5 },
-          { "damageType": "contact", "hp": 30, "moveSpeed": 7, "contactDamage": 0.7, "spawnX": 0.6, "spawnY": 0.5 },
-          { "damageType": "contact", "hp": 40, "moveSpeed": 8, "contactDamage": 0.8, "spawnX": 0.5, "spawnY": 0.6 }
+          { "damageType": "ranged", "hp": 30, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.7, "spawnX": 0.2, "spawnY": 0.4 },
+          { "damageType": "ranged", "hp": 30, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.7, "spawnX": 0.8, "spawnY": 0.4 },
+          { "damageType": "ranged", "hp": 30, "moveSpeed": 3, "fireRate": 500, "contactDamage": 0.7, "spawnX": 0.4, "spawnY": 0.5 },
+          { "damageType": "contact", "hp": 30, "moveSpeed": 3, "contactDamage": 0.7, "spawnX": 0.6, "spawnY": 0.5 },
+          { "damageType": "contact", "hp": 40, "moveSpeed": 3, "contactDamage": 0.8, "spawnX": 0.5, "spawnY": 0.6 }
         ]
       }
     ]

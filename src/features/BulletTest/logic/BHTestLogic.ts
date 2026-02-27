@@ -201,6 +201,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         for (const proj of this.enemyProjectiles) {
             proj.update(this.player, this.config);
             proj.collided(this.player);
+            console.log("Running Projectiles... " + proj.active)
         }
 
         // Clean up dead entities and expired projectiles
