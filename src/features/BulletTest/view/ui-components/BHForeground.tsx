@@ -13,8 +13,6 @@ const GoldshiSprite: React.FC<{ vm: BHPresenter, paused: boolean, heroRef: React
     useTick(() => {
         if (paused) return;
         const latest = vm.heroVisuals;
-
-        console.log(visuals.mousePos)
         if (latest.vx != 0 || latest.vy != 0) {
             setAnim("walk");
         }else {

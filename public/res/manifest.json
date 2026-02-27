@@ -23,6 +23,17 @@
         "walk_r": ["h_walk_2", "h_walk_1", "h_walk_0"],
         "idle": ["h_idle_0"]
       }
+    },
+    "laser_drone": {
+      "url": "res/sprite/sheets/laser_drone_.png",
+      "frames": {
+        "ld_drift_0": {"x":0, "y":0, "w":48, "h":48},
+        "ld_drift_1": {"x":48, "y":0, "w":48, "h":48},
+        "ld_drift_2": {"x":96, "y":0, "w":48, "h":48}
+      },
+      "animations": {
+        "movement": ["ld_drift_0", "ld_drift_1", "ld_drift_2"]
+      }
     }
   },
   "images": {

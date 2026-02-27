@@ -84,7 +84,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         this.hp = hp;
         this.maxHp = hp;
         this.health = hp;
-        this.moveSpeed = moveSpeed;
+        this.moveSpeed = 2;
         this.contactDamage = contactDamage;
         this.wave = wave;
     }
@@ -117,20 +117,22 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         const dx = this.x - player.x;
         const dy = this.y - player.y;
         const distance = dx * dx + dy * dy;
-        const sqDistance = Math.sqrt(dx * dx + dy * dy);
+        const sqDistance = Math.floor(Math.sqrt(dx * dx + dy * dy));
         const speed = this.moveSpeed > 0 ? this.moveSpeed : config.moveSpeed - 1;
+
+        this.followRun = sqDistance >= 200 && sqDistance <= 250;
 
         if (this.followRun) {
             this.vx *= 0;
             this.vy *= 0;
         } else {
-            this.vx = speed;
-            this.vy = speed;
-            if (sqDistance > 200) {
+            this.vx = Math.floor(Math.abs(Math.cos(this.playerRelative)*speed));
+            this.vy = Math.floor(Math.abs(Math.sin(this.playerRelative)*speed));
+            if (sqDistance >= 200) {
                 this.vx *= dx > 0 ? -1 : 1;
                 this.vy *= dy > 0 ? -1 : 1;
             }
-            if (sqDistance < 250) {
+            if (sqDistance <= 250) {
                 this.vx *= dx > 0 ? 1 : -1;
                 this.vy *= dy > 0 ? 1 : -1;
             }
@@ -144,11 +146,9 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         this.x += this.vx;
         this.y += this.vy;
 
-        this.followRun = sqDistance > 200 && sqDistance < 250;
-
         if (distance < 1600) {
-            this.vx *= -1.1;
-            this.vy *= -1.1;
+            this.vx *= -1;
+            this.vy *= -1;
             player.modifyHp(-this.contactDamage);
             self.postMessage({ type: 'EVENT', name: 'EXPLOSION_REQ' });
         }
@@ -214,7 +214,7 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         this.hp = hp;
         this.maxHp = hp;
         this.health = hp;
-        this.moveSpeed = moveSpeed;
+        this.moveSpeed = 2;
         this.fireRate = fireRate;
         this.projectileDamage = projectileDamage;
         this.wave = wave;
@@ -254,7 +254,7 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         const dx = this.x - player.x;
         const dy = this.y - player.y;
         const distance = dx * dx + dy * dy;
-        const sqDistance = Math.sqrt(dx * dx + dy * dy);
+        const sqDistance = Math.floor(Math.sqrt(dx * dx + dy * dy));
         const speed = this.moveSpeed > 0 ? this.moveSpeed : config.moveSpeed - 1;
 
         if (this.followRun) {
@@ -284,8 +284,8 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         this.followRun = sqDistance > 200 && sqDistance < 250;
 
         if (distance < 1600) {
-            this.vx *= -1.1;
-            this.vy *= -1.1;
+            this.vx *= -1;
+            this.vy *= -1;
             player.modifyHp(-0.2);
             self.postMessage({ type: 'EVENT', name: 'EXPLOSION_REQ' });
         }
