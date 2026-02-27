@@ -1,40 +1,49 @@
 // src/features/BulletTest/interfaces/IEnemy.ts
 import { IEntity } from './IEntity';
+import { IPlayer } from './IPlayer';
+import { BHConfig } from '../model/BHConfig';
+import { enemyProjectile } from './baseInterfaces/baseProjectile';
 
-// Contact Enemy
-// Damages the player by physically colliding. Chases the player.
+// Contact Enemy — chases and damages player on collision
 export interface IContactEnemy extends IEntity {
     damageType: 'contact';
-    vx: number;
-    vy: number;
     hp: number;
     maxHp: number;
     moveSpeed: number;
     contactDamage: number;
-    wave: number;              // 0 | 1 | 2
+    wave: number;
+
+    update(player: IPlayer, config: BHConfig): void;
 }
 
-// Ranged Enemy
-// Damages the player by firing projectiles. Keeps distance.
+// Ranged Enemy — keeps distance and fires projectiles
 export interface IRangedEnemy extends IEntity {
     damageType: 'ranged';
-    vx: number;
-    vy: number;
     hp: number;
     maxHp: number;
     moveSpeed: number;
-    preferredDistance: number;
-    fireRate: number;          // frames between shots
+    fireRate: number;
     lastShotFrame: number;
-    projectileType: string;    // 'single' | 'spread3' | 'ring8'
     projectileDamage: number;
-    wave: number;              // 0 | 1 | 2
+    wave: number;
+
+    update(player: IPlayer, config: BHConfig): void;
+    fireProjectiles(player: IPlayer, currentShots: enemyProjectile[]): void;
+}
+
+// Boss Enemy — multi-phase boss with unique attack patterns
+export interface IBossEnemy extends IEntity {
+    vulnerable: boolean;
+    phase: number;
+
+    update(player: IPlayer, config: BHConfig): void;
+    updateAttacks(player: IPlayer, frameCount: number, enemyProjectiles: enemyProjectile[]): void;
 }
 
 // Union
-export type IEnemy = IContactEnemy | IRangedEnemy;
+export type IEnemy = IContactEnemy | IRangedEnemy | IBossEnemy;
 
-// Spawn Definitions
+// Spawn Definitions (used by WaveManager)
 export interface IContactEnemySpawn {
     damageType: 'contact';
     hp: number;
@@ -48,9 +57,7 @@ export interface IRangedEnemySpawn {
     damageType: 'ranged';
     hp: number;
     moveSpeed: number;
-    preferredDistance: number;
     fireRate: number;
-    projectileType: string;
     projectileDamage: number;
     spawnX: number;
     spawnY: number;

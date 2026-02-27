@@ -1,7 +1,11 @@
+// src/features/BulletTest/interfaces/baseInterfaces/baseEntity.ts
 import { IEntity, IHitbox } from "../IEntity";
+import { IContactEnemy } from "../IEnemy";
+import { IRangedEnemy } from "../IEnemy";
+import { IPlayer } from "../IPlayer";
 import { basePlayer } from "./basePlayer";
 import { BHConfig } from "../../model/BHConfig";
-import {enemyProjectile} from "./baseProjectile";
+import { enemyProjectile } from "./baseProjectile";
 
 export abstract class baseEntity implements IEntity {
     active: boolean;
@@ -23,7 +27,7 @@ export abstract class baseEntity implements IEntity {
         this.vx = 0;
         this.vy = 0;
         this.health = 0;
-        this.hitbox = {offsetX: 0, offsetY: 0}
+        this.hitbox = { offsetX: 0, offsetY: 0 };
         this.height = 0;
         this.width = 0;
         this.seed = Math.random() * 1000;
@@ -35,6 +39,7 @@ export abstract class baseEntity implements IEntity {
     abstract update(player: basePlayer, config: BHConfig): void;
     abstract orientation(player: basePlayer): void;
     abstract syncToSAB(sharedView: Float32Array, base: number): void;
+
     modifyHP(points: number) {
         if (this.active) {
             this.health += points;
@@ -45,8 +50,14 @@ export abstract class baseEntity implements IEntity {
     }
 }
 
-//We should move this to a separate file
-export class RockEntity extends baseEntity {
+export class RockEntity extends baseEntity implements IContactEnemy {
+    damageType: 'contact' = 'contact';
+    hp: number = 0;
+    maxHp: number = 0;
+    moveSpeed: number = 0;
+    contactDamage: number = 0.2;
+    wave: number = 0;
+
     private timeElapsed: number;
     private atkBox: { eX: number, eY: number };
     private followRun: boolean;
@@ -59,12 +70,23 @@ export class RockEntity extends baseEntity {
         this.width = 50;
         this.height = 52;
         this.health = 100;
+        this.hp = 100;
+        this.maxHp = 100;
         this.timeElapsed = Date.now() + Math.random() * 1000;
         this.atkBox = { eX: 0, eY: 0 };
         this.followRun = false;
         this.primedMode = false;
         this.active = true;
         this.type = "rock";
+    }
+
+    applySpawnConfig(hp: number, moveSpeed: number, contactDamage: number, wave: number): void {
+        this.hp = hp;
+        this.maxHp = hp;
+        this.health = hp;
+        this.moveSpeed = moveSpeed;
+        this.contactDamage = contactDamage;
+        this.wave = wave;
     }
 
     update(player: basePlayer, config: BHConfig): void {
@@ -76,12 +98,9 @@ export class RockEntity extends baseEntity {
     orientation(player: basePlayer): void {
         const dx = this.x - player.x;
         const dy = this.y - player.y;
-
-        //Kinda backwards... but 0 is left and pi is right. Also, doesn't do 2pi, but pi and -pi
         this.playerRelative = Math.atan2(dy, dx);
     }
 
-    //Once we start having more types, maybe we should preface this with a header for the buffer to identify?
     syncToSAB(sharedView: Float32Array, base: number): void {
         sharedView[base] = this.x;
         sharedView[base + 1] = this.y;
@@ -99,18 +118,18 @@ export class RockEntity extends baseEntity {
         const dy = this.y - player.y;
         const distance = dx * dx + dy * dy;
         const sqDistance = Math.sqrt(dx * dx + dy * dy);
+        const speed = this.moveSpeed > 0 ? this.moveSpeed : config.moveSpeed - 1;
 
         if (this.followRun) {
             this.vx *= 0;
             this.vy *= 0;
         } else {
-            this.vx = config.moveSpeed - 1;
-            this.vy = config.moveSpeed - 1;
+            this.vx = speed;
+            this.vy = speed;
             if (sqDistance > 200) {
                 this.vx *= dx > 0 ? -1 : 1;
                 this.vy *= dy > 0 ? -1 : 1;
             }
-
             if (sqDistance < 250) {
                 this.vx *= dx > 0 ? 1 : -1;
                 this.vy *= dy > 0 ? 1 : -1;
@@ -119,20 +138,18 @@ export class RockEntity extends baseEntity {
 
         this.vx = this.x <= 0 ? 1 : this.vx;
         this.vx = this.x >= config.width ? -1 : this.vx;
-
         this.vy = this.y <= 0 ? 1 : this.vy;
         this.vy = this.y >= config.height ? -1 : this.vy;
 
         this.x += this.vx;
         this.y += this.vy;
 
-        //100 and 250 are placeholders for range entity need to stay in
         this.followRun = sqDistance > 200 && sqDistance < 250;
 
         if (distance < 1600) {
             this.vx *= -1.1;
             this.vy *= -1.1;
-            player.modifyHp(-0.2);
+            player.modifyHp(-this.contactDamage);
             self.postMessage({ type: 'EVENT', name: 'EXPLOSION_REQ' });
         }
     }
@@ -163,7 +180,16 @@ export class RockEntity extends baseEntity {
     }
 }
 
-export class ShotEntity extends baseEntity {
+export class ShotEntity extends baseEntity implements IRangedEnemy {
+    damageType: 'ranged' = 'ranged';
+    hp: number = 0;
+    maxHp: number = 0;
+    moveSpeed: number = 0;
+    fireRate: number = 5000;
+    lastShotFrame: number = 0;
+    projectileDamage: number = 20;
+    wave: number = 0;
+
     private timeElapsed: number;
     private followRun: boolean;
     private primedMode: boolean;
@@ -175,6 +201,8 @@ export class ShotEntity extends baseEntity {
         this.width = 50;
         this.height = 52;
         this.health = 100;
+        this.hp = 100;
+        this.maxHp = 100;
         this.timeElapsed = Date.now() + Math.random() * 1000;
         this.followRun = false;
         this.primedMode = false;
@@ -182,9 +210,19 @@ export class ShotEntity extends baseEntity {
         this.type = "singleShot";
     }
 
+    applySpawnConfig(hp: number, moveSpeed: number, fireRate: number, projectileDamage: number, wave: number): void {
+        this.hp = hp;
+        this.maxHp = hp;
+        this.health = hp;
+        this.moveSpeed = moveSpeed;
+        this.fireRate = fireRate;
+        this.projectileDamage = projectileDamage;
+        this.wave = wave;
+    }
+
     updateProjectile(player: basePlayer, config: BHConfig, currentShots: enemyProjectile[]): void {
         this.update(player, config);
-        this.processShotAttacks(player, currentShots);
+        this.fireProjectiles(player, currentShots);
     }
 
     update(player: basePlayer, config: BHConfig): void {
@@ -192,15 +230,16 @@ export class ShotEntity extends baseEntity {
         this.processShot(player, config);
     }
 
+    fireProjectiles(player: basePlayer, currentShots: enemyProjectile[]): void {
+        this.processShotAttacks(player, currentShots);
+    }
+
     orientation(player: basePlayer): void {
         const dx = this.x - player.x;
         const dy = this.y - player.y;
-
-        //Kinda backwards... but 0 is left and pi is right. Also, doesn't do 2pi, but pi and -pi
         this.playerRelative = Math.atan2(dy, dx);
     }
 
-    //Once we start having more types, maybe we should preface this with a header for the buffer to identify?
     syncToSAB(sharedView: Float32Array, base: number): void {
         sharedView[base] = this.x;
         sharedView[base + 1] = this.y;
@@ -216,18 +255,18 @@ export class ShotEntity extends baseEntity {
         const dy = this.y - player.y;
         const distance = dx * dx + dy * dy;
         const sqDistance = Math.sqrt(dx * dx + dy * dy);
+        const speed = this.moveSpeed > 0 ? this.moveSpeed : config.moveSpeed - 1;
 
         if (this.followRun) {
             this.vx *= 0;
             this.vy *= 0;
         } else {
-            this.vx = config.moveSpeed - 1;
-            this.vy = config.moveSpeed - 1;
+            this.vx = speed;
+            this.vy = speed;
             if (sqDistance > 200) {
                 this.vx *= dx > 0 ? -1 : 1;
                 this.vy *= dy > 0 ? -1 : 1;
             }
-
             if (sqDistance < 250) {
                 this.vx *= dx > 0 ? 1 : -1;
                 this.vy *= dy > 0 ? 1 : -1;
@@ -236,14 +275,12 @@ export class ShotEntity extends baseEntity {
 
         this.vx = this.x <= 0 ? 1 : this.vx;
         this.vx = this.x >= config.width ? -1 : this.vx;
-
         this.vy = this.y <= 0 ? 1 : this.vy;
         this.vy = this.y >= config.height ? -1 : this.vy;
 
         this.x = Math.floor(this.x + this.vx);
         this.y = Math.floor(this.y + this.vy);
 
-        //100 and 250 are placeholders for range entity need to stay in
         this.followRun = sqDistance > 200 && sqDistance < 250;
 
         if (distance < 1600) {
@@ -256,7 +293,7 @@ export class ShotEntity extends baseEntity {
 
     private processShotAttacks(player: basePlayer, currentShots: enemyProjectile[]): void {
         const timeMili = (Date.now() - this.timeElapsed);
-        if (timeMili > 5000 + Math.floor(Math.random() * 3000) && !this.primedMode) {
+        if (timeMili > this.fireRate + Math.floor(Math.random() * 3000) && !this.primedMode) {
             this.primedMode = true;
         }
 
@@ -264,63 +301,6 @@ export class ShotEntity extends baseEntity {
             currentShots.push(new enemyProjectile(this.x, this.y, player.x, player.y));
             this.timeElapsed = Date.now();
             this.primedMode = false;
-        }
-    }
-}
-
-export class BossEntity extends baseEntity {
-    public vulnerable: boolean = false;
-    private lastShotFrame: number = 0;
-    private fireRate: number = 30; // frames between shots
-
-    constructor(x: number, y: number) {
-        super();
-        this.x = x;
-        this.y = y;
-        this.width = 200;
-        this.height = 200;
-        this.health = 300;
-        this.active = true;
-        this.type = "boss";
-    }
-
-    update(player: basePlayer, config: BHConfig): void {
-        // Boss is static, no movement
-    }
-
-    updateAttacks(player: basePlayer, frameCount: number, enemyProjectiles: enemyProjectile[]): void {
-        if (this.active && this.vulnerable && frameCount - this.lastShotFrame >= this.fireRate) {
-            this.lastShotFrame = frameCount;
-            // Shoot at player
-            enemyProjectiles.push(new enemyProjectile(
-                this.x + this.width / 2,
-                this.y + this.height / 2,
-                player.x,
-                player.y
-            ));
-        }
-    }
-
-    orientation(player: basePlayer): void {
-        const dx = this.x + this.width / 2 - player.x;
-        const dy = this.y + this.height / 2 - player.y;
-        this.playerRelative = Math.atan2(dy, dx);
-    }
-
-    syncToSAB(sharedView: Float32Array, base: number): void {
-        sharedView[base] = this.x;
-        sharedView[base + 1] = this.y;
-        sharedView[base + 2] = this.seed;
-        sharedView[base + 3] = this.vulnerable ? 1 : 0;
-        sharedView[base + 4] = this.health;
-    }
-
-    modifyHP(points: number) {
-        if (this.active && this.vulnerable) {
-            this.health += points;
-        }
-        if (this.health <= 0) {
-            this.active = false;
         }
     }
 }

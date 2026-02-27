@@ -5,7 +5,8 @@ import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { BHCommands } from './BHCommands';
 import { BHConfig } from '../model/BHConfig';
 import { basePlayer } from '../interfaces/baseInterfaces/basePlayer';
-import {baseEntity, BossEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
+import {baseEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
+import {BossEntity} from '../interfaces/baseInterfaces/BossEntity';
 import {enemyProjectile, playerProjectile} from '../interfaces/baseInterfaces/baseProjectile';
 import { WaveManager } from './WaveManager';
 import { IWaveDefinition } from '../interfaces/IRoom';
@@ -137,33 +138,34 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             this.waveManager.nextWave();
         }
 
-    // Boss logic
+        // Boss logic
         if (this.bossLevel && this.boss) {
             const waveState = this.waveManager.getState();
-            
-            // Boss is vulnerable only if no enemies are present and it's between waves or all waves cleared
+
+            // Always update phase based on current wave
+            this.boss.phase = Math.min(3, this.waveManager.getCurrentWave() + 1);
+
             if (activeEnemyCount > 0 || waveState === 'ACTIVE' || waveState === 'DELAY') {
-                 this.boss.vulnerable = false;
+                this.boss.vulnerable = false;
             } else if (waveState === 'CLEARED' || waveState === 'ALL_CLEARED') {
-                 // Boss becomes vulnerable when current wave is cleared, until it reaches next HP threshold
-                 if (this.boss.health > this.bossTargetHp) {
-                     this.boss.vulnerable = true;
-                 } else if (this.boss.vulnerable) {
-                     this.boss.vulnerable = false;
-                     this.bossTargetHp -= 100;
-                     // If boss reached target HP, advance to next wave if possible
-                     if (waveState === 'CLEARED') {
-                         this.waveManager.nextWave();
-                     }
-                 }
+                if (this.boss.health > this.bossTargetHp) {
+                    this.boss.vulnerable = true;
+                } else if (this.boss.vulnerable) {
+                    this.boss.vulnerable = false;
+                    this.bossTargetHp -= 100;
+                    if (waveState === 'CLEARED') {
+                        this.waveManager.nextWave();
+                    }
+                }
             }
 
-            // If boss is vulnerable, it shoots
+            // Always update movement and attacks
+            this.boss.update(this.player, this.config);
             this.boss.updateAttacks(this.player, frameCount, this.enemyProjectiles);
         }
 
         if (newSpawns) {
-            const newEntities = WaveManager.spawnFromDefinitions(newSpawns, this.config);
+            const newEntities = WaveManager.spawnFromDefinitions(newSpawns, this.config, this.waveManager.getCurrentWave());
             this.entities.push(...newEntities);
         }
 

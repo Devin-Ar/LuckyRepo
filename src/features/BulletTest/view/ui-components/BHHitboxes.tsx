@@ -112,7 +112,7 @@ const BossRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pause
         const pos = vm.bossPos;
         graphicsRef.current.visible = true;
         graphicsRef.current.clear().beginFill(vm.bossVulnerable ? 0xe74c3c : 0x444444)
-            .lineStyle(4, 0xffffff).drawRect(pos.x, pos.y, 200, 200).endFill();
+            .lineStyle(4, 0xffffff).drawCircle(pos.x + 100, pos.y + 100, 100).endFill();
     });
     return <Graphics ref={graphicsRef} />;
 };

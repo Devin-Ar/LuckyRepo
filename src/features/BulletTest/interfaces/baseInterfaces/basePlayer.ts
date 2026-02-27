@@ -1,7 +1,8 @@
+// src/features/BulletTest/interfaces/baseInterfaces/basePlayer.ts
 import { IPlayer } from '../IPlayer';
 import { BHConfig } from "../../model/BHConfig";
 import { IHitbox } from "../IEntity";
-import {playerProjectile} from "./baseProjectile";
+import { playerProjectile } from "./baseProjectile";
 
 export class basePlayer implements IPlayer {
     private static instance: basePlayer;
@@ -9,6 +10,7 @@ export class basePlayer implements IPlayer {
     height: number;
     hitbox: IHitbox;
     hp: number;
+    health: number;
     moveSpeed: number;
     vx: number;
     vy: number;
@@ -31,17 +33,17 @@ export class basePlayer implements IPlayer {
         this.y = 0;
         this.vx = 0;
         this.vy = 0;
-        this.playerRelative = 0; //It is itself... Might be usable for tracking mouse
-        this.hitbox = {offsetX: 0, offsetY: 0}
+        this.playerRelative = 0;
+        this.hitbox = { offsetX: 0, offsetY: 0 };
         this.height = 30;
         this.width = 30;
         this.hp = 100;
+        this.health = 100;
         this.moveSpeed = 0;
         this.seed = Math.random() * 1000;
         this.type = "player";
     }
 
-    //Forcing singleton
     public static getInstance(): basePlayer {
         if (!basePlayer.instance) {
             basePlayer.instance = new basePlayer();
@@ -52,6 +54,7 @@ export class basePlayer implements IPlayer {
     public applyConfig(config: BHConfig): void {
         this.config = config;
         this.hp = config.initialHP;
+        this.health = config.initialHP;
         this.x = config.heroStartX;
         this.y = config.heroStartY;
         this.moveSpeed = config.moveSpeed;
@@ -64,14 +67,18 @@ export class basePlayer implements IPlayer {
 
     public modifyHp(amount: number): void {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
+        this.health = this.hp;
         if (amount < 0) this.triggerHitCooldown();
+    }
+
+    public modifyHP(points: number): void {
+        this.modifyHp(points);
     }
 
     public triggerHitCooldown(): void {
         this.lastHitFrame = this.currentFrame;
     }
 
-    //If we ever need to pass more than one action, consider an object: {action: boolean, item1: state, item2: state}
     public playerAction(): boolean {
         const chalEnd = this.fireFlag;
         this.fireFlag = false;
@@ -87,7 +94,6 @@ export class basePlayer implements IPlayer {
         this.update(inputState, config);
     }
 
-    //This one in particular should be private, might need refactoring if we want this to be more clean...
     public update(inputState: any, config: BHConfig): void {
         const actions = inputState.actions;
         if (actions === undefined) return;
@@ -108,9 +114,18 @@ export class basePlayer implements IPlayer {
 
         if (this.currentFrame - this.lastHitFrame > 120 && this.hp < 100) {
             this.hp = Math.min(100, this.hp + (this.hp < 25 ? 0.3 : 0.1));
+            this.health = this.hp;
         }
 
         this.x = Math.max(0, Math.min(this.config.width, this.x + this.vx));
         this.y = Math.max(0, Math.min(this.config.height, this.y + this.vy));
+    }
+
+    public orientation(target: any): void {
+        // Player doesn't need orientation toward itself
+    }
+
+    public syncToSAB(sharedView: Float32Array, base: number): void {
+        // Player sync is handled directly in BHTestLogic.syncToSAB
     }
 }
