@@ -5,11 +5,12 @@ import { FeatureEnum } from '../FeatureEnum';
 import { MainMenuController } from './MainMenuController';
 import { MainMenuView } from './MainMenuView';
 import { InputManager } from '../../core/managers/InputManager';
-import {AudioManager} from "../../core/managers/AudioManager";
+import { AudioManager } from "../../core/managers/AudioManager";
+import { SpriteManager } from "../../core/managers/SpriteManager";
 
 export class MainMenuState extends State {
     public name = FeatureEnum.MAIN_MENU;
-    private controller: MainMenuController;
+    private readonly controller: MainMenuController;
     protected params: any;
 
     private readonly MANIFEST_PATH = "res/mainManifest.json";
@@ -22,10 +23,11 @@ export class MainMenuState extends State {
 
     public async init(): Promise<void> {
         await AudioManager.getInstance().loadManifest(this.MANIFEST_PATH, this.name);
+        await SpriteManager.getInstance().loadManifest(this.MANIFEST_PATH, this.name);
         InputManager.getInstance().refreshBindings("Shared");
-        this.isRendering = true;
         this.controller.init(this.name as FeatureEnum);
         this.controller.playBGM();
+        this.isRendering = true;
     }
 
     public update(dt: number, frameCount: number): void {}
@@ -42,6 +44,7 @@ export class MainMenuState extends State {
     public destroy(): void {
         this.controller.stopBGM();
         AudioManager.getInstance().uncacheByState(this.name);
+        SpriteManager.getInstance().uncacheByState(this.name);
         this.controller.destroy();
     }
 }

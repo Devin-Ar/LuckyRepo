@@ -1,13 +1,37 @@
 {
-  "spritesheets": {},
+  "spritesheets": {
+    "main_splash": {
+      "url": "res/sprite/sheets/MenuSplash.png",
+      "frames": {
+        "h_walk_0": {"x":0, "y":0, "w":240, "h":180},
+        "h_walk_1": {"x":240, "y":0, "w":240, "h":180},
+        "h_walk_2": {"x":480, "y":0, "w":240, "h":180},
+        "h_walk_3": {"x":720, "y":0, "w":240, "h":180},
+        "1": {"x":0, "y":180, "w":240, "h":180},
+        "2": {"x":240, "y":180, "w":240, "h":180},
+        "3": {"x":480, "y":180, "w":240, "h":180},
+        "4": {"x":720, "y":180, "w":240, "h":180}
+      },
+      "animations": {
+        "main": ["1", "2", "3", "4"],
+        "intro": ["h_walk_0", "h_walk_1", "h_walk_2", "h_walk_3"]
+      }
+    }
+  },
   "audio": {
     "bgm_menu": {
       "url": "res/audio/ost/dungeon_ambient.wav",
       "type": "ost",
       "loop": true,
-      "volume": 0.7
+      "volume": 1
     },
     "sfx_nav": {
+      "url": "res/audio/sfx/bomb_explosion.wav",
+      "type": "sfx",
+      "loop": false,
+      "volume": 2
+    },
+    "sfx_intro": {
       "url": "res/audio/sfx/bomb_explosion.wav",
       "type": "sfx",
       "loop": false,
