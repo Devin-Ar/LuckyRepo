@@ -45,6 +45,32 @@
       "animations": {
         "movement": ["sd_drift_0", "sd_drift_1", "sd_drift_2"]
       }
+    },
+    "boss_p12": {
+      "url": "res/sprite/sheets/BossP12.png",
+      "frames": {
+        "boss_p12_0": { "x": 0,  "y": 0, "w": 32, "h": 32 },
+        "boss_p12_1": { "x": 32, "y": 0, "w": 32, "h": 32 },
+        "boss_p12_2": { "x": 64, "y": 0, "w": 32, "h": 32 },
+        "boss_p12_3": { "x": 96, "y": 0, "w": 32, "h": 32 }
+      },
+      "animations": {
+        "idle": ["boss_p12_0", "boss_p12_1", "boss_p12_2", "boss_p12_3"]
+      }
+    },
+    "boss_p3": {
+      "url": "res/sprite/sheets/BossP3.png",
+      "frames": {
+        "boss_p3_0": { "x": 0,   "y": 0, "w": 32, "h": 32 },
+        "boss_p3_1": { "x": 32,  "y": 0, "w": 32, "h": 32 },
+        "boss_p3_2": { "x": 64,  "y": 0, "w": 32, "h": 32 },
+        "boss_p3_3": { "x": 96,  "y": 0, "w": 32, "h": 32 },
+        "boss_p3_4": { "x": 128, "y": 0, "w": 32, "h": 32 },
+        "boss_p3_5": { "x": 160, "y": 0, "w": 32, "h": 32 }
+      },
+      "animations": {
+        "idle": ["boss_p3_0", "boss_p3_1", "boss_p3_2", "boss_p3_3", "boss_p3_4", "boss_p3_5"]
+      }
     }
   },
   "images": {
@@ -53,6 +79,12 @@
   },
   "audio": {
     "bgm_level1": {
+      "url": "res/audio/ost/dungeon_ambient.wav",
+      "type": "ost",
+      "loop": true,
+      "volume": 0.8
+    },
+    "bgm_boss": {
       "url": "res/audio/ost/dungeon_ambient.wav",
       "type": "ost",
       "loop": true,

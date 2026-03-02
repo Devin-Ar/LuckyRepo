@@ -113,6 +113,12 @@ export class BHViewLogic extends BaseViewLogic {
         vMain[VM.BOSS_X] = lMain[LM.BOSS_X];
         vMain[VM.BOSS_Y] = lMain[LM.BOSS_Y];
         vMain[VM.BOSS_ACTIVE] = lMain[LM.BOSS_ACTIVE];
+
+        // Pass through boss animation data
+        vMain[VM.BOSS_ANIM_FRAME] = lMain[LM.BOSS_ANIM_FRAME];
+        vMain[VM.BOSS_PHASE] = lMain[LM.BOSS_PHASE];
+        vMain[VM.BOSS_WIDTH] = lMain[LM.BOSS_WIDTH];
+        vMain[VM.BOSS_HEIGHT] = lMain[LM.BOSS_HEIGHT];
     }
 
     public override getSnapshot() {

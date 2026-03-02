@@ -31,6 +31,12 @@ export const BHMainViewSchema: IBuffer = {
     BOSS_Y: 21,
     BOSS_ACTIVE: 22,
 
+    // Boss animation
+    BOSS_ANIM_FRAME: 23,
+    BOSS_PHASE: 24,
+    BOSS_WIDTH: 25,
+    BOSS_HEIGHT: 26,
+
     // Counts for other buffers
     ROCK_COUNT: 30,
     PPROJ_COUNT: 31,

@@ -24,6 +24,11 @@ export class BossEntity extends baseEntity implements IBossEnemy {
     private readonly bounceSpeed: number = 1.5;
     private bouncing: boolean = false;
 
+    // Animation
+    private animTimer: number = 0;
+    private animFrame: number = 0;
+    private readonly ANIM_SPEED: number = 8; // frames between animation ticks
+
     constructor(x: number, y: number) {
         super();
         this.x = x;
@@ -36,6 +41,14 @@ export class BossEntity extends baseEntity implements IBossEnemy {
     }
 
     update(player: basePlayer, config: BHConfig): void {
+        // Advance animation
+        this.animTimer++;
+        if (this.animTimer >= this.ANIM_SPEED) {
+            this.animTimer = 0;
+            const totalFrames = this.phase >= 3 ? 6 : 4;
+            this.animFrame = (this.animFrame + 1) % totalFrames;
+        }
+
         // Contact damage — always active while boss is alive
         if (this.active) {
             const cx = this.x + this.width / 2;
@@ -125,6 +138,14 @@ export class BossEntity extends baseEntity implements IBossEnemy {
         sharedView[base + 2] = this.seed;
         sharedView[base + 3] = this.vulnerable ? 1 : 0;
         sharedView[base + 4] = this.health;
+    }
+
+    /** Sync boss-specific animation data to the main SAB (called separately) */
+    syncAnimToMainSAB(sMain: Float32Array, indices: { ANIM_FRAME: number, PHASE: number, WIDTH: number, HEIGHT: number }): void {
+        sMain[indices.ANIM_FRAME] = this.animFrame;
+        sMain[indices.PHASE] = this.phase;
+        sMain[indices.WIDTH] = this.width;
+        sMain[indices.HEIGHT] = this.height;
     }
 
     modifyHP(points: number) {

@@ -25,6 +25,7 @@ export class basePlayer implements IPlayer {
     private lastHitFrame: number = 0;
     private bulletTime: number = Date.now();
     private fireFlag: boolean = false;
+    private hasBeenDamaged: boolean = false;
     private config: any;
 
     private constructor() {
@@ -58,6 +59,12 @@ export class basePlayer implements IPlayer {
         this.x = config.heroStartX;
         this.y = config.heroStartY;
         this.moveSpeed = config.moveSpeed;
+        // NOTE: hasBeenDamaged is NOT reset here so regen stays disabled across levels
+    }
+
+    /** Call this only on a full game reset (e.g. Quick Load, New Game) */
+    public resetDamageState(): void {
+        this.hasBeenDamaged = false;
     }
 
     public setMovement(vx?: number, vy?: number): void {
@@ -68,7 +75,10 @@ export class basePlayer implements IPlayer {
     public modifyHp(amount: number): void {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
         this.health = this.hp;
-        if (amount < 0) this.triggerHitCooldown();
+        if (amount < 0) {
+            this.hasBeenDamaged = true;
+            this.triggerHitCooldown();
+        }
     }
 
     public modifyHP(points: number): void {
@@ -112,7 +122,7 @@ export class basePlayer implements IPlayer {
 
         this.setMovement(targetVx, targetVy);
 
-        if (this.currentFrame - this.lastHitFrame > 120 && this.hp < 100) {
+        if (!this.hasBeenDamaged && this.currentFrame - this.lastHitFrame > 120 && this.hp < 100) {
             this.hp = Math.min(100, this.hp + (this.hp < 25 ? 0.3 : 0.1));
             this.health = this.hp;
         }

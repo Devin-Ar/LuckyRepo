@@ -1,7 +1,8 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, Graphics, useTick} from '@pixi/react';
 import {BHPresenter} from '../BHPresenter';
+import {GameSprite} from '../../../../components/GameSprite';
 
 const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
@@ -104,17 +105,60 @@ const DebugHitboxRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm
     return <Graphics ref={graphicsRef} />;
 };
 
+/**
+ * BossRenderer — animated sprite boss using boss_p12 (phases 1-2) and boss_p3 (phase 3).
+ * Switches spritesheet based on boss phase, animates using the frame index from the logic worker.
+ * The boss sprite is 32x32 native but scaled up to fill the boss hitbox (200x200).
+ */
 const BossRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
-    const graphicsRef = useRef<PIXI.Graphics>(null);
-    useTick(() => {
-        if (!graphicsRef.current) return;
-        if (!vm.bossActive || paused) { graphicsRef.current.visible = false; return; }
-        const pos = vm.bossPos;
-        graphicsRef.current.visible = true;
-        graphicsRef.current.clear().beginFill(vm.bossVulnerable ? 0xe74c3c : 0x444444)
-            .lineStyle(4, 0xffffff).drawCircle(pos.x + 100, pos.y + 100, 100).endFill();
+    const [bossData, setBossData] = useState({
+        active: false, x: 0, y: 0, vulnerable: false,
+        animFrame: 0, phase: 1, width: 200, height: 200
     });
-    return <Graphics ref={graphicsRef} />;
+
+    useTick(() => {
+        if (paused) return;
+        setBossData({
+            active: vm.bossActive,
+            x: vm.bossPos.x,
+            y: vm.bossPos.y,
+            vulnerable: vm.bossVulnerable,
+            animFrame: vm.bossAnimFrame,
+            phase: vm.bossPhase,
+            width: vm.bossWidth || 200,
+            height: vm.bossHeight || 200
+        });
+    });
+
+    if (!bossData.active) return null;
+
+    // Choose spritesheet based on phase: phases 1-2 use boss_p12, phase 3 uses boss_p3
+    const sheetName = bossData.phase >= 3 ? 'boss_p3' : 'boss_p12';
+
+    // Scale: native sprite is 32x32, boss hitbox is 200x200 → scale = 200/32 ≈ 6.25
+    const spriteScale = bossData.width / 32;
+
+    // Center the sprite on the boss hitbox (boss position is top-left of hitbox)
+    const centerX = bossData.x + bossData.width / 2;
+    const centerY = bossData.y + bossData.height / 2;
+
+    // Pulse alpha when vulnerable for visual feedback
+    const alpha = bossData.vulnerable ? 0.7 + Math.sin(Date.now() * 0.01) * 0.3 : 1.0;
+
+    return (
+        <Container>
+            <GameSprite
+                sheetName={sheetName}
+                animationName="idle"
+                x={centerX}
+                y={centerY}
+                scale={spriteScale}
+                anchor={0.5}
+                currentFrame={bossData.animFrame}
+                alpha={alpha}
+            />
+        </Container>
+    );
 };
 
 export const BHHitboxes: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {

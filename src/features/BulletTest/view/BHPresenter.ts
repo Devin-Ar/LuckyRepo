@@ -94,6 +94,23 @@ export class BHPresenter extends BasePresenter {
         return (this.mainView[BHMainViewSchema.BOSS_ACTIVE] || 0) === 1;
     }
 
+    // Boss animation data
+    public get bossAnimFrame(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.BOSS_ANIM_FRAME] || 0);
+    }
+
+    public get bossPhase(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.BOSS_PHASE] || 1);
+    }
+
+    public get bossWidth(): number {
+        return this.mainView[BHMainViewSchema.BOSS_WIDTH] || 200;
+    }
+
+    public get bossHeight(): number {
+        return this.mainView[BHMainViewSchema.BOSS_HEIGHT] || 200;
+    }
+
     // Visuals
 
     public get heroVisuals() {

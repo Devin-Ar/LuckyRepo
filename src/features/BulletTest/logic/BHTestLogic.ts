@@ -295,10 +295,22 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             sMain[M.BOSS_X] = this.boss.x;
             sMain[M.BOSS_Y] = this.boss.y;
             sMain[M.BOSS_ACTIVE] = this.boss.active ? 1 : 0;
+
+            // Sync boss animation data
+            this.boss.syncAnimToMainSAB(sMain, {
+                ANIM_FRAME: M.BOSS_ANIM_FRAME,
+                PHASE: M.BOSS_PHASE,
+                WIDTH: M.BOSS_WIDTH,
+                HEIGHT: M.BOSS_HEIGHT
+            });
         } else {
             sMain[M.BOSS_HP] = 0;
             sMain[M.BOSS_VULNERABLE] = 0;
             sMain[M.BOSS_ACTIVE] = 0;
+            sMain[M.BOSS_ANIM_FRAME] = 0;
+            sMain[M.BOSS_PHASE] = 0;
+            sMain[M.BOSS_WIDTH] = 0;
+            sMain[M.BOSS_HEIGHT] = 0;
         }
 
         // Entities (Rocks)
