@@ -133,6 +133,10 @@ const MainMenuFlow: ICampaignStep[] = [
         params: {
             imageName: "lucky_group",
             manifestPath: "res/cinematic_manifest.json"
+        },
+        loadingConfig: {
+            view: LoreLoadingView,
+            props: { message: "Click the Button to Start." }
         }
     },
     {

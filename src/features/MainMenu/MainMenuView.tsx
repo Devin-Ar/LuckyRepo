@@ -31,7 +31,7 @@ const MenuAnimatedSprite: React.FC<{ animationName: string }> = () => {
     }, ['main']);
 
     useTick((delta) => {
-        setFrame(f => f + (4 / 60) * delta);
+        setFrame(f => f + (6 / 60) * delta);
     });
 
     return (

@@ -17,9 +17,6 @@ export const LoreLoadingView: React.FC<LoreLoadingViewProps> = ({
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'monospace', padding: '20px', boxSizing: 'border-box'
         }}>
-            <h1 style={{ color: '#e74c3c', letterSpacing: '4px', marginBottom: '30px' }}>
-                MISSION BRIEFING
-            </h1>
 
             <div style={{
                 maxWidth: '600px',
@@ -44,14 +41,13 @@ export const LoreLoadingView: React.FC<LoreLoadingViewProps> = ({
                             cursor: 'pointer',
                             fontWeight: 'bold',
                             fontSize: '1rem',
-                            boxShadow: '0 0 15px rgba(231, 76, 60, 0.4)'
                         }}
                     >
-                        DEPLOY UNIT
+                        Start
                     </button>
                 ) : (
                     <div style={{ color: '#666', fontStyle: 'italic' }}>
-                        ESTABLISHING UPLINK...
+                        LOADING...
                     </div>
                 )}
             </div>
