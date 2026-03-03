@@ -74,6 +74,13 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
             const sprite = pool[i];
             const data = vm.getRockViewData(i);
             if (!data || paused) { if (sprite) sprite.visible = false; continue; }
+            let textures;
+            if ( data.type === 1 ) {
+                textures = manager.getAnimation('shot_drone_movement');
+            } else {
+                textures = manager.getAnimation('laser_drone_movement');
+            }
+            sprite.textures = textures;
             sprite.visible = true;
             sprite.x = data.x;
             sprite.y = data.y;
