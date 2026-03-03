@@ -119,6 +119,10 @@ export class BHViewLogic extends BaseViewLogic {
         vMain[VM.BOSS_PHASE] = lMain[LM.BOSS_PHASE];
         vMain[VM.BOSS_WIDTH] = lMain[LM.BOSS_WIDTH];
         vMain[VM.BOSS_HEIGHT] = lMain[LM.BOSS_HEIGHT];
+
+        // Economy pass-through
+        vMain[VM.POINTS] = lMain[LM.POINTS];
+        vMain[VM.COINS] = lMain[LM.COINS];
     }
 
     public override getSnapshot() {

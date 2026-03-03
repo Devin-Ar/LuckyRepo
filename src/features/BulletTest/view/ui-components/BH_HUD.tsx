@@ -1,5 +1,9 @@
 // src/features/BulletTest/view/ui-components/BH_HUD.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+// Sprite paths — 2-frame horizontal spritesheets (64x32, each frame 32x32)
+const POINT_SPRITE_PATH = 'res/sprite/sheets/Point.png';
+const COIN_SPRITE_PATH = 'res/sprite/sheets/Coin.png';
 
 interface HUDProps {
     hp: number;
@@ -14,6 +18,8 @@ interface HUDProps {
     exitDoorY: number;
     bossHp: number;
     bossVulnerable: boolean;
+    points: number;
+    coins: number;
     gameWidth: number;
     gameHeight: number;
     shieldBarRef: React.RefObject<HTMLDivElement>;
@@ -28,9 +34,54 @@ interface HUDProps {
     onResetG1: () => void;
 }
 
+/**
+ * Animated 2-frame sprite icon from a horizontal spritesheet (64x32).
+ * Clips to show one 32x32 frame at a time, alternating on interval.
+ */
+const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> = ({
+                                                                                       src, size = '5cqw', intervalMs = 500
+                                                                                   }) => {
+    const [frame, setFrame] = useState(0);
+
+    useEffect(() => {
+        const id = setInterval(() => setFrame(f => (f + 1) % 2), intervalMs);
+        return () => clearInterval(id);
+    }, [intervalMs]);
+
+    // Each frame is 32x32 in a 64x32 sheet. We show 50% width, offset by frame.
+    return (
+        <div style={{
+            width: size,
+            height: size,
+            overflow: 'hidden',
+            flexShrink: 0,
+            marginRight: '0.5cqw',
+            imageRendering: 'pixelated',
+            position: 'relative'
+        }}>
+            <img
+                src={src}
+                alt=""
+                draggable={false}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: frame === 0 ? '0%' : '-100%',
+                    height: '100%',
+                    width: '200%', // full sheet = 2x icon width
+                    imageRendering: 'pixelated',
+                    pointerEvents: 'none'
+                }}
+            />
+        </div>
+    );
+};
+
 export const BH_HUD: React.FC<HUDProps> = ({
                                                hp, rockCount, currentWave, totalWaves, waveState, waveDelayTimer, isRoomCleared,
-                                               exitDoorActive, exitDoorX, exitDoorY, bossHp, bossVulnerable, gameWidth, gameHeight,
+                                               exitDoorActive, exitDoorX, exitDoorY, bossHp, bossVulnerable,
+                                               points, coins,
+                                               gameWidth, gameHeight,
                                                shieldBarRef, shieldTextRef, damageBtnRef,
                                                onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onLevel4, onResetG1
                                            }) => {
@@ -154,15 +205,15 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
             )}
 
-            {/* Exit Door - rendered as a square in game space */}
+            {/* Exit Door */}
             {exitDoorActive && gameWidth > 0 && gameHeight > 0 && (
                 <div style={{
                     position: 'absolute',
                     left: `${(exitDoorX / gameWidth) * 100}%`,
                     top: `${(exitDoorY / gameHeight) * 100}%`,
                     transform: 'translate(-50%, -50%)',
-                    width: '6.25%',   /* ~60px at 960 width */
-                    height: '11.1%',  /* ~60px at 540 height */
+                    width: '6.25%',
+                    height: '11.1%',
                     border: '3px solid #f1c40f',
                     backgroundColor: 'rgba(241, 196, 60, 0.25)',
                     boxShadow: '0 0 20px rgba(241, 196, 60, 0.5), inset 0 0 15px rgba(241, 196, 60, 0.3)',
@@ -183,7 +234,6 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
             )}
 
-            {/* Exit door pulse animation */}
             {exitDoorActive && (
                 <style>{`
                     @keyframes exitDoorPulse {
@@ -193,7 +243,7 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 `}</style>
             )}
 
-            {/* Delay Countdown Overlay - Center (during delay phase) */}
+            {/* Delay Countdown Overlay */}
             {waveState === 'DELAY' && waveDelayTimer > 0 && (
                 <div style={{
                     position: 'absolute', top: '35%', left: '50%',
@@ -210,7 +260,31 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
             )}
 
-            {/* Dev Controls - Bottom Left */}
+            {/* Points & Coins - Bottom Left */}
+            <div style={{
+                position: 'absolute', bottom: '3cqh', left: '3cqw',
+                display: 'flex', flexDirection: 'column', gap: '0.8cqh',
+                fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
+            }}>
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    color: '#f1c40f',
+                    textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
+                }}>
+                    <SpriteIcon src={POINT_SPRITE_PATH} />
+                    <span>{points.toLocaleString()}</span>
+                </div>
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    color: '#ffd700',
+                    textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
+                }}>
+                    <SpriteIcon src={COIN_SPRITE_PATH} />
+                    <span>{coins.toLocaleString()}</span>
+                </div>
+            </div>
+
+            {/* Dev Controls - Top Left */}
             <div style={{
                 position: 'absolute', top: '3cqh', left: '3cqw',
                 display: 'flex', flexDirection: 'column', gap: '1cqh'

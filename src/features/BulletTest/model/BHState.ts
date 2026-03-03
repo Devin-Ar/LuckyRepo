@@ -35,8 +35,18 @@ export class BHState extends BaseGameState<BHPresenter, BHController, BHConfig> 
     }
 
     protected getSessionOverrides(session: SharedSession): Partial<BHConfig> {
+        const overrides: Partial<BHConfig> & { initialPoints?: number; initialCoins?: number } = {};
+
         const hp = session.get<number>(GLOBAL_SESSION_MAP.hp);
-        return hp !== undefined ? {initialHP: hp} : {};
+        if (hp !== undefined) overrides.initialHP = hp;
+
+        const pts = session.get<number>(GLOBAL_SESSION_MAP.points);
+        if (pts !== undefined) (overrides as any).initialPoints = pts;
+
+        const cns = session.get<number>(GLOBAL_SESSION_MAP.coins);
+        if (cns !== undefined) (overrides as any).initialCoins = cns;
+
+        return overrides;
     }
 
     protected initMVC(): void {

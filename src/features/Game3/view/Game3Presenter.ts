@@ -119,4 +119,16 @@ export class Game3Presenter extends BasePresenter {
         const view = this._sharedViews.get('main');
         return view ? view[Game3ViewMainSchema.HERO_HP] : 0;
     }
+
+    // Economy
+
+    public get points(): number {
+        const view = this._sharedViews.get('main');
+        return view ? Math.floor(view[Game3ViewMainSchema.POINTS] || 0) : 0;
+    }
+
+    public get coins(): number {
+        const view = this._sharedViews.get('main');
+        return view ? Math.floor(view[Game3ViewMainSchema.COINS] || 0) : 0;
+    }
 }

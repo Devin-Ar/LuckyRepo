@@ -57,6 +57,7 @@ export class Game3Hazards {
     public updateExitLogic() {
         if (!this.logic.levelCompleted && this.collision.checkHazardCollision('isExit')) {
             this.logic.levelCompleted = true;
+            this.logic.awardExitReward();
             self.postMessage({ type: 'EVENT', name: 'LEVEL_COMPLETE' });
         }
     }

@@ -23,6 +23,10 @@ export const Game3ViewMainSchema: IBuffer = {
 
     OBJ_COUNT: 30,
 
+    // Economy — cross-game persistent
+    POINTS: 31,
+    COINS: 32,
+
     BUFFER_SIZE: 128
 };
 

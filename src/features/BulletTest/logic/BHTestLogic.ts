@@ -16,6 +16,16 @@ interface WaveLevelData {
     waves: IWaveDefinition[];
 }
 
+// Point values for enemy kills
+const CONTACT_ENEMY_POINTS = 50;
+const RANGED_ENEMY_POINTS = 75;
+const BOSS_KILL_POINTS = 500;
+
+// Coin ranges for enemy kills (random between min and max inclusive)
+const MINION_COIN_MIN = 0;
+const MINION_COIN_MAX = 5;
+const BOSS_COIN_REWARD = 25;
+
 export class BHTestLogic extends BaseLogic<BHConfig> {
     protected dispatcher: BaseDispatcher<BHTestLogic>;
     private player: basePlayer;
@@ -28,6 +38,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     private boss: BossEntity | null = null;
     private bossLevel: boolean = false;
     private bossTargetHp: number = 3;
+    private bossRewardGiven: boolean = false;
 
     // Wave system
     private waveManager: WaveManager = new WaveManager();
@@ -39,6 +50,10 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     private exitDoorY: number = 0;
     private static readonly DOOR_SIZE = 60;
     private exitDoorEntered: boolean = false;
+
+    // Economy — persisted cross-game via session
+    private points: number = 0;
+    private coins: number = 0;
 
     constructor() {
         super(BHMainLogicSchema.REVISION);
@@ -73,11 +88,20 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
 
         const levelLabel = this.config!.levelLabel || "Level 1";
         this.bossLevel = levelLabel === "Level 4";
+        this.bossRewardGiven = false;
         if (this.bossLevel) {
             this.boss = new BossEntity(config.width / 2 - 100, 50);
-            this.bossTargetHp = 200; // Vulnerable after wave 1 until hits 200, then wave 2...
+            this.bossTargetHp = 200;
         } else {
             this.boss = null;
+        }
+
+        // Restore economy from config if provided (session overrides flow through config)
+        if ((config as any).initialPoints !== undefined) {
+            this.points = (config as any).initialPoints;
+        }
+        if ((config as any).initialCoins !== undefined) {
+            this.coins = (config as any).initialCoins;
         }
     }
 
@@ -100,7 +124,9 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             currentFrame: this.currentFrame,
             config: this.config,
             waveSnapshot: this.waveManager.getSnapshot(),
-            wavesStarted: this.wavesStarted
+            wavesStarted: this.wavesStarted,
+            points: this.points,
+            coins: this.coins
         };
     }
 
@@ -113,6 +139,8 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.enemyProjectiles = data.enemyProjectiles;
         this.currentFrame = data.currentFrame ?? 0;
         this.wavesStarted = data.wavesStarted ?? false;
+        this.points = data.points ?? 0;
+        this.coins = data.coins ?? 0;
         if (data.waveSnapshot) {
             this.waveManager.loadSnapshot(data.waveSnapshot);
         }
@@ -129,7 +157,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             this.wavesStarted = true;
         }
 
-        // Update wave manager - it checks if current wave is cleared and returns spawns for next wave
+        // Update wave manager
         const activeEnemyCount = this.entities.filter(e => e.active).length;
         const newSpawns = this.waveManager.update(activeEnemyCount);
 
@@ -142,7 +170,6 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         if (this.bossLevel && this.boss) {
             const waveState = this.waveManager.getState();
 
-            // Always update phase based on current wave
             this.boss.phase = Math.min(3, this.waveManager.getCurrentWave() + 1);
 
             if (activeEnemyCount > 0 || waveState === 'ACTIVE' || waveState === 'DELAY') {
@@ -159,9 +186,15 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
                 }
             }
 
-            // Always update movement and attacks
             this.boss.update(this.player, this.config);
             this.boss.updateAttacks(this.player, frameCount, this.enemyProjectiles);
+
+            // Award boss kill reward
+            if (!this.boss.active && !this.bossRewardGiven) {
+                this.bossRewardGiven = true;
+                this.points += BOSS_KILL_POINTS;
+                this.coins += BOSS_COIN_REWARD;
+            }
         }
 
         if (newSpawns) {
@@ -197,11 +230,23 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             }
         }
 
-        // Update projectiles and check collisions
         for (const proj of this.enemyProjectiles) {
             proj.update(this.player, this.config);
             proj.collided(this.player);
-            console.log("Running Projectiles... " + proj.active)
+        }
+
+        // Award points/coins for newly-killed enemies before filtering
+        for (const entity of this.entities) {
+            if (!entity.active && entity.health <= 0) {
+                // Determine enemy type for point value
+                if (entity.type === "singleShot") {
+                    this.points += RANGED_ENEMY_POINTS;
+                } else {
+                    this.points += CONTACT_ENEMY_POINTS;
+                }
+                // Random coins 0-5
+                this.coins += Math.floor(Math.random() * (MINION_COIN_MAX - MINION_COIN_MIN + 1)) + MINION_COIN_MIN;
+            }
         }
 
         // Clean up dead entities and expired projectiles
@@ -219,7 +264,6 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         if (this.waveManager.isAllCleared() && this.entities.length === 0 && bossCleared) {
             self.postMessage({ type: 'EVENT', name: 'ROOM_CLEARED' });
 
-            // Activate the exit door
             if (!this.exitDoorActive) {
                 this.exitDoorActive = true;
             }
@@ -273,7 +317,6 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         sMain[M.TOTAL_WAVES] = this.waveManager.getTotalWaves();
         sMain[M.WAVE_DELAY_TIMER] = this.waveManager.getDelayTimer();
 
-        // Encode wave state as a number: IDLE=0, DELAY=1, ACTIVE=2, CLEARED=3, ALL_CLEARED=4
         const stateMap: Record<string, number> = {
             'IDLE': 0, 'DELAY': 1, 'ACTIVE': 2, 'CLEARED': 3, 'ALL_CLEARED': 4
         };
@@ -284,10 +327,13 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         sMain[M.EXIT_DOOR_X] = this.exitDoorX;
         sMain[M.EXIT_DOOR_Y] = this.exitDoorY;
 
-        // Encode current level: "Level 1"=0, "Level 2"=1, "Level 3"=2, "Level 4"=3
         const levelLabel = this.config!.levelLabel || "Level 1";
         const levelIndex = levelLabel === "Level 4" ? 3 : levelLabel === "Level 3" ? 2 : levelLabel === "Level 2" ? 1 : 0;
         sMain[M.CURRENT_LEVEL] = levelIndex;
+
+        // Economy
+        sMain[M.POINTS] = this.points;
+        sMain[M.COINS] = this.coins;
 
         if (this.boss) {
             sMain[M.BOSS_HP] = this.boss.health;
@@ -296,7 +342,6 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             sMain[M.BOSS_Y] = this.boss.y;
             sMain[M.BOSS_ACTIVE] = this.boss.active ? 1 : 0;
 
-            // Sync boss animation data
             this.boss.syncAnimToMainSAB(sMain, {
                 ANIM_FRAME: M.BOSS_ANIM_FRAME,
                 PHASE: M.BOSS_PHASE,

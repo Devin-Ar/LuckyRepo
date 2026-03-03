@@ -33,6 +33,10 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
     const [bossHp, setBossHp] = useState(vm.bossHp);
     const [bossVulnerable, setBossVulnerable] = useState(vm.bossVulnerable);
 
+    // Economy
+    const [points, setPoints] = useState(vm.points);
+    const [coins, setCoins] = useState(vm.coins);
+
     const shieldBarRef = useRef<HTMLDivElement>(null);
     const shieldTextRef = useRef<HTMLSpanElement>(null);
     const damageBtnRef = useRef<HTMLButtonElement>(null);
@@ -70,6 +74,10 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
             // Boss state
             setBossHp(vm.bossHp);
             setBossVulnerable(vm.bossVulnerable);
+
+            // Economy
+            setPoints(vm.points);
+            setCoins(vm.coins);
         });
         return () => unsubscribe();
     }, [vm, hpState, rockCount, isPaused]);
@@ -116,6 +124,8 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                 exitDoorY={exitDoorY}
                 bossHp={bossHp}
                 bossVulnerable={bossVulnerable}
+                points={points}
+                coins={coins}
                 gameWidth={width}
                 gameHeight={height}
                 shieldBarRef={shieldBarRef}

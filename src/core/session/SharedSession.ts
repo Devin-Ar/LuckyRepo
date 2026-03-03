@@ -17,6 +17,8 @@ export class SharedSession {
     private readonly SAVABLE_KEYS = [
         'global_hp',
         'global_energy',
+        'global_points',
+        'global_coins',
         'campaign_id',
         'campaign_step_index'
     ];
