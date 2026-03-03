@@ -102,6 +102,10 @@ export class Game3ViewLogic extends BaseViewLogic {
         vMain[Game3ViewMainSchema.GLITCH_INTENSITY] = this.glitchIntensity;
         vMain[Game3ViewMainSchema.VIGNETTE_PULSE] = vignettePulse;
 
+        // Economy pass-through
+        vMain[Game3ViewMainSchema.POINTS] = lMain[Game3MainSchema.POINTS];
+        vMain[Game3ViewMainSchema.COINS] = lMain[Game3MainSchema.COINS];
+
         // 6. Sync Objects (Pass-through from Logic Platforms SAB to View Platforms SAB)
         const safeObjCount = Math.min(objCount, vCapacity);
         vMain[Game3ViewMainSchema.OBJ_COUNT] = safeObjCount;

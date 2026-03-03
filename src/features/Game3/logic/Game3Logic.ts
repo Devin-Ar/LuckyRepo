@@ -4,9 +4,13 @@ import { BaseLogic } from '../../../core/templates/BaseLogic';
 import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { Game3Commands } from './Game3Commands';
 import { Game3Config } from '../model/Game3Config';
-import { ParsedMapData, PlatformData } from './Game3MapData'; // Keep these imports
+import { ParsedMapData, PlatformData } from './Game3MapData';
 import { Game3Collision } from './Game3Collision';
 import { Game3Hazards } from './Game3Hazards';
+
+// Point values for platformer events
+const EXIT_REACHED_POINTS = 200;
+const EXIT_REACHED_COINS = 10;
 
 export class Game3Logic extends BaseLogic<Game3Config> {
     protected dispatcher: BaseDispatcher<Game3Logic>;
@@ -42,6 +46,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private gravity = 0.04;
     private friction = 0.5;
 
+    // Economy — persisted cross-game via session
+    private points: number = 0;
+    private coins: number = 0;
+
     constructor() {
         super(Game3MainSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game3Commands, "Game3");
@@ -57,6 +65,14 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.playerOffsetY = config.playerOffsetY || 0;
         this.heroWidth = config.heroWidth || 1.0;
         this.heroHeight = config.heroHeight || 2.0;
+
+        // Restore economy from config if provided (session overrides flow through config)
+        if ((config as any).initialPoints !== undefined) {
+            this.points = (config as any).initialPoints;
+        }
+        if ((config as any).initialCoins !== undefined) {
+            this.coins = (config as any).initialCoins;
+        }
     }
 
     public setMapData(data: ParsedMapData) {
@@ -86,7 +102,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.hazards.updateSpikeLogic();
         this.hazards.updatePortalLogic();
         this.hazards.updateVoidLogic();
-
 
         this.syncToSAB(sharedView, frameCount, fps);
     }
@@ -167,7 +182,6 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     }
 
     private syncToSAB(sMain: Float32Array, frameCount: number, fps: number) {
-        // Access the additional platform buffer from the protected map in BaseLogic
         const sPlatforms = this.sharedViews.get('platforms');
         if (!sMain || !sPlatforms) return;
 
@@ -204,6 +218,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         sMain[M.GRAVITY] = this.gravity;
         sMain[M.FRICTION] = this.friction;
 
+        // Economy
+        sMain[M.POINTS] = this.points;
+        sMain[M.COINS] = this.coins;
+
         const capacity = Math.floor(sPlatforms.length / Game3PlatformsSchema.STRIDE);
         const objCount = Math.min(this.platforms.length, capacity);
         sMain[M.OBJ_COUNT] = objCount;
@@ -231,7 +249,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             portalCooldown: this.portalCooldown,
             isJumpingFromGround: this.isJumpingFromGround,
             spawnPoint: { ...this.spawnPoint },
-            hasCompletedLevel: this.hasCompletedLevel
+            hasCompletedLevel: this.hasCompletedLevel,
+            points: this.points,
+            coins: this.coins
         };
     }
 
@@ -248,12 +268,20 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.isJumpingFromGround = data.isJumpingFromGround ?? false;
             this.spawnPoint = data.spawnPoint || this.spawnPoint;
             this.hasCompletedLevel = data.hasCompletedLevel ?? false;
+            this.points = data.points ?? 0;
+            this.coins = data.coins ?? 0;
             this.isInitialized = true;
         }
     }
 
     public modifyHP(amount: number) {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
+    }
+
+    /** Award points and coins for reaching the exit */
+    public awardExitReward() {
+        this.points += EXIT_REACHED_POINTS;
+        this.coins += EXIT_REACHED_COINS;
     }
 
     public get heroState() { return this.hero; }

@@ -6,7 +6,7 @@ const WAVE_STATE_LABELS = ['IDLE', 'DELAY', 'ACTIVE', 'CLEARED', 'ALL_CLEARED'] 
 
 export class BHPresenter extends BasePresenter {
 
-    private get mainView() { return this.sharedView; } // 'main' is default
+    private get mainView() { return this.sharedView; }
     private get rocksView() { return this.getBuffer('rocks') || new Float32Array(0); }
     private get pProjsView() { return this.getBuffer('pProjs') || new Float32Array(0); }
     private get eProjsView() { return this.getBuffer('eProjs') || new Float32Array(0); }
@@ -94,7 +94,6 @@ export class BHPresenter extends BasePresenter {
         return (this.mainView[BHMainViewSchema.BOSS_ACTIVE] || 0) === 1;
     }
 
-    // Boss animation data
     public get bossAnimFrame(): number {
         return Math.floor(this.mainView[BHMainViewSchema.BOSS_ANIM_FRAME] || 0);
     }
@@ -109,6 +108,16 @@ export class BHPresenter extends BasePresenter {
 
     public get bossHeight(): number {
         return this.mainView[BHMainViewSchema.BOSS_HEIGHT] || 200;
+    }
+
+    // Economy
+
+    public get points(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.POINTS] || 0);
+    }
+
+    public get coins(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.COINS] || 0);
     }
 
     // Visuals
@@ -137,7 +146,7 @@ export class BHPresenter extends BasePresenter {
             width: this.rocksView[offset + 6] || 0,
             height: this.rocksView[offset + 7] || 0,
             currentFrame: this.rocksView[offset + 8] || 0,
-            type: this.rocksView[offset + 9] || 0, //0 is contact, 1 is ranged
+            type: this.rocksView[offset + 9] || 0,
         };
     }
 

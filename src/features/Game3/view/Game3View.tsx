@@ -13,8 +13,15 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                                                                                          vm, controller, width = 960, height = 540
                                                                                      }) => {
     const [tick, setTick] = React.useState(0);
+    const [points, setPoints] = React.useState(0);
+    const [coins, setCoins] = React.useState(0);
+
     React.useEffect(() => {
-        const unsubscribe = vm.subscribe(() => setTick(t => t + 1));
+        const unsubscribe = vm.subscribe(() => {
+            setTick(t => t + 1);
+            setPoints(vm.points);
+            setCoins(vm.coins);
+        });
         return () => unsubscribe();
     }, [vm]);
 
@@ -80,6 +87,8 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
 
                 <Game3HUD
                     stats={stats}
+                    points={points}
+                    coins={coins}
                     onAction={(type, val) => { if (type === 'MOD_HP') controller.modifyHP(val || 0); }}
                     onLevel1={() => controller.loadLevel(Game3Level.Level1)}
                     onLevel2={() => controller.loadLevel(Game3Level.Level2)}

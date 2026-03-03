@@ -49,6 +49,10 @@ export const BHMainLogicSchema: IBuffer = {
     MAP_WIDTH: 34,
     MAP_HEIGHT: 35,
 
+    // Economy — cross-game persistent
+    POINTS: 38,
+    COINS: 39,
+
     BUFFER_SIZE: 128
 };
 
