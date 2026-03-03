@@ -21,6 +21,18 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private isWallSliding = false;
     private wallJumpTimer = 0;
     private wallJumpDirection = 0;
+    private isClinging = false;
+    private ledgeGrabCooldown = 0;
+    private isMantling = false;
+    private mantleTimer = 0;
+    private mantleStartX = 0;
+    private mantleStartY = 0;
+    private mantleTargetX = 0;
+    private mantleTargetY = 0;
+    private mantleFloatX = 0;
+    private mantleFloatY = 0;
+    private wallJumpCooldown = 0;
+    private clingJumpGrace = 0;
     private spikeDamageTimer = 0;
     private wasInSpike = false;
     private portalCooldown = 0;
@@ -41,6 +53,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private jumpPower = -0.4;
     private gravity = 0.04;
     private friction = 0.5;
+    private wallJumpPowerMultiplier = 1.225; // ~50% higher peak vs base jump (sqrt(1.5))
 
     constructor() {
         super(Game3MainSchema.REVISION);
@@ -80,7 +93,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.isOnGround = this.collision.checkIsOnGround();
 
         this.updateHeroMovement();
-        this.collision.resolveMovement();
+        if (!this.isMantling && !this.isClinging) {
+            this.collision.resolveMovement();
+        }
 
         this.hazards.updateExitLogic();
         this.hazards.updateSpikeLogic();
@@ -96,15 +111,126 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     }
 
     private updateHeroMovement() {
-        const wallSide = this.collision.getWallCollision();
+        // Timers
+        if (this.wallJumpCooldown > 0) this.wallJumpCooldown--;
+        if (this.wallJumpTimer > 0) this.wallJumpTimer--;
+        if (this.ledgeGrabCooldown > 0) this.ledgeGrabCooldown--;
+        if (this.clingJumpGrace > 0) this.clingJumpGrace--;
+
+        // Mantling State Logic
+        if (this.isMantling) {
+            this.mantleTimer++;
+            const totalDuration = 180; // 3s
+            const t = this.mantleTimer / totalDuration;
+
+            if (t >= 1) {
+                this.hero.x = this.mantleTargetX;
+                this.hero.y = this.mantleTargetY;
+                this.isMantling = false;
+                this.mantleTimer = 0;
+                this.ledgeGrabCooldown = 30; // 0.5s cooldown to prevent immediate re-grabbing after mantle
+            } else {
+                // Two-phase mantle:
+                // Phase 1 (0.0 to 0.5): Move diagonally to the floating position (up and away)
+                // Phase 2 (0.5 to 1.0): Move from floating position to the top center
+                if (t < 0.5) {
+                    const phaseT = t / 0.5;
+                    this.hero.x = this.mantleStartX + (this.mantleFloatX - this.mantleStartX) * phaseT;
+                    this.hero.y = this.mantleStartY + (this.mantleFloatY - this.mantleStartY) * phaseT;
+                } else {
+                    const phaseT = (t - 0.5) / 0.5;
+                    this.hero.x = this.mantleFloatX + (this.mantleTargetX - this.mantleFloatX) * phaseT;
+                    this.hero.y = this.mantleFloatY + (this.mantleTargetY - this.mantleFloatY) * phaseT;
+                }
+            }
+            this.hero.vx = 0;
+            this.hero.vy = 0;
+            return;
+        }
+
+        // Collision Check
+        const { side: wallSide, platform: wallPlatform } = this.collision.getWallCollisionData();
+
+        // Inputs
         const moveLeft = this.isAction('MOVE_LEFT');
         const moveRight = this.isAction('MOVE_RIGHT');
-        const jumpHeld = this.isAction('JUMP');
+        const moveUp = this.isAction('MOVE_UP');
+        const moveDown = this.isAction('MOVE_DOWN');
+        const jumpPressed = this.isAction('JUMP');
 
         let moveDir = 0;
         if (moveLeft) moveDir -= 1;
         if (moveRight) moveDir += 1;
 
+        // Clinging State Logic
+        if (this.isClinging) {
+            // Check if still touching the same wall platform
+            if (wallSide === 0 || !wallPlatform) {
+                this.isClinging = false;
+            } else {
+                // Keep velocities zero
+                this.hero.vx = 0;
+                this.hero.vy = 0;
+
+                // Handle Inputs
+                if (moveUp) {
+                    if (this.clingJumpGrace > 0) return;
+                    // Mantle: initiate transition
+                    this.isMantling = true;
+                    this.isClinging = false;
+                    this.isWallSliding = false;
+                    this.mantleTimer = 0;
+                    this.mantleStartX = this.hero.x;
+                    this.mantleStartY = this.hero.y;
+
+                    // Target: Sitting on top center of platform
+                    this.mantleTargetY = wallPlatform.y - this.heroHeight;
+                    this.mantleTargetX = wallPlatform.x + (wallPlatform.width / 2) - (this.heroWidth / 2);
+
+                    // Floating position: slightly higher than diagonal to clear the ledge completely
+                    const floatXGap = 0.2;
+                    const floatYGap = 0.6; // Slightly higher gap for vertical clearance
+
+                    if (wallSide === 1) { // Platform to the right, hero is on left side
+                        this.mantleFloatX = wallPlatform.x - this.heroWidth - floatXGap;
+                    } else { // Platform to the left, hero is on right side
+                        this.mantleFloatX = wallPlatform.x + wallPlatform.width + floatXGap;
+                    }
+                    this.mantleFloatY = wallPlatform.y - this.heroHeight - floatYGap;
+
+                    return;
+                }
+                if (moveDown) {
+                    if (this.clingJumpGrace > 0) return;
+                    // Disengage: drop down
+                    this.isClinging = false;
+                    this.hero.vy = 0.01; // Small nudge
+                    this.ledgeGrabCooldown = 30; // 0.5 seconds at 60fps
+                    return;
+                }
+                if (jumpPressed) {
+                    if (this.clingJumpGrace > 0) return;
+                    // Jump from ledge
+                    this.hero.vy = this.jumpPower * this.wallJumpPowerMultiplier;
+                    // If moving opposite of wallSide, jump further
+                    if ((wallSide === -1 && moveDir === 1) || (wallSide === 1 && moveDir === -1)) {
+                        this.wallJumpDirection = -wallSide;
+                        this.wallJumpTimer = 20; // Extra boost
+                    } else {
+                        this.wallJumpDirection = -wallSide;
+                        this.wallJumpTimer = 15;
+                    }
+                    this.isClinging = false;
+                    this.wallJumpCooldown = 30; // 0.5s delay
+                    return;
+                }
+                return; // Staying in cling
+            }
+        }
+
+        // --- Standard Movement (not clinging) ---
+
+        // Wall Jump Timer handles horizontal movement during jump
         if (this.wallJumpTimer > 0) {
             this.hero.vx = this.wallJumpDirection * this.moveSpeed * 1.5;
             this.wallJumpTimer--;
@@ -117,16 +243,36 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             }
         }
 
+        // Sliding Logic
         this.isWallSliding = false;
-        if (!this.isOnGround && wallSide !== 0) {
-            if ((wallSide === -1 && moveDir === -1) || (wallSide === 1 && moveDir === 1)) {
+        if (!this.isOnGround && wallSide !== 0 && wallPlatform) {
+            const movingAway = (wallSide === -1 && moveDir === 1) || (wallSide === 1 && moveDir === -1);
+            if (!movingAway) {
                 this.isWallSliding = true;
-                this.wallJumpTimer = 0;
+
+                // Cling Entry Logic
+                // Only enter cling if moving downwards or stationary vertically
+                const atTop = this.hero.y <= wallPlatform.y + 0.1;
+                if (atTop && !this.collision.isWallAbove(wallPlatform) && this.ledgeGrabCooldown === 0) {
+                    this.isClinging = true;
+                    this.hero.vx = 0;
+                    this.hero.vy = 0;
+                    if (wallSide === 1) {
+                        this.hero.x = wallPlatform.x - this.heroWidth;
+                    } else if (wallSide === -1) {
+                        this.hero.x = wallPlatform.x + wallPlatform.width;
+                    }
+                    this.hero.y = wallPlatform.y;
+                    this.clingJumpGrace = 30; // ~0.5s at 60fps for any cling action
+                    this.wallJumpTimer = 0;
+                    return;
+                }
             }
         }
 
+        // Gravity
         let effectiveGravity = this.gravity;
-        if (this.isJumpingFromGround && jumpHeld && this.hero.vy < 0) {
+        if (this.isJumpingFromGround && jumpPressed && this.hero.vy < 0) {
             effectiveGravity *= 0.5;
         }
 
@@ -137,17 +283,19 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.hero.vy += effectiveGravity;
         }
 
-        if (jumpHeld) {
+        // Jumping
+        if (jumpPressed) {
             if (this.isOnGround) {
                 this.hero.vy = this.jumpPower;
                 this.wallJumpTimer = 0;
                 this.isJumpingFromGround = true;
-            } else if (wallSide !== 0) {
-                this.hero.vy = this.jumpPower;
+            } else if (wallSide !== 0 && wallPlatform && wallPlatform.isWall && this.wallJumpCooldown <= 0) {
+                this.hero.vy = this.jumpPower * this.wallJumpPowerMultiplier;
                 this.wallJumpDirection = -wallSide;
                 this.wallJumpTimer = 15;
                 this.isWallSliding = false;
                 this.isJumpingFromGround = false;
+                this.wallJumpCooldown = 30; // 0.5s delay
             }
         }
 
@@ -162,6 +310,13 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (p.isVoid) return 2;
         if (p.isWall) return 1;
         if (p.isFallthrough) return 6;
+        if (p.isPlat) return 7;
+        if (p.isNonWallJumpableWall) return 8;
+        if (p.isDisplayWall) return 9;
+        if (p.isGrassForeground) return 10;
+        if (p.isGrassBackground) return 11;
+        if (p.isNonOrganicForeground) return 12;
+        if (p.isNonOrganicBackground) return 13;
         if (p.isFloor) return 0;
         return 0;
     }
@@ -189,7 +344,12 @@ export class Game3Logic extends BaseLogic<Game3Config> {
 
         sMain[M.IS_ON_GROUND] = this.isOnGround ? 1 : 0;
         sMain[M.IS_WALL_SLIDING] = this.isWallSliding ? 1 : 0;
+        sMain[M.IS_CLINGING] = this.isClinging ? 1 : 0;
+        sMain[M.IS_MANTLING] = this.isMantling ? 1 : 0;
+        sMain[M.MANTLE_PROGRESS] = this.isMantling ? (this.mantleTimer / 180) : 0;
+        sMain[M.LEDGE_GRAB_COOLDOWN] = this.ledgeGrabCooldown;
         sMain[M.WALL_JUMP_TIMER] = this.wallJumpTimer;
+        sMain[M.WALL_JUMP_COOLDOWN] = this.wallJumpCooldown;
         sMain[M.WALL_JUMP_DIRECTION] = this.wallJumpDirection;
         sMain[M.SPIKE_DAMAGE_TIMER] = this.spikeDamageTimer;
         sMain[M.WAS_IN_SPIKE] = this.wasInSpike ? 1 : 0;
@@ -231,7 +391,18 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             portalCooldown: this.portalCooldown,
             isJumpingFromGround: this.isJumpingFromGround,
             spawnPoint: { ...this.spawnPoint },
-            hasCompletedLevel: this.hasCompletedLevel
+            hasCompletedLevel: this.hasCompletedLevel,
+            isClinging: this.isClinging,
+            isMantling: this.isMantling,
+            ledgeGrabCooldown: this.ledgeGrabCooldown,
+            mantleTimer: this.mantleTimer,
+            mantleFloatX: this.mantleFloatX,
+            mantleFloatY: this.mantleFloatY,
+            mantleStartX: this.mantleStartX,
+            mantleStartY: this.mantleStartY,
+            mantleTargetX: this.mantleTargetX,
+            mantleTargetY: this.mantleTargetY,
+            clingJumpGrace: this.clingJumpGrace
         };
     }
 
@@ -248,12 +419,48 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.isJumpingFromGround = data.isJumpingFromGround ?? false;
             this.spawnPoint = data.spawnPoint || this.spawnPoint;
             this.hasCompletedLevel = data.hasCompletedLevel ?? false;
+            this.isClinging = data.isClinging ?? false;
+            this.isMantling = data.isMantling ?? false;
+            this.ledgeGrabCooldown = data.ledgeGrabCooldown ?? 0;
+            this.mantleTimer = data.mantleTimer ?? 0;
+            this.mantleFloatX = data.mantleFloatX ?? 0;
+            this.mantleFloatY = data.mantleFloatY ?? 0;
+            this.mantleStartX = data.mantleStartX ?? 0;
+            this.mantleStartY = data.mantleStartY ?? 0;
+            this.mantleTargetX = data.mantleTargetX ?? 0;
+            this.mantleTargetY = data.mantleTargetY ?? 0;
+            this.clingJumpGrace = data.clingJumpGrace ?? 0;
             this.isInitialized = true;
         }
     }
 
     public modifyHP(amount: number) {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
+        if (this.hp <= 0) {
+            this.hp = 100;
+            this.hero.x = this.spawnPoint.x;
+            this.hero.y = this.spawnPoint.y;
+            this.hero.vx = 0;
+            this.hero.vy = 0;
+            this.clearMovementStates();
+        }
+    }
+
+    public clearMovementStates() {
+        this.isClinging = false;
+        this.isMantling = false;
+        this.isWallSliding = false;
+        this.wallJumpTimer = 0;
+        this.wallJumpCooldown = 0;
+        this.ledgeGrabCooldown = 0;
+        this.mantleTimer = 0;
+        this.mantleFloatX = 0;
+        this.mantleFloatY = 0;
+        this.mantleStartX = 0;
+        this.mantleStartY = 0;
+        this.mantleTargetX = 0;
+        this.mantleTargetY = 0;
+        this.clingJumpGrace = 0;
     }
 
     public get heroState() { return this.hero; }
