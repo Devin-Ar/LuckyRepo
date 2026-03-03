@@ -61,6 +61,14 @@ export class Game3Presenter extends BasePresenter {
                 assetKey = 'gol_sheet';
                 animationName = 'slide';
                 break;
+            case 4: // Clinging
+                assetKey = 'gol_sheet';
+                animationName = 'cling';
+                break;
+            case 5: // Mantling
+                assetKey = 'gol_sheet';
+                animationName = 'mantle';
+                break;
             default: // 0 - Idle
                 assetKey = 'gol_sheet';
                 animationName = 'idle';

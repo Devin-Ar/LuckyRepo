@@ -49,6 +49,7 @@ export class Game3Hazards {
             hero.y = spawn.y;
             hero.vx = 0;
             hero.vy = 0;
+            this.logic.clearMovementStates();
             this.logic.modifyHP(-20);
         }
     }

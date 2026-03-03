@@ -32,6 +32,11 @@ export const Game3MainSchema: IBuffer = {
     HAS_COMPLETED_LEVEL: 38,
     SPAWN_X: 39,
     SPAWN_Y: 40,
+    IS_CLINGING: 41,
+    WALL_JUMP_COOLDOWN: 42,
+    IS_MANTLING: 43,
+    MANTLE_PROGRESS: 44,
+    LEDGE_GRAB_COOLDOWN: 45,
 
     // Movement Settings
     MOVE_SPEED: 50,

@@ -10,6 +10,13 @@ export interface PlatformData {
     isVoid?: boolean;
     isExit?: boolean;
     isFallthrough?: boolean;
+    isPlat?: boolean;
+    isNonWallJumpableWall?: boolean;
+    isDisplayWall?: boolean;
+    isGrassForeground?: boolean;
+    isGrassBackground?: boolean;
+    isNonOrganicForeground?: boolean;
+    isNonOrganicBackground?: boolean;
     assetKey?: string;
 }
 

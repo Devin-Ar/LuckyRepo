@@ -25,6 +25,7 @@ export const INPUT_REGISTRY: Record<string, Record<string, { keys: string[], lab
     "Game3": {
         "MOVE_LEFT": { keys: ["A", "ARROWLEFT"], label: "Move Left" },
         "MOVE_RIGHT": { keys: ["D", "ARROWRIGHT"], label: "Move Right" },
+        "MOVE_UP": { keys: ["W", "ARROWUP"], label: "Move Up / Mantle" },
         "MOVE_DOWN": { keys: ["S", "ARROWDOWN"], label: "Move Down" },
         "JUMP": { keys: ["W", "ARROWUP", " "], label: "Jump" }
     }

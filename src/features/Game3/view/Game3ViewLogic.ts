@@ -46,6 +46,8 @@ export class Game3ViewLogic extends BaseViewLogic {
         const vx = lMain[Game3MainSchema.HERO_VX];
         const isOnGround = lMain[Game3MainSchema.IS_ON_GROUND] === 1;
         const isWallSliding = lMain[Game3MainSchema.IS_WALL_SLIDING] === 1;
+        const isClinging = lMain[Game3MainSchema.IS_CLINGING] === 1;
+        const isMantling = lMain[Game3MainSchema.IS_MANTLING] === 1;
 
         // 3. Determine Animation State & Orientation (Moved from Logic)
         let flipX = this.lastFlipX;
@@ -54,7 +56,9 @@ export class Game3ViewLogic extends BaseViewLogic {
         this.lastFlipX = flipX;
 
         let animState = 0;
-        if (isWallSliding) animState = 3;
+        if (isMantling) animState = 5;
+        else if (isClinging) animState = 4;
+        else if (isWallSliding) animState = 3;
         else if (!isOnGround) animState = 2;
         else if (Math.abs(vx) > 0.01) animState = 1;
         else animState = 0;

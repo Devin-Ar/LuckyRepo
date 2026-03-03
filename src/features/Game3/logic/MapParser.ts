@@ -18,16 +18,22 @@ export class MapParser {
             const platforms: PlatformData[] = [];
             let playerStart: { x: number; y: number; width?: number; height?: number } | undefined;
 
-            const floorColor = {r: 89, g: 103, b: 161};
-            const platColor = {r: 74, g: 169, b: 8};
-            const wallColor = {r: 128, g: 0, b: 128};
-            const wallAltColor = {r: 71, g: 13, b: 191};
-            const spikeColor = {r: 13, g: 191, b: 184};
-            const portalColor = {r: 28, g: 0, b: 255};
-            const voidColor = {r: 0, g: 0, b: 0};
-            const exitColor = {r: 255, g: 0, b: 0};
-            const fallthroughColor = {r: 122, g: 75, b: 13};
-            const playerColor = {r: 214, g: 159, b: 96};
+            const floorColor = {r: 89, g: 103, b: 161}; //floor not platform
+            const platColor = {r: 74, g: 169, b: 8}; //non-fallthrough platform
+            const wallColor = {r: 128, g: 0, b: 128}; //walljump wall
+            const wallAltColor = {r: 71, g: 13, b: 191}; //walljump wall alt
+            const spikeColor = {r: 13, g: 191, b: 184}; //spikes
+            const portalColor = {r: 28, g: 0, b: 255}; //portal
+            const voidColor = {r: 0, g: 0, b: 0}; //death barrier
+            const exitColor = {r: 255, g: 0, b: 0}; //level changer
+            const fallthroughColor = {r: 122, g: 75, b: 13}; //fallthrough platforms
+            const playerColor = {r: 214, g: 159, b: 96}; //player spawn point
+            const non_Wallcolor = {r: 255, g: 0, b: 213} //non-walljump wall
+            const display_Wallcolor = {r: 255, g: 240, b: 0} //display wall/ vanity wall
+            const grass_Foregroundcolor = {r: 0, g: 255, b: 134} //Grass sprite notations
+            const grass_Backgroundcolor = {r: 45, g: 99, b: 73} // Alternate Grass sprite notations
+            const non_organicForegroundObject_color = {r: 67, g: 73, b: 24} //non-organic material, like barrels, others
+            const non_organicBackgroundObject_color = {r: 152, g: 153, b: 141} //non-organic material, like barrels, others
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
@@ -56,15 +62,24 @@ export class MapParser {
                         continue;
                     }
 
-                    const isFloor = isMatch(floorColor) || isMatch(platColor);
+                    const isFloor = isMatch(floorColor);
                     const isWall = isMatch(wallColor) || isMatch(wallAltColor);
                     const isSpike = isMatch(spikeColor);
                     const isPortal = isMatch(portalColor);
                     const isVoid = isMatch(voidColor);
                     const isExit = isMatch(exitColor);
                     const isFallthrough = isMatch(fallthroughColor);
+                    const isPlat = isMatch(platColor);
+                    const isNonWallJumpableWall = isMatch(non_Wallcolor);
+                    const isDisplayWall = isMatch(display_Wallcolor);
+                    const isGrassForeground = isMatch(grass_Foregroundcolor);
+                    const isGrassBackground = isMatch(grass_Backgroundcolor);
+                    const isNonOrganicForeground = isMatch(non_organicForegroundObject_color);
+                    const isNonOrganicBackground = isMatch(non_organicBackgroundObject_color);
 
-                    if (isFloor || isWall || isSpike || isPortal || isVoid || isExit || isFallthrough) {
+                    if (isFloor || isWall || isSpike || isPortal || isVoid || isExit || isFallthrough ||
+                        isPlat || isNonWallJumpableWall || isDisplayWall || isGrassForeground || isGrassBackground ||
+                        isNonOrganicForeground || isNonOrganicBackground) {
                         const tile: PlatformData = {
                             x: x * mapScale,
                             y: y * mapScale,
@@ -77,7 +92,14 @@ export class MapParser {
                             isVoid,
                             isExit,
                             isFallthrough,
-                            assetKey: isWall ? 'Platform Length' :
+                            isPlat,
+                            isNonWallJumpableWall,
+                            isDisplayWall,
+                            isGrassForeground,
+                            isGrassBackground,
+                            isNonOrganicForeground,
+                            isNonOrganicBackground,
+                            assetKey: isWall || isNonWallJumpableWall ? 'Platform Length' :
                                 (isExit ? 'Exit Door' : 'Platform Floor')
                         };
                         platforms.push(tile);

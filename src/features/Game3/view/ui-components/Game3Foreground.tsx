@@ -22,6 +22,13 @@ export const Game3Foreground: React.FC<{
                     case 4: assetName = "Portal Gate"; break;
                     case 5: assetName = "Exit Door"; break;
                     case 6: assetName = "Platform Floor"; break;
+                    case 7: assetName = "Platform Plat"; break;
+                    case 8: assetName = "Platform NonWall"; break;
+                    case 9: assetName = "Display Wall"; break;
+                    case 10: assetName = "Grass FG"; break;
+                    case 11: assetName = "Grass BG"; break;
+                    case 12: assetName = "NonOrganic FG"; break;
+                    case 13: assetName = "NonOrganic BG"; break;
                 }
 
                 if (!assetName) return null;

@@ -13,7 +13,9 @@ export class Game3Collision {
         const checkY = hero.y + height + 0.1;
 
         for (const p of platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+                p.isNonOrganicForeground || p.isNonOrganicBackground) continue;
 
             if (p.isFallthrough) {
                 if (this.logic.isAction('MOVE_DOWN')) continue;
@@ -32,27 +34,40 @@ export class Game3Collision {
         return false;
     }
 
-    public getWallCollision(): number {
+    public getWallCollisionData(): { side: number; platform: PlatformData | null } {
         const hero = this.logic.heroState;
         const { width, height } = this.logic.dimensions;
         const platforms = this.logic.platformList;
         const checkDist = 0.1;
 
         for (const p of platforms) {
-            if (p.isWall &&
-                hero.x <= p.x + p.width && hero.x + checkDist > p.x + p.width &&
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+                p.isNonOrganicForeground || p.isNonOrganicBackground || p.isFallthrough) continue;
+
+            // Hero left side
+            if (hero.x <= p.x + p.width && hero.x + checkDist > p.x + p.width &&
                 hero.y + height > p.y && hero.y < p.y + p.height) {
-                return -1;
+                return { side: -1, platform: p };
+            }
+            // Hero right side
+            if (hero.x + width >= p.x && hero.x + width - checkDist < p.x &&
+                hero.y + height > p.y && hero.y < p.y + p.height) {
+                return { side: 1, platform: p };
             }
         }
-        for (const p of platforms) {
-            if (p.isWall &&
-                hero.x + width >= p.x && hero.x + width - checkDist < p.x &&
-                hero.y + height > p.y && hero.y < p.y + p.height) {
-                return 1;
-            }
-        }
-        return 0;
+        return { side: 0, platform: null };
+    }
+
+    public isWallAbove(platform: PlatformData): boolean {
+        const platforms = this.logic.platformList;
+        return platforms.some(p => {
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+                p.isNonOrganicForeground || p.isNonOrganicBackground || p.isFallthrough) return false;
+            
+            return Math.abs(p.x - platform.x) < 0.1 && Math.abs(p.y - (platform.y - platform.height)) < 0.1;
+        });
     }
 
     public resolveMovement() {
@@ -64,7 +79,9 @@ export class Game3Collision {
 
         // Horizontal Collision
         for (const p of platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+                p.isNonOrganicForeground || p.isNonOrganicBackground) continue;
             if (p.isFallthrough) continue;
 
             if (nextX + width > p.x && nextX < p.x + p.width && hero.y + height > p.y && hero.y < p.y + p.height) {
@@ -81,7 +98,9 @@ export class Game3Collision {
         let verticalCollided = false;
 
         for (const p of platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit) continue;
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+                p.isNonOrganicForeground || p.isNonOrganicBackground) continue;
 
             if (p.isFallthrough) {
                 if (hero.vy < 0) continue;
