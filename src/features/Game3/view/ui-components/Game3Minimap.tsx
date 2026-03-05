@@ -127,6 +127,7 @@ function getColorForType(type: number): string {
         case 4: return '#1c00ff'; // Portal (Blue)
         case 5: return '#ff4444'; // Exit (Red)
         case 6: return '#7a4b0d'; // Fallthrough (Brown)
+        case 14: return '#ffd700'; // Coin (Gold)
         default: return '#333333';
     }
 }

@@ -32,6 +32,7 @@ export const Game3Hitboxes: React.FC<{
                 case 11: color = 0x2d6349; break; // Grass BG (Dark Green)
                 case 12: color = 0x434918; break; // Non-Organic FG (Dark Olive)
                 case 13: color = 0x98998d; break; // Non-Organic BG (Grey-Olive)
+                case 14: color = 0xffd700; break; // Coin (Gold)
                 default: color = 0xff00ff;       // Error/Unknown (Magenta)
             }
             g.beginFill(color, 1.0);

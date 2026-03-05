@@ -33,7 +33,7 @@ export const Game3ViewMainSchema: IBuffer = {
 export const Game3ViewPlatformsSchema: IBuffer = {
     START_INDEX: 0,
     STRIDE: 5,
-    BUFFER_SIZE: 5000
+    BUFFER_SIZE: 25000
 };
 
 export const Game3ViewSchema: BufferMap = {

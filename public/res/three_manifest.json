@@ -84,6 +84,16 @@
         "walk": ["h_walk_0", "h_walk_1", "h_walk_2"],
         "idle": ["h_idle_0"]
       }
+    },
+    "coin": {
+      "url": "res/sprite/sheets/Coin.png",
+      "frames": {
+        "coin_0": {"x":0, "y":0, "w":32, "h":32},
+        "coin_1": {"x":32, "y":0, "w":32, "h":32}
+      },
+      "animations": {
+        "spin": ["coin_0", "coin_1"]
+      }
     }
   },
   "images": {

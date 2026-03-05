@@ -5,6 +5,9 @@ import { Game3Collision } from './Game3Collision';
 export class Game3Hazards {
     constructor(private logic: Game3Logic, private collision: Game3Collision) {}
 
+    private static readonly COIN_PICKUP_VALUE = 50;
+    private static readonly COIN_PICKUP_HEAL = 20;
+
     public updateSpikeLogic() {
         const currentlyInSpike = this.collision.checkHazardCollision('isSpike');
         if (currentlyInSpike) {
@@ -57,8 +60,34 @@ export class Game3Hazards {
     public updateExitLogic() {
         if (!this.logic.levelCompleted && this.collision.checkHazardCollision('isExit')) {
             this.logic.levelCompleted = true;
-            this.logic.awardExitReward();
             self.postMessage({ type: 'EVENT', name: 'LEVEL_COMPLETE' });
+        }
+    }
+
+    public updateCoinLogic() {
+        const hero = this.logic.heroState;
+        const { width, height } = this.logic.dimensions;
+        const platforms = this.logic.platformList;
+        const padding = 0.05;
+
+        let collected = 0;
+
+        for (let i = platforms.length - 1; i >= 0; i--) {
+            const p = platforms[i];
+            if (!p.isCoinCollectable) continue;
+
+            if (hero.x + width - padding > p.x &&
+                hero.x + padding < p.x + p.width &&
+                hero.y + height - padding > p.y &&
+                hero.y + padding < p.y + p.height) {
+                platforms.splice(i, 1);
+                collected++;
+            }
+        }
+
+        if (collected > 0) {
+            this.logic.addCoins(collected * Game3Hazards.COIN_PICKUP_VALUE);
+            this.logic.modifyHP(collected * Game3Hazards.COIN_PICKUP_HEAL);
         }
     }
 }

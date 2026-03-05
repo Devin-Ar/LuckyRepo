@@ -56,7 +56,7 @@ export const Game3MainSchema: IBuffer = {
 export const Game3PlatformsSchema: IBuffer = {
     START_INDEX: 0,
     STRIDE: 5, // x, y, width, height, type
-    BUFFER_SIZE: 5000 // Support for up to 1000 objects
+    BUFFER_SIZE: 25000 // Support for up to 5000 objects
 };
 
 export const Game3LogicSchema: BufferMap = {

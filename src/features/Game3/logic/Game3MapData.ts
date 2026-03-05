@@ -17,6 +17,7 @@ export interface PlatformData {
     isGrassBackground?: boolean;
     isNonOrganicForeground?: boolean;
     isNonOrganicBackground?: boolean;
+    isCoinCollectable?: boolean;
     assetKey?: string;
 }
 

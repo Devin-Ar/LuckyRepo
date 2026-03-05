@@ -9,37 +9,72 @@ export const Game3Foreground: React.FC<{
     vm: Game3Presenter;
     heroSprRef: React.RefObject<PIXI.Container>;
 }> = ({ vm, heroSprRef }) => {
+    const coinFrame = Math.floor(Date.now() / 250) % 2;
+
     return (
         <Container name="foreground">
             {/* Level Environment Sprites */}
             {vm.objects.map((p, i) => {
+                const isCoin = p.type === 14;
                 let assetName = "";
-                switch(p.type) {
-                    case 0: assetName = "Platform Floor"; break;
-                    case 1: assetName = "Platform Length"; break;
-                    case 2: assetName = "Void Pit"; break;
-                    case 3: assetName = "Spike Trap"; break;
-                    case 4: assetName = "Portal Gate"; break;
-                    case 5: assetName = "Exit Door"; break;
-                    case 6: assetName = "Platform Floor"; break;
-                    case 7: assetName = "Platform Plat"; break;
-                    case 8: assetName = "Platform NonWall"; break;
-                    case 9: assetName = "Display Wall"; break;
-                    case 10: assetName = "Grass FG"; break;
-                    case 11: assetName = "Grass BG"; break;
-                    case 12: assetName = "NonOrganic FG"; break;
-                    case 13: assetName = "NonOrganic BG"; break;
+                if (!isCoin) {
+                    switch(p.type) {
+                        case 0: assetName = "Platform Floor"; break;
+                        case 1: assetName = "Platform Length"; break;
+                        case 2: assetName = "Void Pit"; break;
+                        case 3: assetName = "Spike Trap"; break;
+                        case 4: assetName = "Portal Gate"; break;
+                        case 5: assetName = "Exit Door"; break;
+                        case 6: assetName = "Platform Floor"; break;
+                        case 7: assetName = "Platform Plat"; break;
+                        case 8: assetName = "Platform NonWall"; break;
+                        case 9: assetName = "Display Wall"; break;
+                        case 10: assetName = "Grass FG"; break;
+                        case 11: assetName = "Grass BG"; break;
+                        case 12: assetName = "NonOrganic FG"; break;
+                        case 13: assetName = "NonOrganic BG"; break;
+                    }
                 }
 
-                if (!assetName) return null;
+                if (!assetName && !isCoin) return null;
+
+                if (!isCoin && p.type === 6 && p.width > p.height) {
+                    const tileSize = p.height || 1;
+                    const tileCount = Math.max(1, Math.round(p.width / tileSize));
+                    const tiles = Array.from({ length: tileCount }, (_, idx) => (
+                        <Container
+                            key={`sprite-${i}-${idx}`}
+                            x={p.x + (idx * tileSize) + (tileSize / 2)}
+                            y={p.y + p.height}
+                        >
+                            <GameSprite
+                                imageName={assetName}
+                                anchor={[0.5, 1.0]}
+                                scale={1/32}
+                            />
+                        </Container>
+                    ));
+
+                    return <React.Fragment key={`sprite-${i}`}>{tiles}</React.Fragment>;
+                }
 
                 return (
                     <Container key={`sprite-${i}`} x={p.x + p.width / 2} y={p.y + p.height}>
-                        <GameSprite
-                            imageName={assetName}
-                            anchor={[0.5, 1.0]}
-                            scale={1/32}
-                        />
+                        {isCoin ? (
+                            <GameSprite
+                                sheetName="coin"
+                                animationName="spin"
+                                currentFrame={coinFrame}
+                                anchor={[0.5, 1.0]}
+                                scale={1/32}
+                            />
+                        ) : (
+                            <GameSprite
+                                imageName={assetName}
+                                anchor={[0.5, 1.0]}
+                                scale={1/32}
+                            />
+                        )}
                     </Container>
                 );
             })}

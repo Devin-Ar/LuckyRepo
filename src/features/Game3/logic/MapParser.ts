@@ -8,15 +8,14 @@ export class MapParser {
         console.log(`[MapParser] Parsing: ${imagePath}`);
 
         try {
-            const image = await Jimp.read(imagePath);
-            if (!image) throw new Error(`Jimp failed to load image: ${imagePath}`);
-
-            const width = image.bitmap.width;
-            const height = image.bitmap.height;
+            const { width, height, data } = await this.readImageData(imagePath);
             console.log(`[MapParser] Image loaded: ${width}x${height}`);
 
             const platforms: PlatformData[] = [];
             let playerStart: { x: number; y: number; width?: number; height?: number } | undefined;
+            let unknownOpaque = 0;
+            let coinCount = 0;
+            let playerCount = 0;
 
             const floorColor = {r: 89, g: 103, b: 161}; //floor not platform
             const platColor = {r: 74, g: 169, b: 8}; //non-fallthrough platform
@@ -34,14 +33,15 @@ export class MapParser {
             const grass_Backgroundcolor = {r: 45, g: 99, b: 73} // Alternate Grass sprite notations
             const non_organicForegroundObject_color = {r: 67, g: 73, b: 24} //non-organic material, like barrels, others
             const non_organicBackgroundObject_color = {r: 152, g: 153, b: 141} //non-organic material, like barrels, others
+            const coinCollectable = {r: 172, g: 0, b: 85} //coin collectable
 
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     const idx = (width * y + x) * 4;
-                    const r = image.bitmap.data[idx];
-                    const g = image.bitmap.data[idx + 1];
-                    const b = image.bitmap.data[idx + 2];
-                    const a = image.bitmap.data[idx + 3];
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    const a = data[idx + 3];
 
                     if (a < 128) continue;
 
@@ -53,6 +53,7 @@ export class MapParser {
                     };
 
                     if (isMatch(playerColor)) {
+                        playerCount++;
                         playerStart = {
                             x: x * mapScale,
                             y: y * mapScale,
@@ -76,10 +77,30 @@ export class MapParser {
                     const isGrassBackground = isMatch(grass_Backgroundcolor);
                     const isNonOrganicForeground = isMatch(non_organicForegroundObject_color);
                     const isNonOrganicBackground = isMatch(non_organicBackgroundObject_color);
+                    const isCoinCollectable = isMatch(coinCollectable);
 
-                    if (isFloor || isWall || isSpike || isPortal || isVoid || isExit || isFallthrough ||
+                    const isKnown = isFloor || isWall || isSpike || isPortal || isVoid || isExit || isFallthrough ||
                         isPlat || isNonWallJumpableWall || isDisplayWall || isGrassForeground || isGrassBackground ||
-                        isNonOrganicForeground || isNonOrganicBackground) {
+                        isNonOrganicForeground || isNonOrganicBackground || isCoinCollectable;
+
+                    if (!isKnown) {
+                        unknownOpaque++;
+                        continue;
+                    }
+
+                    if (isKnown) {
+                        if (isCoinCollectable) coinCount++;
+                        if (isFallthrough && platforms.length > 0) {
+                            const last = platforms[platforms.length - 1];
+                            const expectedX = x * mapScale;
+                            const expectedY = y * mapScale;
+                            if (last.isFallthrough &&
+                                Math.abs(last.y - expectedY) < 0.0001 &&
+                                Math.abs((last.x + last.width) - expectedX) < 0.0001) {
+                                last.width += 1 * mapScale;
+                                continue;
+                            }
+                        }
                         const tile: PlatformData = {
                             x: x * mapScale,
                             y: y * mapScale,
@@ -99,8 +120,9 @@ export class MapParser {
                             isGrassBackground,
                             isNonOrganicForeground,
                             isNonOrganicBackground,
+                            isCoinCollectable,
                             assetKey: isWall || isNonWallJumpableWall ? 'Platform Length' :
-                                (isExit ? 'Exit Door' : 'Platform Floor')
+                                (isExit ? 'Exit Door' : (isCoinCollectable ? 'Coin' : 'Platform Floor'))
                         };
                         platforms.push(tile);
                     }
@@ -111,11 +133,56 @@ export class MapParser {
                 console.warn("[MapParser] No player start found. Using default.");
                 playerStart = {x: 5, y: 5, width: 1, height: 1};
             }
+
+            console.log(`[MapParser] Parsed ${platforms.length} tiles ` +
+                `(coins: ${coinCount}, unknownOpaque: ${unknownOpaque}, playerSpawns: ${playerCount}).`);
             return {platforms, playerStart};
 
         } catch (error) {
             console.error(`[MapParser] Failed to parse map ${imagePath}:`, error);
             throw error;
         }
+    }
+
+    private static async readImageData(imagePath: string): Promise<{ width: number; height: number; data: Uint8ClampedArray }> {
+        try {
+            const image = await Jimp.read(imagePath);
+            if (!image) throw new Error(`Jimp failed to load image: ${imagePath}`);
+            return {
+                width: image.bitmap.width,
+                height: image.bitmap.height,
+                data: image.bitmap.data as Uint8ClampedArray
+            };
+        } catch (e) {
+            console.warn(`[MapParser] Jimp decode failed, falling back to Canvas for ${imagePath}.`, e);
+        }
+
+        if (typeof document === 'undefined') {
+            throw new Error(`[MapParser] Canvas fallback unavailable (no document) for ${imagePath}`);
+        }
+
+        const img = await this.loadImage(imagePath);
+        const width = img.naturalWidth || img.width;
+        const height = img.naturalHeight || img.height;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) throw new Error(`[MapParser] Failed to get 2D context for ${imagePath}`);
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        return { width, height, data: imageData.data };
+    }
+
+    private static loadImage(imagePath: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`[MapParser] Failed to load image: ${imagePath}`));
+            img.src = imagePath;
+        });
     }
 }

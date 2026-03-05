@@ -117,6 +117,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.hazards.updateSpikeLogic();
         this.hazards.updatePortalLogic();
         this.hazards.updateVoidLogic();
+        this.hazards.updateCoinLogic();
 
 
         this.syncToSAB(sharedView, frameCount, fps);
@@ -136,7 +137,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         // Mantling State Logic
         if (this.isMantling) {
             this.mantleTimer++;
-            const totalDuration = 180; // 3s
+            const totalDuration = 90; // 1.5s
             const t = this.mantleTimer / totalDuration;
 
             if (t >= 1) {
@@ -269,7 +270,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
                 // Cling Entry Logic
                 // Only enter cling if moving downwards or stationary vertically
                 const atTop = this.hero.y <= wallPlatform.y + 0.1;
-                if (atTop && !this.collision.isWallAbove(wallPlatform) && this.ledgeGrabCooldown === 0) {
+                const canClingFallthrough = !wallPlatform.isFallthrough ||
+                    (this.hero.vy >= 0 && !this.isAction('MOVE_DOWN'));
+
+                if (atTop && canClingFallthrough && !this.collision.isWallAbove(wallPlatform) && this.ledgeGrabCooldown === 0) {
                     this.isClinging = true;
                     this.hero.vx = 0;
                     this.hero.vy = 0;
@@ -333,6 +337,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (p.isGrassBackground) return 11;
         if (p.isNonOrganicForeground) return 12;
         if (p.isNonOrganicBackground) return 13;
+        if (p.isCoinCollectable) return 14;
         if (p.isFloor) return 0;
         return 0;
     }
@@ -474,6 +479,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public awardExitReward() {
         this.points += EXIT_REACHED_POINTS;
         this.coins += EXIT_REACHED_COINS;
+    }
+
+    public addCoins(amount: number) {
+        this.coins += amount;
     }
 
     public clearMovementStates() {
