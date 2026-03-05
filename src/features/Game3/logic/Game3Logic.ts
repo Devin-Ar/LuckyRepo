@@ -8,6 +8,10 @@ import { ParsedMapData, PlatformData } from './Game3MapData'; // Keep these impo
 import { Game3Collision } from './Game3Collision';
 import { Game3Hazards } from './Game3Hazards';
 
+// Point values for platformer events
+const EXIT_REACHED_POINTS = 200;
+const EXIT_REACHED_COINS = 10;
+
 export class Game3Logic extends BaseLogic<Game3Config> {
     protected dispatcher: BaseDispatcher<Game3Logic>;
 
@@ -55,6 +59,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private friction = 0.5;
     private wallJumpPowerMultiplier = 1.225; // ~50% higher peak vs base jump (sqrt(1.5))
 
+    // Economy — persisted cross-game via session
+    private points: number = 0;
+    private coins: number = 0;
+
     constructor() {
         super(Game3MainSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game3Commands, "Game3");
@@ -70,6 +78,14 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.playerOffsetY = config.playerOffsetY || 0;
         this.heroWidth = config.heroWidth || 1.0;
         this.heroHeight = config.heroHeight || 2.0;
+
+        // Restore economy from config if provided (session overrides flow through config)
+        if ((config as any).initialPoints !== undefined) {
+            this.points = (config as any).initialPoints;
+        }
+        if ((config as any).initialCoins !== undefined) {
+            this.coins = (config as any).initialCoins;
+        }
     }
 
     public setMapData(data: ParsedMapData) {
@@ -364,6 +380,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         sMain[M.GRAVITY] = this.gravity;
         sMain[M.FRICTION] = this.friction;
 
+        // Economy
+        sMain[M.POINTS] = this.points;
+        sMain[M.COINS] = this.coins;
+
         const capacity = Math.floor(sPlatforms.length / Game3PlatformsSchema.STRIDE);
         const objCount = Math.min(this.platforms.length, capacity);
         sMain[M.OBJ_COUNT] = objCount;
@@ -392,6 +412,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             isJumpingFromGround: this.isJumpingFromGround,
             spawnPoint: { ...this.spawnPoint },
             hasCompletedLevel: this.hasCompletedLevel,
+            points: this.points,
+            coins: this.coins,
             isClinging: this.isClinging,
             isMantling: this.isMantling,
             ledgeGrabCooldown: this.ledgeGrabCooldown,
@@ -419,6 +441,8 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.isJumpingFromGround = data.isJumpingFromGround ?? false;
             this.spawnPoint = data.spawnPoint || this.spawnPoint;
             this.hasCompletedLevel = data.hasCompletedLevel ?? false;
+            this.points = data.points ?? 0;
+            this.coins = data.coins ?? 0;
             this.isClinging = data.isClinging ?? false;
             this.isMantling = data.isMantling ?? false;
             this.ledgeGrabCooldown = data.ledgeGrabCooldown ?? 0;
@@ -444,6 +468,12 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.hero.vy = 0;
             this.clearMovementStates();
         }
+    }
+
+    /** Award points and coins for reaching the exit */
+    public awardExitReward() {
+        this.points += EXIT_REACHED_POINTS;
+        this.coins += EXIT_REACHED_COINS;
     }
 
     public clearMovementStates() {
