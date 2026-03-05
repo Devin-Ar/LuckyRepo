@@ -59,7 +59,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
     contactDamage: number = 0.2;
     wave: number = 0;
 
-    private timeElapsed: number;
+    private frameElapsed: number;
     private atkBox: { eX: number, eY: number };
     private followRun: boolean;
     private primedMode: boolean;
@@ -73,7 +73,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         this.health = 100;
         this.hp = 100;
         this.maxHp = 100;
-        this.timeElapsed = Date.now() + Math.random() * 1000;
+        this.frameElapsed = this.currentFrame + Math.random() * 3;
         this.atkBox = { eX: 0, eY: 0 };
         this.followRun = false;
         this.primedMode = false;
@@ -159,13 +159,14 @@ export class RockEntity extends baseEntity implements IContactEnemy {
     }
 
     private processRockAttacks(player: basePlayer, config: BHConfig): void {
-        const timeMili = (Date.now() - this.timeElapsed);
-        if (timeMili > 5000 && !this.primedMode) {
+        //3 frames per second
+        const timeMili = (this.currentFrame - this.frameElapsed);
+        if (timeMili > 15 && !this.primedMode) {
             this.primedMode = true;
             this.atkBox = { eX: player.x, eY: player.y };
         }
 
-        if (this.primedMode && timeMili > 7000) {
+        if (this.primedMode && timeMili > 21) {
             const slope = (this.atkBox.eY - this.y) / (this.atkBox.eX - this.x);
             const regnum = this.y - (slope * this.x);
             const top = Math.abs(slope * player.x + -1 * player.y + regnum);
@@ -177,7 +178,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
                 && Math.min(this.atkBox.eY, this.y) <= player.y && player.y <= Math.max(this.atkBox.eY, this.y)) {
                 player.modifyHp(-10);
             }
-            this.timeElapsed = Date.now();
+            this.frameElapsed = this.currentFrame;
             this.primedMode = false;
             this.atkBox = { eX: 0, eY: 0 };
         }
@@ -189,12 +190,12 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
     hp: number = 0;
     maxHp: number = 0;
     moveSpeed: number = 0;
-    fireRate: number = 5000;
+    fireRate: number = 1.5;
     lastShotFrame: number = 0;
     projectileDamage: number = 20;
     wave: number = 0;
 
-    private timeElapsed: number;
+    private frameElapsed: number;
     private followRun: boolean;
     private primedMode: boolean;
 
@@ -207,7 +208,7 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         this.health = 100;
         this.hp = 100;
         this.maxHp = 100;
-        this.timeElapsed = Date.now() + Math.random() * 1000;
+        this.frameElapsed = this.currentFrame + Math.random() * 3;
         this.followRun = false;
         this.primedMode = false;
         this.active = true;
@@ -300,14 +301,14 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
     }
 
     private processShotAttacks(player: basePlayer, currentShots: enemyProjectile[]): void {
-        const timeMili = (Date.now() - this.timeElapsed);
-        if (timeMili > this.fireRate + Math.floor(Math.random() * 3000) && !this.primedMode) {
+        const timeMili = (this.currentFrame - this.frameElapsed);
+        if (timeMili > this.fireRate + Math.floor(Math.random() * 9) && !this.primedMode) {
             this.primedMode = true;
         }
 
         if (this.primedMode) {
             currentShots.push(new enemyProjectile(this.x, this.y, player.x, player.y));
-            this.timeElapsed = Date.now();
+            this.frameElapsed = this.currentFrame;
             this.primedMode = false;
         }
     }
