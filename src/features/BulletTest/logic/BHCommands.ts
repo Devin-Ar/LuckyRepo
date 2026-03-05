@@ -1,4 +1,4 @@
-// src/features/Game1/logic/Game1Commands.ts
+// src/features/BulletTest/logic/BHCommands.ts
 import {ICommand} from '../../../core/interfaces/ICommand';
 import {BHConfig} from '../model/BHConfig';
 
@@ -18,6 +18,11 @@ export const BHCommands: Record<string, ICommand> = {
         execute(logic, payload) {
             const damage = payload.amount ?? 15;
             logic.modifyHp(-damage);
+        }
+    },
+    USE_ITEM: {
+        execute(logic) {
+            logic.useHeldItem();
         }
     }
 };

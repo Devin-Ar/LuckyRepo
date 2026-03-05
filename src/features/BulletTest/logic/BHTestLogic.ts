@@ -11,6 +11,7 @@ import {enemyProjectile, playerProjectile} from '../interfaces/baseInterfaces/ba
 import { WaveManager } from './WaveManager';
 import { IWaveDefinition } from '../interfaces/IRoom';
 import waveData from '../data/bh_waves.json';
+import { ITEM_NONE, ITEM_HEALTH_POTION, getItemDef } from '../../../core/inventory/ItemRegistry';
 
 interface WaveLevelData {
     waves: IWaveDefinition[];
@@ -25,6 +26,9 @@ const BOSS_KILL_POINTS = 500;
 const MINION_COIN_MIN = 0;
 const MINION_COIN_MAX = 5;
 const BOSS_COIN_REWARD = 25;
+
+// Item drop pickup radius
+const ITEM_PICKUP_RADIUS = 40;
 
 export class BHTestLogic extends BaseLogic<BHConfig> {
     protected dispatcher: BaseDispatcher<BHTestLogic>;
@@ -54,6 +58,16 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     // Economy — persisted cross-game via session
     private points: number = 0;
     private coins: number = 0;
+
+    // Inventory — single held item, persisted cross-game via session
+    private heldItemId: number = ITEM_NONE;
+
+    // Item drop in world
+    private itemDropActive: boolean = false;
+    private itemDropX: number = 0;
+    private itemDropY: number = 0;
+    private itemDropType: number = ITEM_NONE;
+    private itemDropSpawned: boolean = false; // prevents re-spawning
 
     constructor() {
         super(BHMainLogicSchema.REVISION);
@@ -86,6 +100,13 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.exitDoorX = config.width / 2;
         this.exitDoorY = config.height / 2;
 
+        // Reset item drop state
+        this.itemDropActive = false;
+        this.itemDropSpawned = false;
+        this.itemDropX = 0;
+        this.itemDropY = 0;
+        this.itemDropType = ITEM_NONE;
+
         const levelLabel = this.config!.levelLabel || "Level 1";
         this.bossLevel = levelLabel === "Level 4";
         this.bossRewardGiven = false;
@@ -102,6 +123,11 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         }
         if ((config as any).initialCoins !== undefined) {
             this.coins = (config as any).initialCoins;
+        }
+
+        // Restore inventory from config if provided (session overrides)
+        if ((config as any).initialHeldItem !== undefined) {
+            this.heldItemId = (config as any).initialHeldItem;
         }
     }
 
@@ -126,7 +152,13 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             waveSnapshot: this.waveManager.getSnapshot(),
             wavesStarted: this.wavesStarted,
             points: this.points,
-            coins: this.coins
+            coins: this.coins,
+            heldItemId: this.heldItemId,
+            itemDropActive: this.itemDropActive,
+            itemDropX: this.itemDropX,
+            itemDropY: this.itemDropY,
+            itemDropType: this.itemDropType,
+            itemDropSpawned: this.itemDropSpawned
         };
     }
 
@@ -141,10 +173,37 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.wavesStarted = data.wavesStarted ?? false;
         this.points = data.points ?? 0;
         this.coins = data.coins ?? 0;
+        this.heldItemId = data.heldItemId ?? ITEM_NONE;
+        this.itemDropActive = data.itemDropActive ?? false;
+        this.itemDropX = data.itemDropX ?? 0;
+        this.itemDropY = data.itemDropY ?? 0;
+        this.itemDropType = data.itemDropType ?? ITEM_NONE;
+        this.itemDropSpawned = data.itemDropSpawned ?? false;
         if (data.waveSnapshot) {
             this.waveManager.loadSnapshot(data.waveSnapshot);
         }
         this.isInitialized = true;
+    }
+
+    /**
+     * Use the currently held item. Called via USE_ITEM command.
+     */
+    public useHeldItem(): void {
+        if (this.heldItemId === ITEM_NONE) return;
+
+        const def = getItemDef(this.heldItemId);
+        if (!def || !def.onUse) return;
+
+        const result = def.onUse({ hp: this.player.hp, maxHp: 100 });
+        if (!result) return; // Item says don't consume (e.g. HP already full)
+
+        if (result.hpDelta) {
+            this.player.modifyHp(result.hpDelta);
+        }
+
+        // Consume the item
+        this.heldItemId = ITEM_NONE;
+        self.postMessage({ type: 'EVENT', name: 'ITEM_USED' });
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
@@ -267,6 +326,29 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             if (!this.exitDoorActive) {
                 this.exitDoorActive = true;
             }
+
+            // Spawn health potion drop after all waves cleared (once per level, only if not already holding an item)
+            if (!this.itemDropSpawned && this.heldItemId === ITEM_NONE) {
+                this.itemDropSpawned = true;
+                this.itemDropActive = true;
+                // Place the potion near the center of the map, offset from the exit door
+                this.itemDropX = this.exitDoorX + 80;
+                this.itemDropY = this.exitDoorY;
+                this.itemDropType = ITEM_HEALTH_POTION;
+                self.postMessage({ type: 'EVENT', name: 'ITEM_SPAWNED', payload: { itemId: ITEM_HEALTH_POTION } });
+            }
+        }
+
+        // Check item drop pickup collision
+        if (this.itemDropActive && this.heldItemId === ITEM_NONE) {
+            const dx = this.player.x - this.itemDropX;
+            const dy = this.player.y - this.itemDropY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < ITEM_PICKUP_RADIUS) {
+                this.heldItemId = this.itemDropType;
+                this.itemDropActive = false;
+                self.postMessage({ type: 'EVENT', name: 'ITEM_PICKED_UP', payload: { itemId: this.itemDropType } });
+            }
         }
 
         // Check if player steps on the exit door
@@ -334,6 +416,13 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         // Economy
         sMain[M.POINTS] = this.points;
         sMain[M.COINS] = this.coins;
+
+        // Inventory
+        sMain[M.HELD_ITEM_ID] = this.heldItemId;
+        sMain[M.ITEM_DROP_ACTIVE] = this.itemDropActive ? 1 : 0;
+        sMain[M.ITEM_DROP_X] = this.itemDropX;
+        sMain[M.ITEM_DROP_Y] = this.itemDropY;
+        sMain[M.ITEM_DROP_TYPE] = this.itemDropType;
 
         if (this.boss) {
             sMain[M.BOSS_HP] = this.boss.health;

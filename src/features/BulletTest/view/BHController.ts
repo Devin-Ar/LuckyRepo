@@ -22,6 +22,10 @@ export class BHController extends BaseController<BHPresenter> {
         this.send('TAKE_DAMAGE', {amount: 15});
     }
 
+    public useItem() {
+        this.send('USE_ITEM', {});
+    }
+
     public async jumpToGame2() {
         const target = await StateRegistry.create(FeatureEnum.GAME_2, { reset: false });
         await StateManager.getInstance().replace(target);
@@ -44,6 +48,10 @@ export class BHController extends BaseController<BHPresenter> {
         if (input.isKeyAction(e.key, 'PAUSE')) {
             this.openPauseMenu();
         }
+        // Q key to use held item
+        if (e.key.toUpperCase() === 'Q') {
+            this.useItem();
+        }
     }
 
     protected onWorkerEvent(name: string): void {
@@ -57,6 +65,12 @@ export class BHController extends BaseController<BHPresenter> {
         if (name === 'EXIT_DOOR_ENTERED' && !this.hasExited) {
             this.hasExited = true;
             this.handleExitDoor();
+        }
+        if (name === 'ITEM_PICKED_UP') {
+            AudioManager.getInstance().play('sfx_explosion'); // reuse existing SFX for now
+        }
+        if (name === 'ITEM_USED') {
+            AudioManager.getInstance().play('sfx_explosion'); // reuse existing SFX for now
         }
     }
 

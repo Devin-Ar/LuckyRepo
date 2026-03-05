@@ -114,6 +114,8 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         sharedView[base + 7] = this.height;
         sharedView[base + 8] = this.currentFrame;
         sharedView[base + 9] = 0; //contact
+        sharedView[base + 10] = this.hp;
+        sharedView[base + 11] = this.maxHp;
     }
 
     private processRock(player: basePlayer, config: BHConfig): void {
@@ -256,6 +258,8 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
         sharedView[base + 7] = this.height;
         sharedView[base + 8] = this.currentFrame;
         sharedView[base + 9] = 1; //ranged
+        sharedView[base + 10] = this.hp;
+        sharedView[base + 11] = this.maxHp;
     }
 
     private processShot(player: basePlayer, config: BHConfig): void {

@@ -123,6 +123,13 @@ export class BHViewLogic extends BaseViewLogic {
         // Economy pass-through
         vMain[VM.POINTS] = lMain[LM.POINTS];
         vMain[VM.COINS] = lMain[LM.COINS];
+
+        // Inventory pass-through
+        vMain[VM.HELD_ITEM_ID] = lMain[LM.HELD_ITEM_ID];
+        vMain[VM.ITEM_DROP_ACTIVE] = lMain[LM.ITEM_DROP_ACTIVE];
+        vMain[VM.ITEM_DROP_X] = lMain[LM.ITEM_DROP_X];
+        vMain[VM.ITEM_DROP_Y] = lMain[LM.ITEM_DROP_Y];
+        vMain[VM.ITEM_DROP_TYPE] = lMain[LM.ITEM_DROP_TYPE];
     }
 
     public override getSnapshot() {

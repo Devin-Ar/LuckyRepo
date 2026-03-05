@@ -15,12 +15,14 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
     const [tick, setTick] = React.useState(0);
     const [points, setPoints] = React.useState(0);
     const [coins, setCoins] = React.useState(0);
+    const [heldItemId, setHeldItemId] = React.useState(0);
 
     React.useEffect(() => {
         const unsubscribe = vm.subscribe(() => {
             setTick(t => t + 1);
             setPoints(vm.points);
             setCoins(vm.coins);
+            setHeldItemId(vm.heldItem);
         });
         return () => unsubscribe();
     }, [vm]);
@@ -82,14 +84,15 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     mixBlendMode: 'multiply'
                 }}/>
 
-                {/* Minimap overlay - bottom right corner */}
                 <Game3Minimap vm={vm} size={250} />
 
                 <Game3HUD
                     stats={stats}
                     points={points}
                     coins={coins}
+                    heldItemId={heldItemId}
                     onAction={(type, val) => { if (type === 'MOD_HP') controller.modifyHP(val || 0); }}
+                    onUseItem={() => controller.useItem()}
                     onLevel1={() => controller.loadLevel(Game3Level.Level1)}
                     onLevel2={() => controller.loadLevel(Game3Level.Level2)}
                     onLevel3={() => controller.loadLevel(Game3Level.Level3)}

@@ -50,13 +50,22 @@ export const BHMainViewSchema: IBuffer = {
     POINTS: 38,
     COINS: 39,
 
+    // Inventory — cross-game persistent
+    HELD_ITEM_ID: 40,
+    ITEM_DROP_ACTIVE: 41,
+    ITEM_DROP_X: 42,
+    ITEM_DROP_Y: 43,
+    ITEM_DROP_TYPE: 44,
+
     BUFFER_SIZE: 128
 };
 
 export const BHRocksViewSchema: IBuffer = {
-    STRIDE: 10,
+    STRIDE: 12,
     FRAME: 8,
-    BUFFER_SIZE: 9000
+    HP: 10,
+    MAX_HP: 11,
+    BUFFER_SIZE: 12000
 };
 
 export const BHPProjViewSchema: IBuffer = {

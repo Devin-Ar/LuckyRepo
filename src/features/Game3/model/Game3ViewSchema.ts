@@ -27,6 +27,9 @@ export const Game3ViewMainSchema: IBuffer = {
     POINTS: 31,
     COINS: 32,
 
+    // Inventory — cross-game persistent
+    HELD_ITEM_ID: 33,
+
     BUFFER_SIZE: 128
 };
 

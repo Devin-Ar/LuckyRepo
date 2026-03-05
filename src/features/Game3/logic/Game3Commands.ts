@@ -14,7 +14,6 @@ export const Game3Commands: Record<string, ICommand> = {
     },
     SET_MAP_DATA: {
         execute(logic, payload: ParsedMapData) {
-            // Logic now receives pure data, no parsing needed here
             logic.setMapData(payload);
             logic.setInitialized(true);
         }
@@ -22,6 +21,11 @@ export const Game3Commands: Record<string, ICommand> = {
     MOD_HP: {
         execute(logic, payload: { amount: number }) {
             logic.modifyHP(payload.amount);
+        }
+    },
+    USE_ITEM: {
+        execute(logic) {
+            logic.useHeldItem();
         }
     }
 };

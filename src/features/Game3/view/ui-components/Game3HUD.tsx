@@ -1,5 +1,6 @@
 // src/features/Game3/view/ui-components/Game3HUD.tsx
 import React, { useEffect, useState } from 'react';
+import { getItemDef, ITEM_NONE } from '../../../../core/inventory/ItemRegistry';
 
 // Sprite paths — 2-frame horizontal spritesheets (64x32, each frame 32x32)
 const POINT_SPRITE_PATH = 'res/sprite/sheets/Point.png';
@@ -9,7 +10,9 @@ interface HUDProps {
     stats: { hp: number };
     points: number;
     coins: number;
+    heldItemId: number;
     onAction: (type: string, val?: number) => void;
+    onUseItem: () => void;
     onLevel1: () => void;
     onLevel2: () => void;
     onLevel3: () => void;
@@ -18,10 +21,6 @@ interface HUDProps {
     onQuickLoad: () => void;
 }
 
-/**
- * Animated 2-frame sprite icon from a horizontal spritesheet (64x32).
- * Clips to show one 32x32 frame at a time, alternating on interval.
- */
 const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> = ({
                                                                                        src, size = '5cqw', intervalMs = 500
                                                                                    }) => {
@@ -60,8 +59,72 @@ const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> 
     );
 };
 
+const InventorySlot: React.FC<{ itemId: number; onUse: () => void }> = ({ itemId, onUse }) => {
+    const def = itemId !== ITEM_NONE ? getItemDef(itemId) : null;
+    const isEmpty = !def;
+
+    return (
+        <div
+            onClick={isEmpty ? undefined : onUse}
+            title={def ? `${def.name} — ${def.description} (Q to use)` : 'Empty'}
+            style={{
+                width: '7cqw',
+                height: '7cqw',
+                border: `0.2cqw solid ${isEmpty ? '#333' : '#4eff4e'}`,
+                borderRadius: '0.5cqw',
+                backgroundColor: isEmpty ? 'rgba(0,0,0,0.5)' : 'rgba(0,60,0,0.6)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isEmpty ? 'default' : 'pointer',
+                pointerEvents: 'auto',
+                boxShadow: isEmpty ? 'none' : '0 0 12px rgba(78, 255, 78, 0.3)',
+                transition: 'all 0.2s ease',
+                position: 'relative'
+            }}
+        >
+            {def ? (
+                <>
+                    <img
+                        src={def.spriteKey}
+                        alt={def.name}
+                        draggable={false}
+                        style={{
+                            width: '5cqw',
+                            height: '5cqw',
+                            imageRendering: 'pixelated',
+                            filter: 'drop-shadow(0 0 4px rgba(78, 255, 78, 0.5))',
+                            pointerEvents: 'none'
+                        }}
+                    />
+                    <div style={{
+                        fontSize: '0.6cqw',
+                        color: '#4eff4e',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        marginTop: '0.2cqw',
+                        textAlign: 'center',
+                        textShadow: '0 0 4px rgba(78, 255, 78, 0.5)'
+                    }}>
+                        [Q]
+                    </div>
+                </>
+            ) : (
+                <div style={{
+                    fontSize: '0.7cqw',
+                    color: '#555',
+                    fontFamily: 'monospace'
+                }}>
+                    ITEM
+                </div>
+            )}
+        </div>
+    );
+};
+
 export const Game3HUD: React.FC<HUDProps> = ({
-                                                 stats, points, coins, onAction,
+                                                 stats, points, coins, heldItemId, onAction, onUseItem,
                                                  onLevel1, onLevel2, onLevel3, onLevel4, onLevel5, onQuickLoad
                                              }) => {
     const cardStyle: React.CSSProperties = {
@@ -110,32 +173,40 @@ export const Game3HUD: React.FC<HUDProps> = ({
                 </div>
             </div>
 
-            {/* Points & Coins - Bottom Left */}
+            {/* Points, Coins & Inventory Slot - Bottom Left */}
             <div style={{
                 position: 'absolute', bottom: '3cqh', left: '3cqw',
-                display: 'flex', flexDirection: 'column', gap: '0.8cqh',
-                fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
+                display: 'flex', gap: '1.5cqw', alignItems: 'flex-end'
             }}>
+                {/* Inventory Slot */}
+                <InventorySlot itemId={heldItemId} onUse={onUseItem} />
+
+                {/* Economy counters */}
                 <div style={{
-                    display: 'flex', alignItems: 'center',
-                    color: '#f1c40f',
-                    textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
+                    display: 'flex', flexDirection: 'column', gap: '0.8cqh',
+                    fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
                 }}>
-                    <SpriteIcon src={POINT_SPRITE_PATH} />
-                    <span>{points.toLocaleString()}</span>
-                </div>
-                <div style={{
-                    display: 'flex', alignItems: 'center',
-                    color: '#ffd700',
-                    textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
-                }}>
-                    <SpriteIcon src={COIN_SPRITE_PATH} />
-                    <span>{coins.toLocaleString()}</span>
+                    <div style={{
+                        display: 'flex', alignItems: 'center',
+                        color: '#f1c40f',
+                        textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
+                    }}>
+                        <SpriteIcon src={POINT_SPRITE_PATH} />
+                        <span>{points.toLocaleString()}</span>
+                    </div>
+                    <div style={{
+                        display: 'flex', alignItems: 'center',
+                        color: '#ffd700',
+                        textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
+                    }}>
+                        <SpriteIcon src={COIN_SPRITE_PATH} />
+                        <span>{coins.toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
 
             <div style={{position: 'absolute', bottom: '2cqh', right: '2cqw', color: '#fff', fontSize: '0.8cqw', opacity: 0.7}}>
-                Controls: A/D/Arrows - Move, Space/W/Up - Jump
+                Controls: A/D/Arrows - Move, Space/W/Up - Jump, Q - Use Item
             </div>
         </div>
     );

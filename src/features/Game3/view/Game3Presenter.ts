@@ -35,9 +35,6 @@ export class Game3Presenter extends BasePresenter {
         return result;
     }
 
-    /**
-     * Resolves hero visuals including the new Air and WallSlide states
-     */
     public get heroVisuals() {
         const S = Game3ViewMainSchema;
         const view = this._sharedViews.get('main');
@@ -45,31 +42,23 @@ export class Game3Presenter extends BasePresenter {
 
         const animState = view[S.HERO_ANIM_STATE];
 
-        let assetKey = 'hero_idle';
+        let assetKey = 'gol_sheet';
         let animationName = 'idle';
 
         switch (animState) {
-            case 1: // Walking
-                assetKey = 'gol_sheet';
-                animationName = 'walk';
+            case 1:
+                assetKey = 'hero_run';
+                animationName = 'run';
                 break;
-            case 2: // Air / Jumping
+            case 2:
                 assetKey = 'gol_sheet';
                 animationName = 'jump';
                 break;
-            case 3: // Wall Sliding
+            case 3:
                 assetKey = 'gol_sheet';
                 animationName = 'slide';
                 break;
-            case 4: // Clinging
-                assetKey = 'gol_sheet';
-                animationName = 'cling';
-                break;
-            case 5: // Mantling
-                assetKey = 'gol_sheet';
-                animationName = 'mantle';
-                break;
-            default: // 0 - Idle
+            default:
                 assetKey = 'gol_sheet';
                 animationName = 'idle';
                 break;
@@ -130,5 +119,12 @@ export class Game3Presenter extends BasePresenter {
     public get coins(): number {
         const view = this._sharedViews.get('main');
         return view ? Math.floor(view[Game3ViewMainSchema.COINS] || 0) : 0;
+    }
+
+    // Inventory
+
+    public get heldItem(): number {
+        const view = this._sharedViews.get('main');
+        return view ? Math.floor(view[Game3ViewMainSchema.HELD_ITEM_ID] || 0) : 0;
     }
 }

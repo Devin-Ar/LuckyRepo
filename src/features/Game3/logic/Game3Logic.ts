@@ -7,6 +7,7 @@ import { Game3Config } from '../model/Game3Config';
 import { ParsedMapData, PlatformData } from './Game3MapData'; // Keep these imports
 import { Game3Collision } from './Game3Collision';
 import { Game3Hazards } from './Game3Hazards';
+import { ITEM_NONE, getItemDef } from '../../../core/inventory/ItemRegistry';
 
 // Point values for platformer events
 const EXIT_REACHED_POINTS = 200;
@@ -63,6 +64,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private points: number = 0;
     private coins: number = 0;
 
+    // Inventory — single held item, persisted cross-game via session
+    private heldItemId: number = ITEM_NONE;
+
     constructor() {
         super(Game3MainSchema.REVISION);
         this.dispatcher = new BaseDispatcher(this, Game3Commands, "Game3");
@@ -86,6 +90,11 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if ((config as any).initialCoins !== undefined) {
             this.coins = (config as any).initialCoins;
         }
+
+        // Restore inventory from config if provided (session overrides)
+        if ((config as any).initialHeldItem !== undefined) {
+            this.heldItemId = (config as any).initialHeldItem;
+        }
     }
 
     public setMapData(data: ParsedMapData) {
@@ -101,6 +110,27 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.heroWidth = data.playerStart.width;
             this.heroHeight = data.playerStart.height;
         }
+    }
+
+    /**
+     * Use the currently held item. Called via USE_ITEM command.
+     */
+    public useHeldItem(): void {
+        if (this.heldItemId === ITEM_NONE) return;
+
+        const def = getItemDef(this.heldItemId);
+        if (!def || !def.onUse) return;
+
+        const result = def.onUse({ hp: this.hp, maxHp: 100 });
+        if (!result) return; // Item says don't consume (e.g. HP already full)
+
+        if (result.hpDelta) {
+            this.hp = Math.max(0, Math.min(100, this.hp + result.hpDelta));
+        }
+
+        // Consume the item
+        this.heldItemId = ITEM_NONE;
+        self.postMessage({ type: 'EVENT', name: 'ITEM_USED' });
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
@@ -389,6 +419,9 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         sMain[M.POINTS] = this.points;
         sMain[M.COINS] = this.coins;
 
+        // Inventory
+        sMain[M.HELD_ITEM_ID] = this.heldItemId;
+
         const capacity = Math.floor(sPlatforms.length / Game3PlatformsSchema.STRIDE);
         const objCount = Math.min(this.platforms.length, capacity);
         sMain[M.OBJ_COUNT] = objCount;
@@ -419,6 +452,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             hasCompletedLevel: this.hasCompletedLevel,
             points: this.points,
             coins: this.coins,
+            heldItemId: this.heldItemId,
             isClinging: this.isClinging,
             isMantling: this.isMantling,
             ledgeGrabCooldown: this.ledgeGrabCooldown,
@@ -448,6 +482,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             this.hasCompletedLevel = data.hasCompletedLevel ?? false;
             this.points = data.points ?? 0;
             this.coins = data.coins ?? 0;
+            this.heldItemId = data.heldItemId ?? ITEM_NONE;
             this.isClinging = data.isClinging ?? false;
             this.isMantling = data.isMantling ?? false;
             this.ledgeGrabCooldown = data.ledgeGrabCooldown ?? 0;

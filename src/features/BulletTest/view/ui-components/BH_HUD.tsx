@@ -1,5 +1,6 @@
 // src/features/BulletTest/view/ui-components/BH_HUD.tsx
 import React, { useEffect, useState } from 'react';
+import { getItemDef, ITEM_NONE } from '../../../../core/inventory/ItemRegistry';
 
 // Sprite paths — 2-frame horizontal spritesheets (64x32, each frame 32x32)
 const POINT_SPRITE_PATH = 'res/sprite/sheets/Point.png';
@@ -20,10 +21,13 @@ interface HUDProps {
     bossVulnerable: boolean;
     points: number;
     coins: number;
+    heldItemId: number;
+    itemDropActive: boolean;
+    itemDropX: number;
+    itemDropY: number;
+    itemDropType: number;
     gameWidth: number;
     gameHeight: number;
-    shieldBarRef: React.RefObject<HTMLDivElement>;
-    shieldTextRef: React.RefObject<HTMLSpanElement>;
     damageBtnRef: React.RefObject<HTMLButtonElement>;
     onDamage: () => void;
     onJumpToG2: () => void;
@@ -32,11 +36,11 @@ interface HUDProps {
     onLevel3: () => void;
     onLevel4: () => void;
     onResetG1: () => void;
+    onUseItem: () => void;
 }
 
 /**
  * Animated 2-frame sprite icon from a horizontal spritesheet (64x32).
- * Clips to show one 32x32 frame at a time, alternating on interval.
  */
 const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> = ({
                                                                                        src, size = '5cqw', intervalMs = 500
@@ -48,7 +52,6 @@ const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> 
         return () => clearInterval(id);
     }, [intervalMs]);
 
-    // Each frame is 32x32 in a 64x32 sheet. We show 50% width, offset by frame.
     return (
         <div style={{
             width: size,
@@ -68,7 +71,126 @@ const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> 
                     top: 0,
                     left: frame === 0 ? '0%' : '-100%',
                     height: '100%',
-                    width: '200%', // full sheet = 2x icon width
+                    width: '200%',
+                    imageRendering: 'pixelated',
+                    pointerEvents: 'none'
+                }}
+            />
+        </div>
+    );
+};
+
+/**
+ * Inventory slot display — shows the currently held item in a bordered box.
+ */
+const InventorySlot: React.FC<{ itemId: number; onUse: () => void }> = ({ itemId, onUse }) => {
+    const def = itemId !== ITEM_NONE ? getItemDef(itemId) : null;
+    const isEmpty = !def;
+
+    return (
+        <div
+            onClick={isEmpty ? undefined : onUse}
+            title={def ? `${def.name} — ${def.description} (Q to use)` : 'Empty'}
+            style={{
+                width: '7cqw',
+                height: '7cqw',
+                border: `0.2cqw solid ${isEmpty ? '#333' : '#4eff4e'}`,
+                borderRadius: '0.5cqw',
+                backgroundColor: isEmpty ? 'rgba(0,0,0,0.5)' : 'rgba(0,60,0,0.6)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isEmpty ? 'default' : 'pointer',
+                pointerEvents: 'auto',
+                boxShadow: isEmpty ? 'none' : '0 0 12px rgba(78, 255, 78, 0.3)',
+                transition: 'all 0.2s ease',
+                position: 'relative'
+            }}
+        >
+            {def ? (
+                <>
+                    <img
+                        src={def.spriteKey}
+                        alt={def.name}
+                        draggable={false}
+                        style={{
+                            width: '5cqw',
+                            height: '5cqw',
+                            imageRendering: 'pixelated',
+                            filter: 'drop-shadow(0 0 4px rgba(78, 255, 78, 0.5))',
+                            pointerEvents: 'none'
+                        }}
+                    />
+                    <div style={{
+                        fontSize: '0.6cqw',
+                        color: '#4eff4e',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        marginTop: '0.2cqw',
+                        textAlign: 'center',
+                        textShadow: '0 0 4px rgba(78, 255, 78, 0.5)'
+                    }}>
+                        [Q]
+                    </div>
+                </>
+            ) : (
+                <div style={{
+                    fontSize: '0.7cqw',
+                    color: '#555',
+                    fontFamily: 'monospace'
+                }}>
+                    ITEM
+                </div>
+            )}
+        </div>
+    );
+};
+
+const PORTAL_SHEET_PATH = 'res/sprite/sheets/portal_sheet.png';
+const PORTAL_FRAMES = 7;
+const PORTAL_FRAME_SIZE = 32; // each frame is 32x32 in a 224x32 sheet
+
+/**
+ * Animated portal sprite rendered from a horizontal spritesheet.
+ * Cycles through 7 frames, positioned at the exit door coordinates.
+ */
+const PortalSprite: React.FC<{
+    x: number; y: number; gameWidth: number; gameHeight: number;
+}> = ({ x, y, gameWidth, gameHeight }) => {
+    const [frame, setFrame] = useState(0);
+
+    useEffect(() => {
+        const id = setInterval(() => setFrame(f => (f + 1) % PORTAL_FRAMES), 120);
+        return () => clearInterval(id);
+    }, []);
+
+    // Display size as percentage of game area — portal_sheet is 32px native, scale up
+    const displaySize = '8cqw';
+
+    return (
+        <div style={{
+            position: 'absolute',
+            left: `${(x / gameWidth) * 100}%`,
+            top: `${(y / gameHeight) * 100}%`,
+            transform: 'translate(-50%, -50%)',
+            width: displaySize,
+            height: displaySize,
+            overflow: 'hidden',
+            imageRendering: 'pixelated',
+            filter: 'drop-shadow(0 0 12px rgba(120, 80, 220, 0.7))',
+            pointerEvents: 'none'
+        }}>
+            <img
+                src={PORTAL_SHEET_PATH}
+                alt=""
+                draggable={false}
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: `${-frame * 100}%`,
+                    width: `${PORTAL_FRAMES * 100}%`,
+                    height: '100%',
                     imageRendering: 'pixelated',
                     pointerEvents: 'none'
                 }}
@@ -81,9 +203,11 @@ export const BH_HUD: React.FC<HUDProps> = ({
                                                hp, rockCount, currentWave, totalWaves, waveState, waveDelayTimer, isRoomCleared,
                                                exitDoorActive, exitDoorX, exitDoorY, bossHp, bossVulnerable,
                                                points, coins,
+                                               heldItemId, itemDropActive, itemDropX, itemDropY, itemDropType,
                                                gameWidth, gameHeight,
-                                               shieldBarRef, shieldTextRef, damageBtnRef,
-                                               onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onLevel4, onResetG1
+                                               damageBtnRef,
+                                               onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onLevel4, onResetG1,
+                                               onUseItem
                                            }) => {
     const btnStyle: React.CSSProperties = {
         padding: '0.6cqw 1cqw',
@@ -117,58 +241,6 @@ export const BH_HUD: React.FC<HUDProps> = ({
     return (
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', containerType: 'size' }}>
 
-            {/* Shield Bar - Top Center */}
-            <div style={{
-                position: 'absolute', top: '5cqh', left: '50%',
-                transform: 'translateX(-50%)', width: '35cqw'
-            }}>
-                <div style={{
-                    display: 'flex', justifyContent: 'space-between',
-                    color: '#fff', marginBottom: '0.5cqh',
-                    fontWeight: 'bold', fontFamily: 'monospace', fontSize: '1.2cqw'
-                }}>
-                    <span>SHIELD ENERGY</span>
-                    <span ref={shieldTextRef}>{Math.round(hp)}%</span>
-                </div>
-                <div style={{
-                    width: '100%', height: '2cqh', backgroundColor: '#222',
-                    borderRadius: '1cqw', border: '0.2cqw solid #fff', overflow: 'hidden'
-                }}>
-                    <div ref={shieldBarRef} style={{
-                        width: `${Math.max(0, hp)}%`, height: '100%',
-                        backgroundColor: hp < 30 ? '#c0392b' : '#27ae60'
-                    }} />
-                </div>
-            </div>
-
-            {/* Boss Health Bar - Top Center (below Shield Bar) */}
-            {bossHp > 0 && (
-                <div style={{
-                    position: 'absolute', top: '15cqh', left: '50%',
-                    transform: 'translateX(-50%)', width: '50cqw'
-                }}>
-                    <div style={{
-                        display: 'flex', justifyContent: 'space-between',
-                        color: bossVulnerable ? '#e74c3c' : '#888', marginBottom: '0.5cqh',
-                        fontWeight: 'bold', fontFamily: 'monospace', fontSize: '1cqw'
-                    }}>
-                        <span>THE CORE {bossVulnerable ? '(VULNERABLE)' : '(PROTECTED)'}</span>
-                        <span>{Math.max(0, bossHp)} / 300</span>
-                    </div>
-                    <div style={{
-                        width: '100%', height: '1.5cqh', backgroundColor: '#111',
-                        borderRadius: '0.75cqw', border: `0.2cqw solid ${bossVulnerable ? '#e74c3c' : '#444'}`,
-                        overflow: 'hidden', boxShadow: bossVulnerable ? '0 0 10px rgba(231, 76, 60, 0.4)' : 'none'
-                    }}>
-                        <div style={{
-                            width: `${(Math.max(0, bossHp) / 300) * 100}%`, height: '100%',
-                            backgroundColor: bossVulnerable ? '#e74c3c' : '#444',
-                            transition: 'width 0.3s ease-out, background-color 0.3s ease'
-                        }} />
-                    </div>
-                </div>
-            )}
-
             {/* Wave Info - Top Right */}
             <div style={{
                 position: 'absolute', top: '3cqh', right: '3cqw',
@@ -188,59 +260,64 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
             </div>
 
-            {/* Room Cleared Banner - Center */}
-            {isRoomCleared && (
-                <div style={{
-                    position: 'absolute', top: '40%', left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    color: '#f1c40f', fontFamily: 'monospace',
-                    fontSize: '3cqw', fontWeight: 'bold',
-                    textShadow: '0 0 20px rgba(241, 196, 60, 0.6)',
-                    textAlign: 'center', letterSpacing: '0.3cqw'
-                }}>
-                    ALL WAVES CLEARED
-                    <div style={{ fontSize: '1.2cqw', color: '#fff', marginTop: '1cqh' }}>
-                        PROCEED TO EXIT
-                    </div>
-                </div>
-            )}
-
-            {/* Exit Door */}
+            {/* Exit Portal */}
             {exitDoorActive && gameWidth > 0 && gameHeight > 0 && (
-                <div style={{
-                    position: 'absolute',
-                    left: `${(exitDoorX / gameWidth) * 100}%`,
-                    top: `${(exitDoorY / gameHeight) * 100}%`,
-                    transform: 'translate(-50%, -50%)',
-                    width: '6.25%',
-                    height: '11.1%',
-                    border: '3px solid #f1c40f',
-                    backgroundColor: 'rgba(241, 196, 60, 0.25)',
-                    boxShadow: '0 0 20px rgba(241, 196, 60, 0.5), inset 0 0 15px rgba(241, 196, 60, 0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    animation: 'exitDoorPulse 1.5s ease-in-out infinite'
-                }}>
-                    <span style={{
-                        color: '#f1c40f',
-                        fontFamily: 'monospace',
-                        fontWeight: 'bold',
-                        fontSize: '0.9cqw',
-                        textShadow: '0 0 8px rgba(241, 196, 60, 0.8)'
-                    }}>
-                        EXIT
-                    </span>
-                </div>
+                <PortalSprite
+                    x={exitDoorX}
+                    y={exitDoorY}
+                    gameWidth={gameWidth}
+                    gameHeight={gameHeight}
+                />
             )}
 
             {exitDoorActive && (
                 <style>{`
-                    @keyframes exitDoorPulse {
-                        0%, 100% { box-shadow: 0 0 20px rgba(241, 196, 60, 0.5), inset 0 0 15px rgba(241, 196, 60, 0.3); }
-                        50% { box-shadow: 0 0 35px rgba(241, 196, 60, 0.8), inset 0 0 25px rgba(241, 196, 60, 0.5); }
+                    @keyframes itemDropBob {
+                        0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+                        50% { transform: translate(-50%, -50%) translateY(-8px); }
                     }
                 `}</style>
+            )}
+
+            {/* Item Drop in World */}
+            {itemDropActive && gameWidth > 0 && gameHeight > 0 && (
+                <div style={{
+                    position: 'absolute',
+                    left: `${(itemDropX / gameWidth) * 100}%`,
+                    top: `${(itemDropY / gameHeight) * 100}%`,
+                    transform: 'translate(-50%, -50%)',
+                    width: '4%',
+                    height: '7%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'itemDropBob 1.5s ease-in-out infinite',
+                    pointerEvents: 'none'
+                }}>
+                    <img
+                        src={'res/sprite/sheets/HealthPotion.png'}
+                        alt="Health Potion"
+                        draggable={false}
+                        style={{
+                            width: '3cqw',
+                            height: '3cqw',
+                            imageRendering: 'pixelated',
+                            filter: 'drop-shadow(0 0 8px rgba(78, 255, 78, 0.6))',
+                            pointerEvents: 'none'
+                        }}
+                    />
+                    <div style={{
+                        color: '#4eff4e',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        fontSize: '0.7cqw',
+                        textShadow: '0 0 6px rgba(78, 255, 78, 0.5)',
+                        marginTop: '0.2cqw'
+                    }}>
+                        POTION
+                    </div>
+                </div>
             )}
 
             {/* Delay Countdown Overlay */}
@@ -260,27 +337,35 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
             )}
 
-            {/* Points & Coins - Bottom Left */}
+            {/* Points, Coins & Inventory Slot - Bottom Left */}
             <div style={{
                 position: 'absolute', bottom: '3cqh', left: '3cqw',
-                display: 'flex', flexDirection: 'column', gap: '0.8cqh',
-                fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
+                display: 'flex', gap: '1.5cqw', alignItems: 'flex-end'
             }}>
+                {/* Inventory Slot */}
+                <InventorySlot itemId={heldItemId} onUse={onUseItem} />
+
+                {/* Economy counters */}
                 <div style={{
-                    display: 'flex', alignItems: 'center',
-                    color: '#f1c40f',
-                    textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
+                    display: 'flex', flexDirection: 'column', gap: '0.8cqh',
+                    fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
                 }}>
-                    <SpriteIcon src={POINT_SPRITE_PATH} />
-                    <span>{points.toLocaleString()}</span>
-                </div>
-                <div style={{
-                    display: 'flex', alignItems: 'center',
-                    color: '#ffd700',
-                    textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
-                }}>
-                    <SpriteIcon src={COIN_SPRITE_PATH} />
-                    <span>{coins.toLocaleString()}</span>
+                    <div style={{
+                        display: 'flex', alignItems: 'center',
+                        color: '#f1c40f',
+                        textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
+                    }}>
+                        <SpriteIcon src={POINT_SPRITE_PATH} />
+                        <span>{points.toLocaleString()}</span>
+                    </div>
+                    <div style={{
+                        display: 'flex', alignItems: 'center',
+                        color: '#ffd700',
+                        textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
+                    }}>
+                        <SpriteIcon src={COIN_SPRITE_PATH} />
+                        <span>{coins.toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
 

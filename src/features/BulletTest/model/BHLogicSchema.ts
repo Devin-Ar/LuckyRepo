@@ -53,13 +53,22 @@ export const BHMainLogicSchema: IBuffer = {
     POINTS: 38,
     COINS: 39,
 
+    // Inventory — cross-game persistent
+    HELD_ITEM_ID: 40,
+    ITEM_DROP_ACTIVE: 41,
+    ITEM_DROP_X: 42,
+    ITEM_DROP_Y: 43,
+    ITEM_DROP_TYPE: 44,
+
     BUFFER_SIZE: 128
 };
 
 export const BHRocksLogicSchema: IBuffer = {
-    STRIDE: 10,
+    STRIDE: 12,
     FRAME: 8,
-    BUFFER_SIZE: 9000 // 1000 rocks * 9
+    HP: 10,
+    MAX_HP: 11,
+    BUFFER_SIZE: 12000 // 1000 rocks * 12
 };
 
 export const BHPProjLogicSchema: IBuffer = {

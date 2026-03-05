@@ -40,12 +40,16 @@ export class Game3Controller extends BaseController<Game3Presenter> {
         if (input.isKeyAction(e.key, "PAUSE")) {
             this.openPauseMenu();
         }
+        // Q key to use held item
+        if (e.key.toUpperCase() === 'Q') {
+            this.useItem();
+        }
     }
 
-    /**
-     * Initializes the game. Map parsing stays on the main thread
-     * to utilize Canvas/Image APIs, then pure data is sent to the worker.
-     */
+    public useItem() {
+        this.send('USE_ITEM', {});
+    }
+
     public async initialize(config: any, level: Game3Level = Game3Level.Level1) {
         this.currentLevel = level;
         this.hasCompleted = false;
@@ -93,7 +97,7 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     }
 
     private handleLevelComplete(): void {
-            CampaignManager.getInstance().completeCurrentStep();
+        CampaignManager.getInstance().completeCurrentStep();
     }
 
     private async openPauseMenu() {

@@ -1,4 +1,4 @@
-// src/features/Game1/model/Game1State.ts
+// src/features/BulletTest/model/BHState.ts
 import {BaseGameState} from '../../../core/templates/BaseGameState';
 import {BHController} from '../view/BHController';
 import {BHPresenter} from '../view/BHPresenter';
@@ -35,7 +35,7 @@ export class BHState extends BaseGameState<BHPresenter, BHController, BHConfig> 
     }
 
     protected getSessionOverrides(session: SharedSession): Partial<BHConfig> {
-        const overrides: Partial<BHConfig> & { initialPoints?: number; initialCoins?: number } = {};
+        const overrides: Partial<BHConfig> & { initialPoints?: number; initialCoins?: number; initialHeldItem?: number } = {};
 
         const hp = session.get<number>(GLOBAL_SESSION_MAP.hp);
         if (hp !== undefined) overrides.initialHP = hp;
@@ -45,6 +45,9 @@ export class BHState extends BaseGameState<BHPresenter, BHController, BHConfig> 
 
         const cns = session.get<number>(GLOBAL_SESSION_MAP.coins);
         if (cns !== undefined) (overrides as any).initialCoins = cns;
+
+        const item = session.get<number>(GLOBAL_SESSION_MAP.heldItem);
+        if (item !== undefined) (overrides as any).initialHeldItem = item;
 
         return overrides;
     }

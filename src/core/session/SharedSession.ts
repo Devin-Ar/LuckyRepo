@@ -19,6 +19,7 @@ export class SharedSession {
         'global_energy',
         'global_points',
         'global_coins',
+        'global_inventory_item',
         'campaign_id',
         'campaign_step_index'
     ];

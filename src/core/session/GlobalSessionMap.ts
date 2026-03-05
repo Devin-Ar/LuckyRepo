@@ -5,6 +5,7 @@ export const GLOBAL_SESSION_MAP: Record<string, string> = {
     energy: 'global_energy',
     points: 'global_points',
     coins: 'global_coins',
+    heldItem: 'global_inventory_item',
 };
 
 export type GlobalSessionKey = keyof typeof GLOBAL_SESSION_MAP;

@@ -120,6 +120,28 @@ export class BHPresenter extends BasePresenter {
         return Math.floor(this.mainView[BHMainViewSchema.COINS] || 0);
     }
 
+    // Inventory
+
+    public get heldItem(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.HELD_ITEM_ID] || 0);
+    }
+
+    public get itemDropActive(): boolean {
+        return (this.mainView[BHMainViewSchema.ITEM_DROP_ACTIVE] || 0) === 1;
+    }
+
+    public get itemDropX(): number {
+        return this.mainView[BHMainViewSchema.ITEM_DROP_X] || 0;
+    }
+
+    public get itemDropY(): number {
+        return this.mainView[BHMainViewSchema.ITEM_DROP_Y] || 0;
+    }
+
+    public get itemDropType(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.ITEM_DROP_TYPE] || 0);
+    }
+
     // Visuals
 
     public get heroVisuals() {
@@ -147,6 +169,8 @@ export class BHPresenter extends BasePresenter {
             height: this.rocksView[offset + 7] || 0,
             currentFrame: this.rocksView[offset + 8] || 0,
             type: this.rocksView[offset + 9] || 0,
+            hp: this.rocksView[offset + 10] || 0,
+            maxHp: this.rocksView[offset + 11] || 0,
         };
     }
 

@@ -1,4 +1,4 @@
-// src/features/Game3/logic/Game3ViewLogic.ts
+// src/features/Game3/view/Game3ViewLogic.ts
 import { Game3MainSchema, Game3PlatformsSchema } from '../model/Game3LogicSchema';
 import { Game3ViewMainSchema, Game3ViewPlatformsSchema } from '../model/Game3ViewSchema';
 import { BaseViewLogic } from '../../../core/templates/BaseViewLogic';
@@ -22,7 +22,7 @@ export class Game3ViewLogic extends BaseViewLogic {
 
         if (!lMain || !lPlatforms || !vMain || !vPlatforms) return;
 
-        // 1. Handle Output Resizing Request (Mirroring Game1 behavior)
+        // 1. Handle Output Resizing Request
         const objCount = lMain[Game3MainSchema.OBJ_COUNT];
         const vCapacity = Math.floor(vPlatforms.length / Game3ViewPlatformsSchema.STRIDE);
 
@@ -49,7 +49,7 @@ export class Game3ViewLogic extends BaseViewLogic {
         const isClinging = lMain[Game3MainSchema.IS_CLINGING] === 1;
         const isMantling = lMain[Game3MainSchema.IS_MANTLING] === 1;
 
-        // 3. Determine Animation State & Orientation (Moved from Logic)
+        // 3. Determine Animation State & Orientation
         let flipX = this.lastFlipX;
         if (vx > 0.01) flipX = true;
         else if (vx < -0.01) flipX = false;
@@ -76,7 +76,7 @@ export class Game3ViewLogic extends BaseViewLogic {
             }
         }
 
-        // 4. Visual Effects (UI Bounce, etc)
+        // 4. Visual Effects
         if (this.lastHp !== -1 && hp < this.lastHp) {
             this.glitchIntensity = 1.0;
         }
@@ -110,15 +110,16 @@ export class Game3ViewLogic extends BaseViewLogic {
         vMain[Game3ViewMainSchema.POINTS] = lMain[Game3MainSchema.POINTS];
         vMain[Game3ViewMainSchema.COINS] = lMain[Game3MainSchema.COINS];
 
-        // 6. Sync Objects (Pass-through from Logic Platforms SAB to View Platforms SAB)
+        // Inventory pass-through
+        vMain[Game3ViewMainSchema.HELD_ITEM_ID] = lMain[Game3MainSchema.HELD_ITEM_ID];
+
+        // 6. Sync Objects
         const safeObjCount = Math.min(objCount, vCapacity);
         vMain[Game3ViewMainSchema.OBJ_COUNT] = safeObjCount;
 
         for (let i = 0; i < safeObjCount; i++) {
             const lBase = i * Game3PlatformsSchema.STRIDE;
             const vBase = i * Game3ViewPlatformsSchema.STRIDE;
-
-            // x, y, width, height, type
             vPlatforms[vBase] = lPlatforms[lBase];
             vPlatforms[vBase + 1] = lPlatforms[lBase + 1];
             vPlatforms[vBase + 2] = lPlatforms[lBase + 2];

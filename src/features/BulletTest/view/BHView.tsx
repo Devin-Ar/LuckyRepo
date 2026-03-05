@@ -37,8 +37,13 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
     const [points, setPoints] = useState(vm.points);
     const [coins, setCoins] = useState(vm.coins);
 
-    const shieldBarRef = useRef<HTMLDivElement>(null);
-    const shieldTextRef = useRef<HTMLSpanElement>(null);
+    // Inventory
+    const [heldItemId, setHeldItemId] = useState(vm.heldItem);
+    const [itemDropActive, setItemDropActive] = useState(vm.itemDropActive);
+    const [itemDropX, setItemDropX] = useState(vm.itemDropX);
+    const [itemDropY, setItemDropY] = useState(vm.itemDropY);
+    const [itemDropType, setItemDropType] = useState(vm.itemDropType);
+
     const damageBtnRef = useRef<HTMLButtonElement>(null);
     const heroPosRef = useRef({ x: vm.pos.x, y: vm.pos.y });
 
@@ -52,9 +57,6 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
             const currentHp = vm.hp;
             heroPosRef.current.x = vm.pos.x;
             heroPosRef.current.y = vm.pos.y;
-
-            if (shieldBarRef.current) shieldBarRef.current.style.width = `${Math.max(0, currentHp)}%`;
-            if (shieldTextRef.current) shieldTextRef.current.innerText = `${Math.round(currentHp)}%`;
 
             if (Math.abs(hpState - currentHp) > 1) setHpState(currentHp);
             if (rockCount !== vm.entityCount) setRockCount(vm.entityCount);
@@ -78,6 +80,13 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
             // Economy
             setPoints(vm.points);
             setCoins(vm.coins);
+
+            // Inventory
+            setHeldItemId(vm.heldItem);
+            setItemDropActive(vm.itemDropActive);
+            setItemDropX(vm.itemDropX);
+            setItemDropY(vm.itemDropY);
+            setItemDropType(vm.itemDropType);
         });
         return () => unsubscribe();
     }, [vm, hpState, rockCount, isPaused]);
@@ -126,10 +135,13 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                 bossVulnerable={bossVulnerable}
                 points={points}
                 coins={coins}
+                heldItemId={heldItemId}
+                itemDropActive={itemDropActive}
+                itemDropX={itemDropX}
+                itemDropY={itemDropY}
+                itemDropType={itemDropType}
                 gameWidth={width}
                 gameHeight={height}
-                shieldBarRef={shieldBarRef}
-                shieldTextRef={shieldTextRef}
                 damageBtnRef={damageBtnRef}
                 onDamage={() => controller.takeDamage()}
                 onJumpToG2={() => controller.jumpToGame2()}
@@ -138,6 +150,7 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                 onLevel3={() => controller.loadLevel(BHLevel.Level3)}
                 onLevel4={() => controller.loadLevel(BHLevel.Level4)}
                 onResetG1={() => controller.resetLevel()}
+                onUseItem={() => controller.useItem()}
             />
         </div>
     );
