@@ -38,9 +38,9 @@ export abstract class BaseController<TVM extends { update: () => void }> impleme
     }
 
     private captureInitialState() {
-        setTimeout(async () => {
-            await SaveManager.getInstance().performSave(this.QUICK_SAVE_KEY, this.stateName);
-        }, 200);
+        //setTimeout(async () => {
+            //await SaveManager.getInstance().performSave(this.QUICK_SAVE_KEY, this.stateName);
+        //}, 200);
     }
 
     private handleWorkerMessage = (e: MessageEvent) => {
