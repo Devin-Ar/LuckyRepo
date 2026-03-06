@@ -5,7 +5,6 @@ import { CampaignRegistry } from "../registry/CampaignRegistry";
 import { StateManager } from "./StateManager";
 import { ICampaignDefinition } from "../interfaces/ICampaign";
 import { StateRegistry } from "../registry/StateRegistry";
-import { FeatureEnum } from "../../features/FeatureEnum";
 
 export class CampaignManager {
     private static instance: CampaignManager;
@@ -113,7 +112,7 @@ export class CampaignManager {
         session.set('campaign_step_index', 0);
 
         console.log("[CampaignManager] Quitting to Menu.");
-        StateManager.getInstance().replace(StateRegistry.create(FeatureEnum.DEV_MENU));
+        CampaignManager.getInstance().startCampaign('main_menu');
     }
 
     private async loadCurrentStep(def: ICampaignDefinition, index: number) {
