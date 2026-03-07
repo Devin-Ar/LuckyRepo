@@ -6,7 +6,6 @@ import {GameSprite} from '../../../../components/GameSprite';
 import {SpriteManager} from "../../../../core/managers/SpriteManager";
 
 const GoldshiSprite: React.FC<{ vm: BHPresenter, paused: boolean, heroRef: React.RefObject<PIXI.Container> }> = ({ vm, paused, heroRef }) => {
-    // We use local state to trigger a redraw of just this component every tick
     const [visuals, setVisuals] = useState(vm.heroVisuals);
     const [anim, setAnim] = useState("idle");
 
@@ -52,6 +51,8 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
                 let textures;
                 if ( data.type === 1 ) {
                     textures = manager.getAnimation('shot_drone_movement');
+                }  else if (data.type === 3) {
+                    textures = manager.getAnimation('bash_drone_movement');
                 } else {
                     textures = manager.getAnimation('laser_drone_movement');
                 }
@@ -77,14 +78,25 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
             let textures;
             if ( data.type === 1 ) {
                 textures = manager.getAnimation('shot_drone_movement');
+                sprite.rotation = data.rotation;
+            } else if (data.type === 3) {
+                const data2 = vm.getRockAttackData(i);
+                if (data2.endX === 0) {
+                    textures = manager.getAnimation('bash_drone_idle');
+                } else {
+                    textures = manager.getAnimation('bash_drone_movement');
+                }
+                const flipped = data2.endY >= 1.5 || data2.endY <= -1.5;
+                sprite.scale.set(flipped ? -1 : 1, 1);
+                sprite.rotation = flipped ? data2.endY + Math.PI : data2.endY;
             } else {
                 textures = manager.getAnimation('laser_drone_movement');
+                sprite.rotation = data.rotation;
             }
             sprite.textures = textures;
             sprite.visible = true;
             sprite.x = data.x;
             sprite.y = data.y;
-            sprite.rotation = data.rotation;
 
             if (sprite.textures.length > 0) {
                 const frameIndex = Math.floor(data.currentFrame) % sprite.textures.length;

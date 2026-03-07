@@ -1,8 +1,8 @@
 // src/features/BulletTest/logic/WaveManager.ts
-import { IEnemySpawn, IContactEnemySpawn, IRangedEnemySpawn } from '../interfaces/IEnemy';
+import {IEnemySpawn, IContactEnemySpawn, IRangedEnemySpawn, IBashEnemySpawn} from '../interfaces/IEnemy';
 import { IWaveDefinition } from '../interfaces/IRoom';
 import { BHConfig } from '../model/BHConfig';
-import { baseEntity, RockEntity, ShotEntity } from '../interfaces/baseInterfaces/baseEntity';
+import {baseEntity, BashEntity, RockEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
 
 export type WaveState = 'IDLE' | 'DELAY' | 'ACTIVE' | 'CLEARED' | 'ALL_CLEARED';
 
@@ -97,6 +97,16 @@ export class WaveManager {
                     rangedSpawn.moveSpeed,
                     rangedSpawn.fireRate,
                     rangedSpawn.projectileDamage,
+                    waveIndex
+                );
+                entities.push(entity);
+            } else if (spawn.damageType === 'bash') {
+                const contactSpawn = spawn as IBashEnemySpawn;
+                const entity = new BashEntity(x, y);
+                entity.applySpawnConfig(
+                    contactSpawn.hp,
+                    contactSpawn.moveSpeed,
+                    contactSpawn.contactDamage,
                     waveIndex
                 );
                 entities.push(entity);

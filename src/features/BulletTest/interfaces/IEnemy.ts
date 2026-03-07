@@ -16,6 +16,17 @@ export interface IContactEnemy extends IEntity {
     update(player: IPlayer, config: BHConfig): void;
 }
 
+export interface IBashEnemy extends IEntity {
+    damageType: 'bash';
+    hp: number;
+    maxHp: number;
+    moveSpeed: number;
+    contactDamage: number;
+    wave: number;
+
+    update(player: IPlayer, config: BHConfig): void;
+}
+
 // Ranged Enemy — keeps distance and fires projectiles
 export interface IRangedEnemy extends IEntity {
     damageType: 'ranged';
@@ -53,6 +64,15 @@ export interface IContactEnemySpawn {
     spawnY: number;
 }
 
+export interface IBashEnemySpawn {
+    damageType: 'bash';
+    hp: number;
+    moveSpeed: number;
+    contactDamage: number;
+    spawnX: number;
+    spawnY: number;
+}
+
 export interface IRangedEnemySpawn {
     damageType: 'ranged';
     hp: number;
@@ -63,4 +83,4 @@ export interface IRangedEnemySpawn {
     spawnY: number;
 }
 
-export type IEnemySpawn = IContactEnemySpawn | IRangedEnemySpawn;
+export type IEnemySpawn = IContactEnemySpawn | IRangedEnemySpawn | IBashEnemySpawn;

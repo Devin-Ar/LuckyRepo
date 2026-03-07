@@ -46,6 +46,21 @@
         "movement": ["sd_drift_0", "sd_drift_1", "sd_drift_2"]
       }
     },
+    "bash_drone": {
+      "url": "res/sprite/sheets/bash_drone.png",
+      "frames": {
+        "bd_drift_0": {"x":0, "y":0, "w":128, "h":128},
+        "bd_drift_1": {"x":128, "y":0, "w":128, "h":128},
+        "bd_drift_2": {"x":256, "y":0, "w":128, "h":128},
+        "bd_push_0": {"x":0, "y":128, "w":128, "h":128},
+        "bd_push_1": {"x":128, "y":128, "w":128, "h":128},
+        "bd_push_2": {"x":256, "y":128, "w":128, "h":128}
+      },
+      "animations": {
+        "movement": ["bd_push_0", "bd_push_1", "bd_push_2"],
+        "idle": ["bd_drift_0", "bd_drift_1", "bd_drift_2"]
+      }
+    },
     "boss_p12": {
       "url": "res/sprite/sheets/BossP12.png",
       "frames": {

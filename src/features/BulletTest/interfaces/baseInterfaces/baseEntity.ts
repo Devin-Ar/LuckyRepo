@@ -1,6 +1,6 @@
 // src/features/BulletTest/interfaces/baseInterfaces/baseEntity.ts
 import { IEntity, IHitbox } from "../IEntity";
-import { IContactEnemy } from "../IEnemy";
+import {IBashEnemy, IContactEnemy} from "../IEnemy";
 import { IRangedEnemy } from "../IEnemy";
 import { basePlayer } from "./basePlayer";
 import { BHConfig } from "../../model/BHConfig";
@@ -315,5 +315,127 @@ export class ShotEntity extends baseEntity implements IRangedEnemy {
             this.frameElapsed = this.currentFrame;
             this.primedMode = false;
         }
+    }
+}
+
+export class BashEntity extends baseEntity implements IBashEnemy {
+    damageType: 'bash' = 'bash';
+    hp: number = 0;
+    maxHp: number = 0;
+    moveSpeed: number = 0;
+    contactDamage: number = 1;
+    wave: number = 0;
+
+    private frameElapsed: number;
+    private hitFrame: number;
+    private primedMode: boolean;
+
+    constructor(x: number, y: number) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.width = 50;
+        this.height = 52;
+        this.health = 100;
+        this.hp = 100;
+        this.maxHp = 100;
+        this.frameElapsed = this.currentFrame + Math.random() * 3;
+        this.hitFrame = 0;
+        this.primedMode = false;
+        this.active = true;
+        this.type = "bash";
+    }
+
+    applySpawnConfig(hp: number, moveSpeed: number, contactDamage: number, wave: number): void {
+        this.hp = hp;
+        this.maxHp = hp;
+        this.health = hp;
+        this.moveSpeed = moveSpeed;
+        this.contactDamage = contactDamage;
+        this.wave = wave;
+    }
+
+    update(player: basePlayer, config: BHConfig): void {
+        this.orientation(player);
+        this.processDash(player, config);
+        this.processDashAttacks(player, config);
+        this.currentFrame += 0.05;
+    }
+
+    orientation(player: basePlayer): void {
+        const dx = this.x - player.x;
+        const dy = this.y - player.y;
+        this.playerRelative = Math.atan2(dy, dx);
+    }
+
+    syncToSAB(sharedView: Float32Array, base: number): void {
+        sharedView[base] = this.x;
+        sharedView[base + 1] = this.y;
+        sharedView[base + 2] = this.seed;
+        sharedView[base + 3] = this.primedMode ? 1 : 0;
+        console.log(Math.floor(this.vy) == 0 && Math.floor(this.vx) == 0 ? 0 : 1);
+        sharedView[base + 4] = Math.floor(this.vy) == 0 && Math.floor(this.vx) == 0 ? 0 : 1;
+        sharedView[base + 5] = this.playerRelative;
+        sharedView[base + 6] = this.width;
+        sharedView[base + 7] = this.height;
+        sharedView[base + 8] = this.currentFrame;
+        sharedView[base + 9] = 3; //contact bash
+    }
+
+    private processDash(player: basePlayer, config: BHConfig): void {
+        if (this.primedMode) return;
+
+        if ((this.vy < 0.1 && this.vy > -0.1) && (this.vx < 0.1 && this.vx > -0.1)) {
+            this.vy = 0;
+            this.vx = 0;
+        } else {
+            if (this.x <= 0) {this.vx = Math.abs(this.vx)
+            } else if (this.x >= config.width) {
+                this.vx = -this.vx
+            } else {
+                this.vx *= .97;
+            }
+
+            if (this.y <= 0) {
+                this.vy = Math.abs(this.vy)
+            } else if (this.y >= config.height) {
+                this.vy = -this.vy
+            } else {
+                this.vy *= .97;
+            }
+        }
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < player.x + player.width && this.x + this.width > player.x &&
+            this.y < player.y + player.height && this.y + this.height > player.y) {
+            if (this.hitCheck()) {
+                this.hitFrame = this.currentFrame;
+                player.modifyHp(-20);
+                self.postMessage({ type: 'EVENT', name: 'EXPLOSION_REQ' });
+            }
+        }
+
+    }
+
+    private processDashAttacks(player: basePlayer, config: BHConfig): void {
+        //3 frames per second
+        const timeMili = (this.currentFrame - this.frameElapsed);
+        if (timeMili > 9 && !this.primedMode) {
+            this.primedMode = true;
+        }
+
+        if (this.primedMode && timeMili > 15) {
+            this.vx = -1*Math.cos(this.playerRelative)*this.moveSpeed;
+            this.vy = -1*Math.sin(this.playerRelative)*this.moveSpeed;
+
+            this.frameElapsed = this.currentFrame;
+            this.primedMode = false;
+        }
+    }
+
+    private hitCheck(): boolean {
+        //1.5 second cooldown
+        return this.hitFrame + 4.5 <= this.currentFrame;
     }
 }
