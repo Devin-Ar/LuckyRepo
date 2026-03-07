@@ -19,16 +19,16 @@ export const Game3Foreground: React.FC<{
                 let assetName = "";
                 if (!isCoin) {
                     switch(p.type) {
-                        case 0: assetName = "Platform Floor"; break;
-                        case 1: assetName = "Platform Length"; break;
-                        case 2: assetName = "Void Pit"; break;
+                        case 0: assetName = "Platform Floor"; break; //normal floor
+                        case 1: assetName = "Platform Length"; break; //wall
+                        //case 2: assetName = "Void Pit"; break;
                         case 3: assetName = "Spike Trap"; break;
                         case 4: assetName = "Portal Gate"; break;
                         case 5: assetName = "Exit Door"; break;
-                        case 6: assetName = "Platform Floor"; break;
-                        case 7: assetName = "Platform Plat"; break;
-                        case 8: assetName = "Platform NonWall"; break;
-                        case 9: assetName = "Display Wall"; break;
+                        case 6: assetName = "Platform Floor"; break; // fallthrough floor
+                        case 7: assetName = "Platform Floor"; break; //Another floor
+                        case 8: assetName = "Platform NonWall"; break; // other wall
+                        case 9: assetName = "Platform Floor BG"; break;
                         case 10: assetName = "Grass FG"; break;
                         case 11: assetName = "Grass BG"; break;
                         case 12: assetName = "NonOrganic FG"; break;

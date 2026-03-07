@@ -47,8 +47,8 @@ export class Game3Presenter extends BasePresenter {
 
         switch (animState) {
             case 1:
-                assetKey = 'hero_run';
-                animationName = 'run';
+                assetKey = 'gol_sheet';
+                animationName = 'walk';
                 break;
             case 2:
                 assetKey = 'gol_sheet';
