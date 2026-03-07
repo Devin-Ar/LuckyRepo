@@ -1,5 +1,5 @@
 // src/features/BulletTest/view/BHView.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import { Stage } from '@pixi/react';
 import { BHPresenter } from './BHPresenter';
 import { BHController } from './BHController';
@@ -9,6 +9,7 @@ import { BHLevel } from "../model/BHConfig";
 
 import { BHSimulation } from './ui-components/BHSimulation';
 import { BH_HUD } from './ui-components/BH_HUD';
+import {DebugContext} from "../../../App";
 
 export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                                                                                 vm, controller, width = 960, height = 540
@@ -54,9 +55,11 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
     const [itemDrop2Type, setItemDrop2Type] = useState(vm.itemDrop2Type);
     const [itemDrop2Free, setItemDrop2Free] = useState(vm.itemDrop2Free);
 
+    //debug
+    const debugging = useContext(DebugContext);
+
     const damageBtnRef = useRef<HTMLButtonElement>(null);
     const heroPosRef = useRef({ x: vm.pos.x, y: vm.pos.y });
-
     useEffect(() => {
         const unsubscribe = vm.subscribe(() => {
             const stateManager = StateManager.getInstance();
@@ -132,11 +135,13 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                         objectFit: 'contain', imageRendering: 'pixelated'
                     }}
                 >
+                    <DebugContext.Provider value={debugging}>
                     <BHSimulation
                         vm={vm} paused={isPaused}
                         width={width} height={height}
                         scale={scaleFactor} heroPos={heroPosRef} hp={hpState}
                     />
+                    </DebugContext.Provider>
                 </Stage>
             </div>
 

@@ -1,8 +1,9 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, Graphics, useTick} from '@pixi/react';
 import {BHPresenter} from '../BHPresenter';
 import {GameSprite} from '../../../../components/GameSprite';
+import {DebugContext} from "../../../../App";
 
 const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
@@ -38,12 +39,12 @@ const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
             const graphic = pool[i];
             const data = vm.getRockAttackData(i);
             const data2 = vm.getRockViewData(i);
-            if (!data || paused || data.primedMode !== 1) {
+            if (!data || paused || data.primedMode !== 1 || data2.type === 3) {
                 if (graphic) graphic.visible = false;
                 continue;
             }
             graphic.visible = true;
-            graphic.clear().lineStyle(30, 0xff0000).moveTo(data2.x, data2.y).lineTo(data.endX, data.endY);
+            graphic.clear().lineStyle(10, 0xff0000, 0.2).moveTo(data2.x, data2.y).lineTo(data.endX, data.endY);
         }
     });
     return <Container ref={containerRef}/>;
@@ -87,10 +88,19 @@ const ProjPool: React.FC<{ vm: BHPresenter, paused: boolean, type: 'player' | 'e
 
 const DebugHitboxRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const graphicsRef = useRef<PIXI.Graphics>(null);
+    const debugMode = useContext(DebugContext);
+    const debugModeRef = useRef(debugMode);
+
+    useEffect(() => {
+        debugModeRef.current = debugMode;
+    }, [debugMode]);
+
     useTick(() => {
         if (!graphicsRef.current || paused) return;
         const g = graphicsRef.current;
         g.clear();
+        console.log(debugModeRef.current);
+        if (!debugModeRef.current) return;
         const hero = vm.heroVisuals;
         if (hero.width > 0) {
             g.lineStyle(2, 0x00ffff, 0.8).drawRect(hero.x - hero.width / 2, hero.y - hero.height / 2, hero.width, hero.height);

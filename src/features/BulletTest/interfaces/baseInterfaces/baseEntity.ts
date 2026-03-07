@@ -373,7 +373,6 @@ export class BashEntity extends baseEntity implements IBashEnemy {
         sharedView[base + 1] = this.y;
         sharedView[base + 2] = this.seed;
         sharedView[base + 3] = this.primedMode ? 1 : 0;
-        console.log(Math.floor(this.vy) == 0 && Math.floor(this.vx) == 0 ? 0 : 1);
         sharedView[base + 4] = Math.floor(this.vy) == 0 && Math.floor(this.vx) == 0 ? 0 : 1;
         sharedView[base + 5] = this.playerRelative;
         sharedView[base + 6] = this.width;

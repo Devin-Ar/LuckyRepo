@@ -1,5 +1,5 @@
 // src/App.tsx
-import {cloneElement, JSX, useEffect, useMemo, useRef, useState} from "react";
+import {cloneElement, createContext, JSX, useEffect, useMemo, useRef, useState} from "react";
 import {StateManager} from "./core/managers/StateManager";
 import {DebugOverlay} from "./components/DebugOverlay";
 import { initializeStateRegistry } from "./config/StateManifest";
@@ -7,6 +7,8 @@ import { initializeCampaigns } from "./config/CampaignManifest";
 import {CampaignManager} from "./core/managers/CampaignManager";
 
 type Resolution = '540p' | '720p' | '1080p' | '1440p' | '4k' | 'fit';
+
+export const DebugContext = createContext<boolean>(false);
 
 const App = () => {
     const [views, setViews] = useState<JSX.Element[]>([]);
@@ -20,7 +22,6 @@ const App = () => {
     useEffect(() => {
         const manager = StateManager.getInstance();
         const handleUpdate = (activeViews: JSX.Element[]) => setViews([...activeViews]);
-
         const updateDpr = () => setDpr(window.devicePixelRatio || 1);
         const dprMedia = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
         dprMedia.addEventListener('change', updateDpr);
@@ -79,41 +80,43 @@ const App = () => {
     }, [res]);
 
     return (
-        <div className="engine-wrapper" style={{
-            width: '100vw', height: '100vh', backgroundColor: '#000',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto'
-        }}>
-            <div className="engine-root" style={{
-                width: dims ? `${dims.w / dpr}px` : '100%',
-                height: dims ? `${dims.h / dpr}px` : 'auto',
-                maxWidth: res === 'fit' ? '100vw' : 'none',
-                maxHeight: res === 'fit' ? '100vh' : 'none',
-                aspectRatio: '16 / 9',
-                position: 'relative',
-                backgroundColor: '#111',
-                imageRendering: 'pixelated',
-                containerType: 'size',
-                flexShrink: 0,
-                margin: 'auto'
+        <DebugContext.Provider value={showDebug}>
+            <div className="engine-wrapper" style={{
+                width: '100vw', height: '100vh', backgroundColor: '#000',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto'
             }}>
-                {views.map((view, index) => (
-                    <div key={index} style={{
-                        position: 'absolute', inset: 0, zIndex: index,
-                        pointerEvents: index === views.length - 1 ? 'auto' : 'none'
-                    }}>
-                        {cloneElement(view, {
-                            width: dims?.w || 960,
-                            height: dims?.h || 540,
-                            res: res,
-                            setRes: setRes,
-                            uiScale: uiScale,
-                            setUiScale: setUiScale
-                        })}
-                    </div>
-                ))}
-                {showDebug && <DebugOverlay/>}
+                <div className="engine-root" style={{
+                    width: dims ? `${dims.w / dpr}px` : '100%',
+                    height: dims ? `${dims.h / dpr}px` : 'auto',
+                    maxWidth: res === 'fit' ? '100vw' : 'none',
+                    maxHeight: res === 'fit' ? '100vh' : 'none',
+                    aspectRatio: '16 / 9',
+                    position: 'relative',
+                    backgroundColor: '#111',
+                    imageRendering: 'pixelated',
+                    containerType: 'size',
+                    flexShrink: 0,
+                    margin: 'auto'
+                }}>
+                    {views.map((view, index) => (
+                        <div key={index} style={{
+                            position: 'absolute', inset: 0, zIndex: index,
+                            pointerEvents: index === views.length - 1 ? 'auto' : 'none'
+                        }}>
+                            {cloneElement(view, {
+                                width: dims?.w || 960,
+                                height: dims?.h || 540,
+                                res: res,
+                                setRes: setRes,
+                                uiScale: uiScale,
+                                setUiScale: setUiScale
+                            })}
+                        </div>
+                    ))}
+                    {showDebug && <DebugOverlay/>}
+                </div>
             </div>
-        </div>
+        </DebugContext.Provider>
     );
 };
 
