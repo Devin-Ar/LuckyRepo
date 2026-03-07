@@ -99,11 +99,18 @@
   "images": {
     "static_rock": "res/sprite/static/rock.png",
     "Gold Ship Gun": "res/sprite/static/goldshiparmwithgun.png",
-    "Platform Floor": "res/sprite/static/Platform Floor.png",
-    "Platform Length": "res/sprite/static/Platform Length.png",
+    "Platform Floor": "res/sprite/static/bricks.png",
+    "Platform Floor BG": "res/sprite/static/bricksbg.png",
+    "Platform Length": "res/sprite/static/bricksrd.png",
+    "Platform Plat": "res/sprite/static/bricksrd2.png",
+    "Platform NonWall": "res/sprite/static/bricksrd2.png",
+    "Grass BG": "res/sprite/static/bricksbgvn1.png",
+    "Grass FG": "res/sprite/static/bricksbgvn2.png",
+    "NonOrganic FG": "res/sprite/static/bricksbgvn1.png",
+    "NonOrganic BG": "res/sprite/static/bricksbgvn2.png",
     "Exit Door": "res/sprite/static/exit_door.png",
     "Void Pit": "res/sprite/static/void_pit.png",
-    "Spike Trap": "res/sprite/static/spike_trap.png",
+    "Spike Trap": "res/sprite/static/outofideas.png",
     "Portal Gate": "res/sprite/static/portal_gate.png"
   },
   "audio": {
