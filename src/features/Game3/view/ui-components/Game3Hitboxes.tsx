@@ -35,14 +35,12 @@ export const Game3Hitboxes: React.FC<{
                 case 14: color = 0xffd700; break; // Coin (Gold)
                 default: color = 0xff00ff;       // Error/Unknown (Magenta)
             }
-            g.beginFill(color, 0.25);
-            g.drawRect(p.x, p.y, p.width, p.height);
-            g.endFill();
+
         }
     }, [vm.objects]);
 
     return (
-        <Container name="hitboxes" alpha={0.1}>
+        <Container name="hitboxes" alpha={0}>
             <Graphics ref={levelRef} />
             <Graphics ref={heroRef} />
         </Container>

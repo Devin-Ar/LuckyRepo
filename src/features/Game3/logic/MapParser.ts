@@ -151,8 +151,7 @@ export class MapParser {
             return {
                 width: image.bitmap.width,
                 height: image.bitmap.height,
-                data: image.bitmap.data as Uint8ClampedArray
-            };
+                data: new Uint8ClampedArray(image.bitmap.data)            };
         } catch (e) {
             console.warn(`[MapParser] Jimp decode failed, falling back to Canvas for ${imagePath}.`, e);
         }

@@ -21,7 +21,7 @@ export const Game3Foreground: React.FC<{
                     switch(p.type) {
                         case 0: assetName = "Platform Floor"; break; //normal floor
                         case 1: assetName = "Platform Length"; break; //wall
-                        case 2: assetName = "Void Pit"; break;
+                        //case 2: assetName = "Void Pit"; break;
                         case 3: assetName = "Spike Trap"; break;
                         case 4: assetName = "Portal Gate"; break;
                         case 5: assetName = "Exit Door"; break;
