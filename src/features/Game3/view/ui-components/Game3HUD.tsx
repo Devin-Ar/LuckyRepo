@@ -62,24 +62,27 @@ const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> 
 const InventorySlot: React.FC<{ itemId: number; onUse: () => void }> = ({ itemId, onUse }) => {
     const def = itemId !== ITEM_NONE ? getItemDef(itemId) : null;
     const isEmpty = !def;
+    const isPassive = def?.passive ?? false;
 
     return (
         <div
-            onClick={isEmpty ? undefined : onUse}
-            title={def ? `${def.name} — ${def.description} (Q to use)` : 'Empty'}
+            onClick={isEmpty || isPassive ? undefined : onUse}
+            title={def ? `${def.name} — ${def.description}${isPassive ? ' (auto)' : ' (Q to use)'}` : 'Empty'}
             style={{
                 width: '7cqw',
                 height: '7cqw',
-                border: `0.2cqw solid ${isEmpty ? '#333' : '#4eff4e'}`,
+                border: `0.2cqw solid ${isEmpty ? '#333' : isPassive ? '#ff9f43' : '#4eff4e'}`,
                 borderRadius: '0.5cqw',
-                backgroundColor: isEmpty ? 'rgba(0,0,0,0.5)' : 'rgba(0,60,0,0.6)',
+                backgroundColor: isEmpty ? 'rgba(0,0,0,0.5)' : isPassive ? 'rgba(80,40,0,0.6)' : 'rgba(0,60,0,0.6)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: isEmpty ? 'default' : 'pointer',
+                cursor: isEmpty || isPassive ? 'default' : 'pointer',
                 pointerEvents: 'auto',
-                boxShadow: isEmpty ? 'none' : '0 0 12px rgba(78, 255, 78, 0.3)',
+                boxShadow: isEmpty ? 'none' : isPassive
+                    ? '0 0 12px rgba(255, 159, 67, 0.3)'
+                    : '0 0 12px rgba(78, 255, 78, 0.3)',
                 transition: 'all 0.2s ease',
                 position: 'relative'
             }}
@@ -94,20 +97,24 @@ const InventorySlot: React.FC<{ itemId: number; onUse: () => void }> = ({ itemId
                             width: '5cqw',
                             height: '5cqw',
                             imageRendering: 'pixelated',
-                            filter: 'drop-shadow(0 0 4px rgba(78, 255, 78, 0.5))',
+                            filter: isPassive
+                                ? 'drop-shadow(0 0 4px rgba(255, 159, 67, 0.5))'
+                                : 'drop-shadow(0 0 4px rgba(78, 255, 78, 0.5))',
                             pointerEvents: 'none'
                         }}
                     />
                     <div style={{
                         fontSize: '0.6cqw',
-                        color: '#4eff4e',
+                        color: isPassive ? '#ff9f43' : '#4eff4e',
                         fontFamily: 'monospace',
                         fontWeight: 'bold',
                         marginTop: '0.2cqw',
                         textAlign: 'center',
-                        textShadow: '0 0 4px rgba(78, 255, 78, 0.5)'
+                        textShadow: isPassive
+                            ? '0 0 4px rgba(255, 159, 67, 0.5)'
+                            : '0 0 4px rgba(78, 255, 78, 0.5)'
                     }}>
-                        [Q]
+                        {isPassive ? 'AUTO' : '[Q]'}
                     </div>
                 </>
             ) : (

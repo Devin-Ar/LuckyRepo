@@ -60,6 +60,16 @@ export const BHMainLogicSchema: IBuffer = {
     ITEM_DROP_Y: 43,
     ITEM_DROP_TYPE: 44,
 
+    // Second item drop (Life Totem shop slot)
+    ITEM_DROP2_ACTIVE: 45,
+    ITEM_DROP2_X: 46,
+    ITEM_DROP2_Y: 47,
+    ITEM_DROP2_TYPE: 48,
+
+    // Drop free flags (swapped items have no cost)
+    ITEM_DROP_FREE: 49,
+    ITEM_DROP2_FREE: 50,
+
     BUFFER_SIZE: 128
 };
 

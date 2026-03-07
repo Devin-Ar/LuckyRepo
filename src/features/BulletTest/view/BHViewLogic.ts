@@ -126,10 +126,20 @@ export class BHViewLogic extends BaseViewLogic {
 
         // Inventory pass-through
         vMain[VM.HELD_ITEM_ID] = lMain[LM.HELD_ITEM_ID];
+
+        // Item drop 1 pass-through
         vMain[VM.ITEM_DROP_ACTIVE] = lMain[LM.ITEM_DROP_ACTIVE];
         vMain[VM.ITEM_DROP_X] = lMain[LM.ITEM_DROP_X];
         vMain[VM.ITEM_DROP_Y] = lMain[LM.ITEM_DROP_Y];
         vMain[VM.ITEM_DROP_TYPE] = lMain[LM.ITEM_DROP_TYPE];
+        vMain[VM.ITEM_DROP_FREE] = lMain[LM.ITEM_DROP_FREE];
+
+        // Item drop 2 pass-through
+        vMain[VM.ITEM_DROP2_ACTIVE] = lMain[LM.ITEM_DROP2_ACTIVE];
+        vMain[VM.ITEM_DROP2_X] = lMain[LM.ITEM_DROP2_X];
+        vMain[VM.ITEM_DROP2_Y] = lMain[LM.ITEM_DROP2_Y];
+        vMain[VM.ITEM_DROP2_TYPE] = lMain[LM.ITEM_DROP2_TYPE];
+        vMain[VM.ITEM_DROP2_FREE] = lMain[LM.ITEM_DROP2_FREE];
     }
 
     public override getSnapshot() {

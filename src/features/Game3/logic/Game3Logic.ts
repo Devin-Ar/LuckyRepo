@@ -4,7 +4,7 @@ import { BaseLogic } from '../../../core/templates/BaseLogic';
 import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { Game3Commands } from './Game3Commands';
 import { Game3Config } from '../model/Game3Config';
-import { ParsedMapData, PlatformData } from './Game3MapData'; // Keep these imports
+import { ParsedMapData, PlatformData } from './Game3MapData';
 import { Game3Collision } from './Game3Collision';
 import { Game3Hazards } from './Game3Hazards';
 import { ITEM_NONE, getItemDef } from '../../../core/inventory/ItemRegistry';
@@ -113,13 +113,17 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     }
 
     /**
-     * Use the currently held item. Called via USE_ITEM command.
+     * Use the currently held item. Called via USE_ITEM command (Q key).
+     * Passive items (like Life Totem) cannot be manually used.
      */
     public useHeldItem(): void {
         if (this.heldItemId === ITEM_NONE) return;
 
         const def = getItemDef(this.heldItemId);
         if (!def || !def.onUse) return;
+
+        // Passive items trigger automatically (e.g. Life Totem on death), not via Q
+        if (def.passive) return;
 
         const result = def.onUse({ hp: this.hp, maxHp: 100 });
         if (!result) return; // Item says don't consume (e.g. HP already full)
@@ -131,6 +135,30 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         // Consume the item
         this.heldItemId = ITEM_NONE;
         self.postMessage({ type: 'EVENT', name: 'ITEM_USED' });
+    }
+
+    /**
+     * Attempt to auto-trigger a passive held item on death.
+     * Returns true if the player was revived.
+     */
+    private tryPassiveRevive(): boolean {
+        if (this.heldItemId === ITEM_NONE) return false;
+
+        const def = getItemDef(this.heldItemId);
+        if (!def || !def.passive || !def.onUse) return false;
+
+        const result = def.onUse({ hp: 0, maxHp: 100 });
+        if (!result || !result.revive) return false;
+
+        // Revive the player with the item's heal amount
+        const healAmount = result.hpDelta ?? 50;
+        this.hp = Math.max(0, Math.min(100, healAmount));
+
+        // Consume the totem
+        this.heldItemId = ITEM_NONE;
+        self.postMessage({ type: 'EVENT', name: 'ITEM_USED' });
+        self.postMessage({ type: 'EVENT', name: 'PLAYER_REVIVED' });
+        return true;
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
@@ -501,6 +529,12 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public modifyHP(amount: number) {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
         if (this.hp <= 0) {
+            // Try passive revive (Life Totem) before resetting to spawn
+            if (this.tryPassiveRevive()) {
+                // Revived — don't reset position, just keep playing with restored HP
+                return;
+            }
+            // No revive — reset to spawn with full HP
             this.hp = 100;
             this.hero.x = this.spawnPoint.x;
             this.hero.y = this.spawnPoint.y;

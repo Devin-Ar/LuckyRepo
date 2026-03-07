@@ -22,10 +22,18 @@ interface HUDProps {
     points: number;
     coins: number;
     heldItemId: number;
+    // Item drop 1
     itemDropActive: boolean;
     itemDropX: number;
     itemDropY: number;
     itemDropType: number;
+    itemDropFree: boolean;
+    // Item drop 2
+    itemDrop2Active: boolean;
+    itemDrop2X: number;
+    itemDrop2Y: number;
+    itemDrop2Type: number;
+    itemDrop2Free: boolean;
     gameWidth: number;
     gameHeight: number;
     damageBtnRef: React.RefObject<HTMLButtonElement>;
@@ -82,28 +90,32 @@ const SpriteIcon: React.FC<{ src: string; size?: string; intervalMs?: number }> 
 
 /**
  * Inventory slot display — shows the currently held item in a bordered box.
+ * Passive items show "AUTO" instead of "[Q]".
  */
 const InventorySlot: React.FC<{ itemId: number; onUse: () => void }> = ({ itemId, onUse }) => {
     const def = itemId !== ITEM_NONE ? getItemDef(itemId) : null;
     const isEmpty = !def;
+    const isPassive = def?.passive ?? false;
 
     return (
         <div
-            onClick={isEmpty ? undefined : onUse}
-            title={def ? `${def.name} — ${def.description} (Q to use)` : 'Empty'}
+            onClick={isEmpty || isPassive ? undefined : onUse}
+            title={def ? `${def.name} — ${def.description}${isPassive ? ' (auto)' : ' (Q to use)'}` : 'Empty'}
             style={{
                 width: '7cqw',
                 height: '7cqw',
-                border: `0.2cqw solid ${isEmpty ? '#333' : '#4eff4e'}`,
+                border: `0.2cqw solid ${isEmpty ? '#333' : isPassive ? '#ff9f43' : '#4eff4e'}`,
                 borderRadius: '0.5cqw',
-                backgroundColor: isEmpty ? 'rgba(0,0,0,0.5)' : 'rgba(0,60,0,0.6)',
+                backgroundColor: isEmpty ? 'rgba(0,0,0,0.5)' : isPassive ? 'rgba(80,40,0,0.6)' : 'rgba(0,60,0,0.6)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: isEmpty ? 'default' : 'pointer',
+                cursor: isEmpty || isPassive ? 'default' : 'pointer',
                 pointerEvents: 'auto',
-                boxShadow: isEmpty ? 'none' : '0 0 12px rgba(78, 255, 78, 0.3)',
+                boxShadow: isEmpty ? 'none' : isPassive
+                    ? '0 0 12px rgba(255, 159, 67, 0.3)'
+                    : '0 0 12px rgba(78, 255, 78, 0.3)',
                 transition: 'all 0.2s ease',
                 position: 'relative'
             }}
@@ -118,20 +130,24 @@ const InventorySlot: React.FC<{ itemId: number; onUse: () => void }> = ({ itemId
                             width: '5cqw',
                             height: '5cqw',
                             imageRendering: 'pixelated',
-                            filter: 'drop-shadow(0 0 4px rgba(78, 255, 78, 0.5))',
+                            filter: isPassive
+                                ? 'drop-shadow(0 0 4px rgba(255, 159, 67, 0.5))'
+                                : 'drop-shadow(0 0 4px rgba(78, 255, 78, 0.5))',
                             pointerEvents: 'none'
                         }}
                     />
                     <div style={{
                         fontSize: '0.6cqw',
-                        color: '#4eff4e',
+                        color: isPassive ? '#ff9f43' : '#4eff4e',
                         fontFamily: 'monospace',
                         fontWeight: 'bold',
                         marginTop: '0.2cqw',
                         textAlign: 'center',
-                        textShadow: '0 0 4px rgba(78, 255, 78, 0.5)'
+                        textShadow: isPassive
+                            ? '0 0 4px rgba(255, 159, 67, 0.5)'
+                            : '0 0 4px rgba(78, 255, 78, 0.5)'
                     }}>
-                        [Q]
+                        {isPassive ? 'AUTO' : '[Q]'}
                     </div>
                 </>
             ) : (
@@ -199,11 +215,116 @@ const PortalSprite: React.FC<{
     );
 };
 
+/**
+ * A world-space item drop rendered as a bobbing sprite with coin cost label.
+ */
+const ItemDropSprite: React.FC<{
+    x: number;
+    y: number;
+    itemType: number;
+    free: boolean;
+    gameWidth: number;
+    gameHeight: number;
+}> = ({ x, y, itemType, free, gameWidth, gameHeight }) => {
+    const def = getItemDef(itemType);
+    if (!def || gameWidth <= 0 || gameHeight <= 0) return null;
+
+    const cost = free ? 0 : (def.cost ?? 0);
+    // Color theme: green for active items, orange for passive (Life Totem)
+    const isPassive = def.passive ?? false;
+    const glowColor = isPassive ? 'rgba(255, 159, 67, 0.6)' : 'rgba(78, 255, 78, 0.6)';
+    const textColor = isPassive ? '#ff9f43' : '#4eff4e';
+
+    return (
+        <div style={{
+            position: 'absolute',
+            left: `${(x / gameWidth) * 100}%`,
+            top: `${(y / gameHeight) * 100}%`,
+            transform: 'translate(-50%, -50%)',
+            width: '4%',
+            height: '7%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'itemDropBob 1.5s ease-in-out infinite',
+            pointerEvents: 'none'
+        }}>
+            <img
+                src={def.spriteKey}
+                alt={def.name}
+                draggable={false}
+                style={{
+                    width: '3cqw',
+                    height: '3cqw',
+                    imageRendering: 'pixelated',
+                    filter: `drop-shadow(0 0 8px ${glowColor})`,
+                    pointerEvents: 'none'
+                }}
+            />
+            <div style={{
+                color: textColor,
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                fontSize: '0.7cqw',
+                textShadow: `0 0 6px ${glowColor}`,
+                marginTop: '0.2cqw',
+                textAlign: 'center'
+            }}>
+                {def.name.toUpperCase()}
+            </div>
+            {cost > 0 && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.2cqw',
+                    marginTop: '0.1cqw'
+                }}>
+                    <SpriteIcon src={COIN_SPRITE_PATH} size="1.2cqw" intervalMs={400} />
+                    <span style={{
+                        color: '#ffd700',
+                        fontFamily: 'monospace',
+                        fontWeight: 'bold',
+                        fontSize: '0.7cqw',
+                        textShadow: '0 0 4px rgba(255, 215, 0, 0.5)'
+                    }}>
+                        {cost}
+                    </span>
+                </div>
+            )}
+            {free && (
+                <div style={{
+                    color: '#2ecc71',
+                    fontFamily: 'monospace',
+                    fontWeight: 'bold',
+                    fontSize: '0.7cqw',
+                    textShadow: '0 0 6px rgba(46, 204, 113, 0.5)',
+                    marginTop: '0.1cqw'
+                }}>
+                    FREE
+                </div>
+            )}
+            <div style={{
+                color: '#aaa',
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                fontSize: '0.6cqw',
+                marginTop: '0.2cqw',
+                opacity: 0.8
+            }}>
+                [E]
+            </div>
+        </div>
+    );
+};
+
 export const BH_HUD: React.FC<HUDProps> = ({
                                                hp, rockCount, currentWave, totalWaves, waveState, waveDelayTimer, isRoomCleared,
                                                exitDoorActive, exitDoorX, exitDoorY, bossHp, bossVulnerable,
                                                points, coins,
-                                               heldItemId, itemDropActive, itemDropX, itemDropY, itemDropType,
+                                               heldItemId,
+                                               itemDropActive, itemDropX, itemDropY, itemDropType, itemDropFree,
+                                               itemDrop2Active, itemDrop2X, itemDrop2Y, itemDrop2Type, itemDrop2Free,
                                                gameWidth, gameHeight,
                                                damageBtnRef,
                                                onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onLevel4, onResetG1,
@@ -279,45 +400,28 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 `}</style>
             )}
 
-            {/* Item Drop in World */}
-            {itemDropActive && gameWidth > 0 && gameHeight > 0 && (
-                <div style={{
-                    position: 'absolute',
-                    left: `${(itemDropX / gameWidth) * 100}%`,
-                    top: `${(itemDropY / gameHeight) * 100}%`,
-                    transform: 'translate(-50%, -50%)',
-                    width: '4%',
-                    height: '7%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    animation: 'itemDropBob 1.5s ease-in-out infinite',
-                    pointerEvents: 'none'
-                }}>
-                    <img
-                        src={'res/sprite/sheets/HealthPotion.png'}
-                        alt="Health Potion"
-                        draggable={false}
-                        style={{
-                            width: '3cqw',
-                            height: '3cqw',
-                            imageRendering: 'pixelated',
-                            filter: 'drop-shadow(0 0 8px rgba(78, 255, 78, 0.6))',
-                            pointerEvents: 'none'
-                        }}
-                    />
-                    <div style={{
-                        color: '#4eff4e',
-                        fontFamily: 'monospace',
-                        fontWeight: 'bold',
-                        fontSize: '0.7cqw',
-                        textShadow: '0 0 6px rgba(78, 255, 78, 0.5)',
-                        marginTop: '0.2cqw'
-                    }}>
-                        POTION
-                    </div>
-                </div>
+            {/* Item Drop 1 (Health Potion — left of portal) */}
+            {itemDropActive && (
+                <ItemDropSprite
+                    x={itemDropX}
+                    y={itemDropY}
+                    itemType={itemDropType}
+                    free={itemDropFree}
+                    gameWidth={gameWidth}
+                    gameHeight={gameHeight}
+                />
+            )}
+
+            {/* Item Drop 2 (Life Totem — right of portal) */}
+            {itemDrop2Active && (
+                <ItemDropSprite
+                    x={itemDrop2X}
+                    y={itemDrop2Y}
+                    itemType={itemDrop2Type}
+                    free={itemDrop2Free}
+                    gameWidth={gameWidth}
+                    gameHeight={gameHeight}
+                />
             )}
 
             {/* Delay Countdown Overlay */}

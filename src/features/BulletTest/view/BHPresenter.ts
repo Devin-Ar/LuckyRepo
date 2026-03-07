@@ -126,6 +126,8 @@ export class BHPresenter extends BasePresenter {
         return Math.floor(this.mainView[BHMainViewSchema.HELD_ITEM_ID] || 0);
     }
 
+    // Item drop 1
+
     public get itemDropActive(): boolean {
         return (this.mainView[BHMainViewSchema.ITEM_DROP_ACTIVE] || 0) === 1;
     }
@@ -140,6 +142,32 @@ export class BHPresenter extends BasePresenter {
 
     public get itemDropType(): number {
         return Math.floor(this.mainView[BHMainViewSchema.ITEM_DROP_TYPE] || 0);
+    }
+
+    public get itemDropFree(): boolean {
+        return (this.mainView[BHMainViewSchema.ITEM_DROP_FREE] || 0) === 1;
+    }
+
+    // Item drop 2
+
+    public get itemDrop2Active(): boolean {
+        return (this.mainView[BHMainViewSchema.ITEM_DROP2_ACTIVE] || 0) === 1;
+    }
+
+    public get itemDrop2X(): number {
+        return this.mainView[BHMainViewSchema.ITEM_DROP2_X] || 0;
+    }
+
+    public get itemDrop2Y(): number {
+        return this.mainView[BHMainViewSchema.ITEM_DROP2_Y] || 0;
+    }
+
+    public get itemDrop2Type(): number {
+        return Math.floor(this.mainView[BHMainViewSchema.ITEM_DROP2_TYPE] || 0);
+    }
+
+    public get itemDrop2Free(): boolean {
+        return (this.mainView[BHMainViewSchema.ITEM_DROP2_FREE] || 0) === 1;
     }
 
     // Visuals

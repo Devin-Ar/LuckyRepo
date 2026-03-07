@@ -11,7 +11,7 @@ import {enemyProjectile, playerProjectile} from '../interfaces/baseInterfaces/ba
 import { WaveManager } from './WaveManager';
 import { IWaveDefinition } from '../interfaces/IRoom';
 import waveData from '../data/bh_waves.json';
-import { ITEM_NONE, ITEM_HEALTH_POTION, getItemDef } from '../../../core/inventory/ItemRegistry';
+import { ITEM_NONE, SHOP_ITEM_POOL, getItemDef } from '../../../core/inventory/ItemRegistry';
 
 interface WaveLevelData {
     waves: IWaveDefinition[];
@@ -62,12 +62,22 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     // Inventory — single held item, persisted cross-game via session
     private heldItemId: number = ITEM_NONE;
 
-    // Item drop in world
+    // Item drop 1 (Health Potion) — left side of portal
     private itemDropActive: boolean = false;
     private itemDropX: number = 0;
     private itemDropY: number = 0;
     private itemDropType: number = ITEM_NONE;
-    private itemDropSpawned: boolean = false; // prevents re-spawning
+    private itemDropFree: boolean = false; // true when item was swapped back (no cost)
+
+    // Item drop 2 (Life Totem) — right side of portal
+    private itemDrop2Active: boolean = false;
+    private itemDrop2X: number = 0;
+    private itemDrop2Y: number = 0;
+    private itemDrop2Type: number = ITEM_NONE;
+    private itemDrop2Free: boolean = false; // true when item was swapped back (no cost)
+
+    private itemDropSpawned: boolean = false; // prevents re-spawning both drops
+    private pickupRequested: boolean = false; // set by PICKUP_ITEM command (E key), consumed each frame
 
     constructor() {
         super(BHMainLogicSchema.REVISION);
@@ -102,10 +112,16 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
 
         // Reset item drop state
         this.itemDropActive = false;
+        this.itemDrop2Active = false;
         this.itemDropSpawned = false;
+        this.itemDropFree = false;
+        this.itemDrop2Free = false;
         this.itemDropX = 0;
         this.itemDropY = 0;
         this.itemDropType = ITEM_NONE;
+        this.itemDrop2X = 0;
+        this.itemDrop2Y = 0;
+        this.itemDrop2Type = ITEM_NONE;
 
         const levelLabel = this.config!.levelLabel || "Level 1";
         this.bossLevel = levelLabel === "Level 4";
@@ -158,6 +174,12 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             itemDropX: this.itemDropX,
             itemDropY: this.itemDropY,
             itemDropType: this.itemDropType,
+            itemDrop2Active: this.itemDrop2Active,
+            itemDrop2X: this.itemDrop2X,
+            itemDrop2Y: this.itemDrop2Y,
+            itemDrop2Type: this.itemDrop2Type,
+            itemDropFree: this.itemDropFree,
+            itemDrop2Free: this.itemDrop2Free,
             itemDropSpawned: this.itemDropSpawned
         };
     }
@@ -178,6 +200,12 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.itemDropX = data.itemDropX ?? 0;
         this.itemDropY = data.itemDropY ?? 0;
         this.itemDropType = data.itemDropType ?? ITEM_NONE;
+        this.itemDrop2Active = data.itemDrop2Active ?? false;
+        this.itemDrop2X = data.itemDrop2X ?? 0;
+        this.itemDrop2Y = data.itemDrop2Y ?? 0;
+        this.itemDrop2Type = data.itemDrop2Type ?? ITEM_NONE;
+        this.itemDropFree = data.itemDropFree ?? false;
+        this.itemDrop2Free = data.itemDrop2Free ?? false;
         this.itemDropSpawned = data.itemDropSpawned ?? false;
         if (data.waveSnapshot) {
             this.waveManager.loadSnapshot(data.waveSnapshot);
@@ -186,13 +214,24 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     }
 
     /**
-     * Use the currently held item. Called via USE_ITEM command.
+     * Request an item pickup on the next frame. Called via PICKUP_ITEM command (E key).
+     */
+    public requestPickup(): void {
+        this.pickupRequested = true;
+    }
+
+    /**
+     * Use the currently held item. Called via USE_ITEM command (Q key).
+     * Passive items (like Life Totem) cannot be manually used.
      */
     public useHeldItem(): void {
         if (this.heldItemId === ITEM_NONE) return;
 
         const def = getItemDef(this.heldItemId);
         if (!def || !def.onUse) return;
+
+        // Passive items trigger automatically (e.g. Life Totem on death), not via Q
+        if (def.passive) return;
 
         const result = def.onUse({ hp: this.player.hp, maxHp: 100 });
         if (!result) return; // Item says don't consume (e.g. HP already full)
@@ -204,6 +243,84 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         // Consume the item
         this.heldItemId = ITEM_NONE;
         self.postMessage({ type: 'EVENT', name: 'ITEM_USED' });
+    }
+
+    /**
+     * Attempt to auto-trigger a passive held item on death.
+     * Returns true if the player was revived.
+     */
+    private tryPassiveRevive(): boolean {
+        if (this.heldItemId === ITEM_NONE) return false;
+
+        const def = getItemDef(this.heldItemId);
+        if (!def || !def.passive || !def.onUse) return false;
+
+        const result = def.onUse({ hp: 0, maxHp: 100 });
+        if (!result || !result.revive) return false;
+
+        // Revive the player
+        const healAmount = result.hpDelta ?? 50;
+        this.player.modifyHp(healAmount);
+
+        // Consume the totem
+        this.heldItemId = ITEM_NONE;
+        self.postMessage({ type: 'EVENT', name: 'ITEM_USED' });
+        self.postMessage({ type: 'EVENT', name: 'PLAYER_REVIVED' });
+        return true;
+    }
+
+    /**
+     * Try to pick up an item drop. Charges coin cost unless the drop is free (swapped back).
+     * If already holding an item, the old item is placed back at the drop location as a free drop.
+     * `dropSlot` is 1 or 2 so we know which drop fields to update on swap.
+     * Returns true if pickup succeeded.
+     */
+    private tryPickupDrop(dropSlot: 1 | 2): boolean {
+        const dropX = dropSlot === 1 ? this.itemDropX : this.itemDrop2X;
+        const dropY = dropSlot === 1 ? this.itemDropY : this.itemDrop2Y;
+        const dropType = dropSlot === 1 ? this.itemDropType : this.itemDrop2Type;
+        const isFree = dropSlot === 1 ? this.itemDropFree : this.itemDrop2Free;
+
+        const dx = this.player.x - dropX;
+        const dy = this.player.y - dropY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist >= ITEM_PICKUP_RADIUS) return false;
+
+        // Don't pick up the same item type you're already holding
+        if (this.heldItemId === dropType) return false;
+
+        // Check coin cost (free drops cost nothing)
+        if (!isFree) {
+            const def = getItemDef(dropType);
+            const cost = def?.cost ?? 0;
+            if (this.coins < cost) return false;
+            this.coins -= cost;
+        }
+
+        const previousItem = this.heldItemId;
+        this.heldItemId = dropType;
+        self.postMessage({ type: 'EVENT', name: 'ITEM_PICKED_UP', payload: { itemId: dropType } });
+
+        // If we were holding an old item, leave it on the floor at this drop's position (free)
+        if (previousItem !== ITEM_NONE) {
+            if (dropSlot === 1) {
+                this.itemDropType = previousItem;
+                this.itemDropFree = true;
+            } else {
+                this.itemDrop2Type = previousItem;
+                this.itemDrop2Free = true;
+            }
+            // Drop stays active with the swapped item
+            return true;
+        }
+
+        // No previous item — mark drop type as empty so caller deactivates it
+        if (dropSlot === 1) {
+            this.itemDropType = ITEM_NONE;
+        } else {
+            this.itemDrop2Type = ITEM_NONE;
+        }
+        return true;
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
@@ -313,9 +430,11 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.enemyProjectiles = this.enemyProjectiles.filter(proj => proj.active);
         this.entities = this.entities.filter(entity => entity.active);
 
-        // Check player death
+        // Check player death — attempt passive revive first (Life Totem)
         if (this.player.hp <= 0) {
-            self.postMessage({ type: 'EVENT', name: 'PLAYER_DEAD' });
+            if (!this.tryPassiveRevive()) {
+                self.postMessage({ type: 'EVENT', name: 'PLAYER_DEAD' });
+            }
         }
 
         // Emit room cleared event when all waves done
@@ -327,27 +446,52 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
                 this.exitDoorActive = true;
             }
 
-            // Spawn health potion drop after all waves cleared (once per level, only if not already holding an item)
-            if (!this.itemDropSpawned && this.heldItemId === ITEM_NONE) {
+            // Spawn two random shop items after all waves cleared (once per level, not on boss level)
+            if (!this.itemDropSpawned && !this.bossLevel) {
                 this.itemDropSpawned = true;
+
+                // Pick 2 distinct random items from the pool
+                const shuffled = [...SHOP_ITEM_POOL].sort(() => Math.random() - 0.5);
+                const item1 = shuffled[0];
+                const item2 = shuffled[1];
+
+                // Item 1 — left side of portal
                 this.itemDropActive = true;
-                // Place the potion near the center of the map, offset from the exit door
-                this.itemDropX = this.exitDoorX + 80;
+                this.itemDropX = this.exitDoorX - 80;
                 this.itemDropY = this.exitDoorY;
-                this.itemDropType = ITEM_HEALTH_POTION;
-                self.postMessage({ type: 'EVENT', name: 'ITEM_SPAWNED', payload: { itemId: ITEM_HEALTH_POTION } });
+                this.itemDropType = item1;
+
+                // Item 2 — right side of portal
+                this.itemDrop2Active = true;
+                this.itemDrop2X = this.exitDoorX + 80;
+                this.itemDrop2Y = this.exitDoorY;
+                this.itemDrop2Type = item2;
+
+                self.postMessage({ type: 'EVENT', name: 'ITEM_SPAWNED', payload: { itemId: item1 } });
+                self.postMessage({ type: 'EVENT', name: 'ITEM_SPAWNED', payload: { itemId: item2 } });
             }
         }
 
-        // Check item drop pickup collision
-        if (this.itemDropActive && this.heldItemId === ITEM_NONE) {
-            const dx = this.player.x - this.itemDropX;
-            const dy = this.player.y - this.itemDropY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < ITEM_PICKUP_RADIUS) {
-                this.heldItemId = this.itemDropType;
-                this.itemDropActive = false;
-                self.postMessage({ type: 'EVENT', name: 'ITEM_PICKED_UP', payload: { itemId: this.itemDropType } });
+        // Check item pickups — only when E key was pressed this frame
+        if (this.pickupRequested) {
+            this.pickupRequested = false;
+
+            // Check item drop 1 pickup collision
+            if (this.itemDropActive) {
+                if (this.tryPickupDrop(1)) {
+                    if (this.itemDropType === ITEM_NONE) {
+                        this.itemDropActive = false;
+                    }
+                }
+            }
+
+            // Check item drop 2 pickup collision
+            if (this.itemDrop2Active) {
+                if (this.tryPickupDrop(2)) {
+                    if (this.itemDrop2Type === ITEM_NONE) {
+                        this.itemDrop2Active = false;
+                    }
+                }
             }
         }
 
@@ -419,10 +563,20 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
 
         // Inventory
         sMain[M.HELD_ITEM_ID] = this.heldItemId;
+
+        // Item drop 1
         sMain[M.ITEM_DROP_ACTIVE] = this.itemDropActive ? 1 : 0;
         sMain[M.ITEM_DROP_X] = this.itemDropX;
         sMain[M.ITEM_DROP_Y] = this.itemDropY;
         sMain[M.ITEM_DROP_TYPE] = this.itemDropType;
+        sMain[M.ITEM_DROP_FREE] = this.itemDropFree ? 1 : 0;
+
+        // Item drop 2
+        sMain[M.ITEM_DROP2_ACTIVE] = this.itemDrop2Active ? 1 : 0;
+        sMain[M.ITEM_DROP2_X] = this.itemDrop2X;
+        sMain[M.ITEM_DROP2_Y] = this.itemDrop2Y;
+        sMain[M.ITEM_DROP2_TYPE] = this.itemDrop2Type;
+        sMain[M.ITEM_DROP2_FREE] = this.itemDrop2Free ? 1 : 0;
 
         if (this.boss) {
             sMain[M.BOSS_HP] = this.boss.health;

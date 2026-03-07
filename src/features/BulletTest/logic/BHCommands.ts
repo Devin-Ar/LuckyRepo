@@ -24,5 +24,10 @@ export const BHCommands: Record<string, ICommand> = {
         execute(logic) {
             logic.useHeldItem();
         }
+    },
+    PICKUP_ITEM: {
+        execute(logic) {
+            logic.requestPickup();
+        }
     }
 };

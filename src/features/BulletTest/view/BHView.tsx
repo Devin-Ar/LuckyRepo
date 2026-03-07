@@ -39,10 +39,20 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
 
     // Inventory
     const [heldItemId, setHeldItemId] = useState(vm.heldItem);
+
+    // Item drop 1
     const [itemDropActive, setItemDropActive] = useState(vm.itemDropActive);
     const [itemDropX, setItemDropX] = useState(vm.itemDropX);
     const [itemDropY, setItemDropY] = useState(vm.itemDropY);
     const [itemDropType, setItemDropType] = useState(vm.itemDropType);
+    const [itemDropFree, setItemDropFree] = useState(vm.itemDropFree);
+
+    // Item drop 2
+    const [itemDrop2Active, setItemDrop2Active] = useState(vm.itemDrop2Active);
+    const [itemDrop2X, setItemDrop2X] = useState(vm.itemDrop2X);
+    const [itemDrop2Y, setItemDrop2Y] = useState(vm.itemDrop2Y);
+    const [itemDrop2Type, setItemDrop2Type] = useState(vm.itemDrop2Type);
+    const [itemDrop2Free, setItemDrop2Free] = useState(vm.itemDrop2Free);
 
     const damageBtnRef = useRef<HTMLButtonElement>(null);
     const heroPosRef = useRef({ x: vm.pos.x, y: vm.pos.y });
@@ -83,10 +93,20 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
 
             // Inventory
             setHeldItemId(vm.heldItem);
+
+            // Item drop 1
             setItemDropActive(vm.itemDropActive);
             setItemDropX(vm.itemDropX);
             setItemDropY(vm.itemDropY);
             setItemDropType(vm.itemDropType);
+            setItemDropFree(vm.itemDropFree);
+
+            // Item drop 2
+            setItemDrop2Active(vm.itemDrop2Active);
+            setItemDrop2X(vm.itemDrop2X);
+            setItemDrop2Y(vm.itemDrop2Y);
+            setItemDrop2Type(vm.itemDrop2Type);
+            setItemDrop2Free(vm.itemDrop2Free);
         });
         return () => unsubscribe();
     }, [vm, hpState, rockCount, isPaused]);
@@ -140,6 +160,12 @@ export const BHView: React.FC<IGameViewProps<BHPresenter, BHController>> = ({
                 itemDropX={itemDropX}
                 itemDropY={itemDropY}
                 itemDropType={itemDropType}
+                itemDropFree={itemDropFree}
+                itemDrop2Active={itemDrop2Active}
+                itemDrop2X={itemDrop2X}
+                itemDrop2Y={itemDrop2Y}
+                itemDrop2Type={itemDrop2Type}
+                itemDrop2Free={itemDrop2Free}
                 gameWidth={width}
                 gameHeight={height}
                 damageBtnRef={damageBtnRef}

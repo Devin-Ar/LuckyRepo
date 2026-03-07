@@ -26,6 +26,10 @@ export class BHController extends BaseController<BHPresenter> {
         this.send('USE_ITEM', {});
     }
 
+    public pickupItem() {
+        this.send('PICKUP_ITEM', {});
+    }
+
     public async jumpToGame2() {
         const target = await StateRegistry.create(FeatureEnum.GAME_2, { reset: false });
         await StateManager.getInstance().replace(target);
@@ -52,6 +56,10 @@ export class BHController extends BaseController<BHPresenter> {
         if (e.key.toUpperCase() === 'Q') {
             this.useItem();
         }
+        // E key to pick up item from floor
+        if (e.key.toUpperCase() === 'E') {
+            this.pickupItem();
+        }
     }
 
     protected onWorkerEvent(name: string): void {
@@ -61,6 +69,10 @@ export class BHController extends BaseController<BHPresenter> {
         if (name === 'PLAYER_DEAD' && !this.isDead) {
             this.isDead = true;
             this.handlePlayerDeath();
+        }
+        if (name === 'PLAYER_REVIVED') {
+            // Life Totem triggered — play SFX, keep isDead false so game continues
+            AudioManager.getInstance().play('sfx_explosion'); // reuse existing SFX for now
         }
         if (name === 'EXIT_DOOR_ENTERED' && !this.hasExited) {
             this.hasExited = true;
