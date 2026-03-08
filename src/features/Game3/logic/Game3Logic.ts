@@ -37,6 +37,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private mantleFloatX = 0;
     private mantleFloatY = 0;
     private wallJumpCooldown = 0;
+    private wallSideVisual = 0;
     private clingJumpGrace = 0;
     private spikeDamageTimer = 0;
     private wasInSpike = false;
@@ -195,7 +196,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         // Mantling State Logic
         if (this.isMantling) {
             this.mantleTimer++;
-            const totalDuration = 90; // 1.5s
+            const totalDuration = 30; // ~0.5s at 60fps
             const t = this.mantleTimer / totalDuration;
 
             if (t >= 1) {
@@ -258,20 +259,23 @@ export class Game3Logic extends BaseLogic<Game3Config> {
                     this.mantleStartX = this.hero.x;
                     this.mantleStartY = this.hero.y;
 
-                    // Target: Sitting on top center of platform
+                    // Target: Sitting on top of the wall, right at the ledge edge
                     this.mantleTargetY = wallPlatform.y - this.heroHeight;
-                    this.mantleTargetX = wallPlatform.x + (wallPlatform.width / 2) - (this.heroWidth / 2);
 
-                    // Floating position: slightly higher than diagonal to clear the ledge completely
-                    const floatXGap = 0.2;
-                    const floatYGap = 0.6; // Slightly higher gap for vertical clearance
-
-                    if (wallSide === 1) { // Platform to the right, hero is on left side
-                        this.mantleFloatX = wallPlatform.x - this.heroWidth - floatXGap;
-                    } else { // Platform to the left, hero is on right side
-                        this.mantleFloatX = wallPlatform.x + wallPlatform.width + floatXGap;
+                    if (wallSide === 1) { // Platform to the right
+                        this.mantleTargetX = wallPlatform.x;
+                    } else { // Platform to the left
+                        this.mantleTargetX = wallPlatform.x + wallPlatform.width - this.heroWidth;
                     }
-                    this.mantleFloatY = wallPlatform.y - this.heroHeight - floatYGap;
+
+                    // Floating position: directly above the cling point, flush against the wall
+                    // Phase 1 goes straight up, Phase 2 moves onto the ledge
+                    if (wallSide === 1) {
+                        this.mantleFloatX = wallPlatform.x - this.heroWidth; // flush against wall
+                    } else {
+                        this.mantleFloatX = wallPlatform.x + wallPlatform.width; // flush against wall
+                    }
+                    this.mantleFloatY = wallPlatform.y - this.heroHeight; // level with top of wall
 
                     return;
                 }
@@ -324,6 +328,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
             const movingAway = (wallSide === -1 && moveDir === 1) || (wallSide === 1 && moveDir === -1);
             if (!movingAway) {
                 this.isWallSliding = true;
+                this.wallSideVisual = wallSide; // Track wall side for view layer only (doesn't affect jump logic)
 
                 // Cling Entry Logic
                 // Only enter cling if moving downwards or stationary vertically
@@ -333,6 +338,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
 
                 if (atTop && canClingFallthrough && !this.collision.isWallAbove(wallPlatform) && this.ledgeGrabCooldown === 0) {
                     this.isClinging = true;
+                    this.wallSideVisual = wallSide;
                     this.hero.vx = 0;
                     this.hero.vy = 0;
                     if (wallSide === 1) {
@@ -425,11 +431,12 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         sMain[M.IS_WALL_SLIDING] = this.isWallSliding ? 1 : 0;
         sMain[M.IS_CLINGING] = this.isClinging ? 1 : 0;
         sMain[M.IS_MANTLING] = this.isMantling ? 1 : 0;
-        sMain[M.MANTLE_PROGRESS] = this.isMantling ? (this.mantleTimer / 180) : 0;
+        sMain[M.MANTLE_PROGRESS] = this.isMantling ? (this.mantleTimer / 30) : 0;
         sMain[M.LEDGE_GRAB_COOLDOWN] = this.ledgeGrabCooldown;
         sMain[M.WALL_JUMP_TIMER] = this.wallJumpTimer;
         sMain[M.WALL_JUMP_COOLDOWN] = this.wallJumpCooldown;
         sMain[M.WALL_JUMP_DIRECTION] = this.wallJumpDirection;
+        sMain[M.WALL_SIDE_VISUAL] = this.wallSideVisual;
         sMain[M.SPIKE_DAMAGE_TIMER] = this.spikeDamageTimer;
         sMain[M.WAS_IN_SPIKE] = this.wasInSpike ? 1 : 0;
         sMain[M.PORTAL_COOLDOWN] = this.portalCooldown;
@@ -560,6 +567,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.isWallSliding = false;
         this.wallJumpTimer = 0;
         this.wallJumpCooldown = 0;
+        this.wallSideVisual = 0;
         this.ledgeGrabCooldown = 0;
         this.mantleTimer = 0;
         this.mantleFloatX = 0;

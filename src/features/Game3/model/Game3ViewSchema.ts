@@ -12,6 +12,8 @@ export const Game3ViewMainSchema: IBuffer = {
     HERO_WIDTH: 7,
     HERO_HEIGHT: 8,
     HERO_ANIM_STATE: 9,
+    MANTLE_PROGRESS: 13,
+    WALL_SLIDE_DIR: 14,
 
     WORLD_SCALE: 10,
     PLAYER_SCALE: 11,

@@ -37,6 +37,7 @@ export const Game3MainSchema: IBuffer = {
     IS_MANTLING: 43,
     MANTLE_PROGRESS: 44,
     LEDGE_GRAB_COOLDOWN: 45,
+    WALL_SIDE_VISUAL: 46,
 
     // Movement Settings
     MOVE_SPEED: 50,

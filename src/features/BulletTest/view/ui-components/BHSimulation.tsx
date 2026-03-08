@@ -40,7 +40,7 @@ export const BHSimulation: React.FC<{
 
         heroRef.current.x = visuals.x;
         heroRef.current.y = visuals.y;
-        heroRef.current.scale.x = (visuals.mousePos >= 1.5 || visuals.mousePos <= -1.5) ? -1 : 1;
+        heroRef.current.scale.x = (visuals.mousePos >= 1.5 || visuals.mousePos <= -1.5) ? 1 : -1;
 
         heroPos.current.x = visuals.x;
         heroPos.current.y = visuals.y;
@@ -72,7 +72,7 @@ export const BHSimulation: React.FC<{
     return (
         <>
             <PixiForceResizer w={width} h={height}/>
-            <BHBackground paused={paused} w={width} h={height}/>
+            <BHBackground paused={paused} w={width} h={height} levelIndex={vm.currentLevelIndex}/>
             <Container ref={worldRef} scale={scale}>
                 <BHHitboxes vm={vm} paused={paused} />
                 <BHForeground vm={vm} paused={paused} heroRef={heroRef} />

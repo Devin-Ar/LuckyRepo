@@ -42,24 +42,26 @@ export class Game3Presenter extends BasePresenter {
 
         const animState = view[S.HERO_ANIM_STATE];
 
-        let assetKey = 'gol_sheet';
+        let assetKey = 'hero_body';
         let animationName = 'idle';
 
         switch (animState) {
-            case 1:
-                assetKey = 'gol_sheet';
+            case 1: // walking
                 animationName = 'walk';
                 break;
-            case 2:
-                assetKey = 'gol_sheet';
+            case 2: // jumping / airborne
                 animationName = 'jump';
                 break;
-            case 3:
-                assetKey = 'gol_sheet';
+            case 3: // wall sliding
                 animationName = 'slide';
                 break;
-            default:
-                assetKey = 'gol_sheet';
+            case 4: // wall clinging (ledge grab)
+                animationName = 'cling';
+                break;
+            case 5: // mantling
+                animationName = 'mantle';
+                break;
+            default: // idle
                 animationName = 'idle';
                 break;
         }
@@ -75,9 +77,10 @@ export class Game3Presenter extends BasePresenter {
             playerOffsetY: view[S.PLAYER_OFFSET_Y] || 0,
             assetKey,
             animationName,
-            animState
+            animState,
+            wallDir: view[S.WALL_SLIDE_DIR] || 0
         };
-    }
+    };
 
     public get worldScale(): number {
         const view = this._sharedViews.get('main');

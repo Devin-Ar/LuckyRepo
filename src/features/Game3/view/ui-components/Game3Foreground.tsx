@@ -82,11 +82,11 @@ export const Game3Foreground: React.FC<{
             {/* Hero Animated Sprite */}
             <Container ref={heroSprRef}>
                 <GameSprite
-                    sheetName={vm.heroVisuals?.assetKey || "hero_idle"}
+                    sheetName={vm.heroVisuals?.assetKey || "hero_body"}
                     animationName={vm.heroVisuals?.animationName || "idle"}
                     currentFrame={vm.heroVisuals?.frame || 0}
                     anchor={[0.5, 1.0]}
-                    scale={1/32}
+                    scale={1/16}
                 />
             </Container>
         </Container>

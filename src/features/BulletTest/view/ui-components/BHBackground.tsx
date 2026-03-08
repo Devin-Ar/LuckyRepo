@@ -1,24 +1,61 @@
 import React, { useRef, useEffect } from 'react';
 import * as PIXI from 'pixi.js';
-import { Graphics, useTick } from '@pixi/react';
+import { Container, Sprite, useTick } from '@pixi/react';
+import { SpriteManager } from '../../../../core/managers/SpriteManager';
 
-export const BHBackground: React.FC<{ paused: boolean, w: number, h: number }> = ({ paused, w, h }) => {
-    const graphicsRef = useRef<PIXI.Graphics>(null);
-    const time = useRef(0);
+const BG_KEYS = ['bg_lvl1', 'bg_lvl2', 'bg_lvl3', 'bg_lvl4'];
+
+export const BHBackground: React.FC<{
+    paused: boolean;
+    w: number;
+    h: number;
+    levelIndex?: number;
+}> = ({ paused, w, h, levelIndex = 0 }) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const spritesRef = useRef<PIXI.Sprite[]>([]);
 
     useEffect(() => {
-        graphicsRef.current?.clear().beginFill(0xffffff).drawRect(0, 0, w, h).endFill();
-    }, [w, h]);
+        const container = containerRef.current;
+        if (!container) return;
 
-    useTick((delta) => {
-        if (!graphicsRef.current || paused) return;
-        time.current += (Math.PI / 60) * delta;
-        const factor = (Math.sin(time.current) + 1) / 2;
-        const r = Math.round(26 + factor * (30 - 26));
-        const g = Math.round(26 + factor * (80 - 26));
-        const b = Math.round(46 + factor * (150 - 46));
-        graphicsRef.current.tint = (r << 16) + (g << 8) + b;
-    });
+        // Clean up old sprites
+        for (const s of spritesRef.current) {
+            container.removeChild(s);
+            s.destroy();
+        }
+        spritesRef.current = [];
 
-    return <Graphics ref={graphicsRef} />;
+        const manager = SpriteManager.getInstance();
+        const frameKey = BG_KEYS[Math.min(levelIndex, BG_KEYS.length - 1)];
+        const texture = manager.getTexture(frameKey);
+
+        if (!texture || texture === PIXI.Texture.WHITE) {
+            // Fallback: solid dark fill if texture not loaded yet
+            const g = new PIXI.Graphics();
+            g.beginFill(0x1a1a2e);
+            g.drawRect(0, 0, w, h);
+            g.endFill();
+            container.addChild(g as any);
+            spritesRef.current.push(g as any);
+            return;
+        }
+
+        // Tile the 64x64 texture across the full width and height
+        const tileW = texture.width;
+        const tileH = texture.height;
+        const cols = Math.ceil(w / tileW) + 1;
+        const rows = Math.ceil(h / tileH) + 1;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const sprite = new PIXI.Sprite(texture);
+                sprite.x = col * tileW;
+                sprite.y = row * tileH;
+                container.addChild(sprite);
+                spritesRef.current.push(sprite);
+            }
+        }
+    }, [w, h, levelIndex]);
+
+    return <Container ref={containerRef} />;
 };

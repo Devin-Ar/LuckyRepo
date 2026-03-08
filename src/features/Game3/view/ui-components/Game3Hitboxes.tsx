@@ -1,8 +1,44 @@
 // src/features/Game3/view/ui-components/Game3Hitboxes.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { Container, Graphics } from '@pixi/react';
+import { Container, Graphics, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
+
+const HealthBarLayer: React.FC<{ vm: Game3Presenter }> = ({ vm }) => {
+    const graphicsRef = useRef<PIXI.Graphics>(null);
+
+    useTick(() => {
+        if (!graphicsRef.current) return;
+        const g = graphicsRef.current;
+        g.clear();
+
+        const hero = vm.heroVisuals;
+        const hp = vm.hp;
+        if (!hero || hero.width <= 0 || hp <= 0) return;
+
+        // Bar dimensions in world/tile units
+        const BAR_WIDTH = hero.width * 1.4;
+        const BAR_HEIGHT = 0.15;
+        const BAR_OFFSET = 0.7; // distance above hero top edge
+
+        const barX = hero.x + (hero.width - BAR_WIDTH) / 2;
+        const barY = hero.y - BAR_OFFSET - BAR_HEIGHT;
+        const hpRatio = Math.max(0, Math.min(1, hp / 100));
+
+        // Background
+        g.beginFill(0x000000, 0.6);
+        g.drawRect(barX - 0.02, barY - 0.02, BAR_WIDTH + 0.04, BAR_HEIGHT + 0.04);
+        g.endFill();
+
+        // Fill
+        const color = hp < 30 ? 0xc0392b : 0x27ae60;
+        g.beginFill(color, 0.9);
+        g.drawRect(barX, barY, BAR_WIDTH * hpRatio, BAR_HEIGHT);
+        g.endFill();
+    });
+
+    return <Graphics ref={graphicsRef} />;
+};
 
 export const Game3Hitboxes: React.FC<{
     vm: Game3Presenter;
@@ -35,14 +71,17 @@ export const Game3Hitboxes: React.FC<{
                 case 14: color = 0xffd700; break; // Coin (Gold)
                 default: color = 0xff00ff;       // Error/Unknown (Magenta)
             }
-
+            g.beginFill(color, 1.0);
+            g.drawRect(p.x, p.y, p.width, p.height);
+            g.endFill();
         }
     }, [vm.objects]);
 
     return (
-        <Container name="hitboxes" alpha={0}>
+        <Container name="hitboxes" alpha={0.5}>
             <Graphics ref={levelRef} />
             <Graphics ref={heroRef} />
+            <HealthBarLayer vm={vm} />
         </Container>
     );
 };

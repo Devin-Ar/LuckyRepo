@@ -13,6 +13,7 @@ export class Game3ViewLogic extends BaseViewLogic {
     private animTimer = 0;
     private lastAnimState = 0;
     private lastFlipX = false;
+    private mantleFinished = false;
 
     public update(dt: number, frameCount: number) {
         const lMain = this.logicViews.get('main');
@@ -48,6 +49,8 @@ export class Game3ViewLogic extends BaseViewLogic {
         const isWallSliding = lMain[Game3MainSchema.IS_WALL_SLIDING] === 1;
         const isClinging = lMain[Game3MainSchema.IS_CLINGING] === 1;
         const isMantling = lMain[Game3MainSchema.IS_MANTLING] === 1;
+        const mantleProgress = lMain[Game3MainSchema.MANTLE_PROGRESS] || 0;
+        const wallSideVisual = lMain[Game3MainSchema.WALL_SIDE_VISUAL] || 0;
 
         // 3. Determine Animation State & Orientation
         let flipX = this.lastFlipX;
@@ -67,7 +70,29 @@ export class Game3ViewLogic extends BaseViewLogic {
         if (animState !== this.lastAnimState) {
             this.animFrame = 0;
             this.animTimer = 0;
+            this.mantleFinished = false;
             this.lastAnimState = animState;
+        } else if (animState === 5) {
+            // Mantle: synced to 30-tick hitbox duration, fast start easing to slow end
+            // Frame delays: fast at start, slow at end, total = 30 ticks
+            // Frame 0: 2, 1: 3, 2: 4, 3: 5, 4: 7, 5: 9 = 30 total
+            if (!this.mantleFinished) {
+                this.animTimer++;
+                const frameDelays = [2, 3, 4, 5, 7, 9];
+                const delay = frameDelays[Math.min(this.animFrame, frameDelays.length - 1)];
+                if (this.animTimer >= delay) {
+                    this.animFrame++;
+                    this.animTimer = 0;
+                    // Stop at frame 4 (skip last frame to avoid flicker)
+                    if (this.animFrame >= 4) {
+                        this.animFrame = 4;
+                        this.mantleFinished = true;
+                    }
+                }
+            }
+        } else if (animState === 4) {
+            // Cling: single frame, no animation needed
+            this.animFrame = 0;
         } else {
             this.animTimer++;
             if (this.animTimer >= 6) {
@@ -97,6 +122,8 @@ export class Game3ViewLogic extends BaseViewLogic {
         vMain[Game3ViewMainSchema.HERO_ANIM_STATE] = animState;
         vMain[Game3ViewMainSchema.HERO_WIDTH] = lMain[Game3MainSchema.HERO_WIDTH];
         vMain[Game3ViewMainSchema.HERO_HEIGHT] = lMain[Game3MainSchema.HERO_HEIGHT];
+        vMain[Game3ViewMainSchema.MANTLE_PROGRESS] = mantleProgress;
+        vMain[Game3ViewMainSchema.WALL_SLIDE_DIR] = wallSideVisual;
 
         vMain[Game3ViewMainSchema.WORLD_SCALE] = lMain[Game3MainSchema.WORLD_SCALE];
         vMain[Game3ViewMainSchema.PLAYER_SCALE] = lMain[Game3MainSchema.PLAYER_SCALE];
@@ -136,7 +163,8 @@ export class Game3ViewLogic extends BaseViewLogic {
             animFrame: this.animFrame,
             animTimer: this.animTimer,
             lastAnimState: this.lastAnimState,
-            lastFlipX: this.lastFlipX
+            lastFlipX: this.lastFlipX,
+            mantleFinished: this.mantleFinished
         };
     }
 
@@ -149,6 +177,7 @@ export class Game3ViewLogic extends BaseViewLogic {
             this.animTimer = data.animTimer ?? 0;
             this.lastAnimState = data.lastAnimState ?? 0;
             this.lastFlipX = data.lastFlipX ?? false;
+            this.mantleFinished = data.mantleFinished ?? false;
         }
     }
 }

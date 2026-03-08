@@ -73,9 +73,43 @@ export const Game3Simulation: React.FC<{
         heroGfx.endFill();
 
         if (heroSpr) {
-            heroSpr.x = hero.x + (hero.width / 2);
-            heroSpr.y = hero.y + hero.height;
-            heroSpr.scale.x = hero.flipX ? -1 : 1;
+            let sprX = hero.x + (hero.width / 2);
+            let sprY = hero.y + hero.height;
+
+            if (hero.animState === 3 || hero.animState === 4 || hero.animState === 5) {
+                // Wall slide (3), cling (4), mantle (5)
+                const wallDir = hero.wallDir || 0;
+
+                // Nudge sprite toward the wall to close the gap from sprite padding
+                // Use different nudge per state to avoid visual shift on transitions
+                let nudge: number;
+                if (hero.animState === 3) nudge = hero.width * 0.3;       // wall slide
+                else if (hero.animState === 4) nudge = hero.width * 0.42; // cling
+                else nudge = hero.width * 0.3;                            // mantle
+                if (wallDir < 0) {
+                    sprX = hero.x + (hero.width / 2) - nudge;
+                } else if (wallDir > 0) {
+                    sprX = hero.x + (hero.width / 2) + nudge;
+                }
+
+                // Cling: push sprite down so it hangs at ledge height
+                if (hero.animState === 4) {
+                    sprY += hero.height * 0.55;
+                }
+
+                // Mantle: push sprite down to align with ledge climb
+                if (hero.animState === 5) {
+                    sprY += hero.height * 0.65;
+                }
+
+                // Flip sprite to face the wall
+                heroSpr.scale.x = wallDir > 0 ? 1 : -1;
+            } else {
+                heroSpr.scale.x = hero.flipX ? 1 : -1;
+            }
+
+            heroSpr.x = sprX;
+            heroSpr.y = sprY;
         }
 
         const heroCenterX = (hero.x + hero.width / 2) * renderScale;
