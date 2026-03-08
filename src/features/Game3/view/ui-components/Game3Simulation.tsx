@@ -1,7 +1,7 @@
 // src/features/Game3/view/ui-components/Game3Simulation.tsx
 import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { Container, useApp, useTick } from '@pixi/react';
+import { Container, Graphics, useApp, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
 import { Game3Background } from './Game3Background';
 import { Game3Foreground } from './Game3Foreground';
@@ -34,6 +34,7 @@ export const Game3Simulation: React.FC<{
     const heroRef = useRef<PIXI.Graphics>(null);
     const levelRef = useRef<PIXI.Graphics>(null);
     const heroSprRef = useRef<PIXI.Container>(null);
+    const healthBarRef = useRef<PIXI.Graphics>(null);
 
     const dynamicScale = height / 256;
     const renderScale = vm.worldScale * dynamicScale;
@@ -112,6 +113,30 @@ export const Game3Simulation: React.FC<{
             heroSpr.y = sprY;
         }
 
+        // Health bar — drawn here so it uses the exact same hero position as the hitbox
+        const hpBar = healthBarRef.current;
+        if (hpBar) {
+            hpBar.clear();
+            const hp = vm.hp;
+            if (hero.width > 0 && hp > 0) {
+                const BAR_WIDTH = hero.width * 1.4;
+                const BAR_HEIGHT = 0.15;
+                const BAR_OFFSET = 0.7;
+                const barX = hero.x + (hero.width - BAR_WIDTH) / 2;
+                const barY = hero.y - BAR_OFFSET - BAR_HEIGHT;
+                const hpRatio = Math.max(0, Math.min(1, hp / 100));
+
+                hpBar.beginFill(0x000000, 0.6);
+                hpBar.drawRect(barX - 0.02, barY - 0.02, BAR_WIDTH + 0.04, BAR_HEIGHT + 0.04);
+                hpBar.endFill();
+
+                const color = hp < 30 ? 0xc0392b : 0x27ae60;
+                hpBar.beginFill(color, 0.9);
+                hpBar.drawRect(barX, barY, BAR_WIDTH * hpRatio, BAR_HEIGHT);
+                hpBar.endFill();
+            }
+        }
+
         const heroCenterX = (hero.x + hero.width / 2) * renderScale;
         const heroCenterY = (hero.y + hero.height / 2) * renderScale;
 
@@ -126,6 +151,7 @@ export const Game3Simulation: React.FC<{
                 <Game3Background />
                 <Game3Foreground vm={vm} heroSprRef={heroSprRef} />
                 <Game3Hitboxes vm={vm} levelRef={levelRef} heroRef={heroRef} />
+                <Graphics ref={healthBarRef} />
             </Container>
         </>
     );

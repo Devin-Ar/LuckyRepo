@@ -197,27 +197,29 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         if (this.isMantling) {
             this.mantleTimer++;
             const totalDuration = 30; // ~0.5s at 60fps
-            const t = this.mantleTimer / totalDuration;
+            const t = Math.min(this.mantleTimer / totalDuration, 1);
 
             if (t >= 1) {
                 this.hero.x = this.mantleTargetX;
                 this.hero.y = this.mantleTargetY;
                 this.isMantling = false;
                 this.mantleTimer = 0;
-                this.ledgeGrabCooldown = 30; // 0.5s cooldown to prevent immediate re-grabbing after mantle
+                this.ledgeGrabCooldown = 30;
             } else {
-                // Two-phase mantle:
-                // Phase 1 (0.0 to 0.5): Move diagonally to the floating position (up and away)
-                // Phase 2 (0.5 to 1.0): Move from floating position to the top center
-                if (t < 0.5) {
-                    const phaseT = t / 0.5;
-                    this.hero.x = this.mantleStartX + (this.mantleFloatX - this.mantleStartX) * phaseT;
-                    this.hero.y = this.mantleStartY + (this.mantleFloatY - this.mantleStartY) * phaseT;
-                } else {
-                    const phaseT = (t - 0.5) / 0.5;
-                    this.hero.x = this.mantleFloatX + (this.mantleTargetX - this.mantleFloatX) * phaseT;
-                    this.hero.y = this.mantleFloatY + (this.mantleTargetY - this.mantleFloatY) * phaseT;
-                }
+                // Smooth corner-hugging mantle:
+                // Y completes most of its travel early (ease-out)
+                // X stays near the wall until Y is mostly done, then swings over (ease-in)
+                // This keeps the hitbox tight to the corner throughout
+
+                // Y: fast start, arrives at top early (ease-out curve)
+                const yT = 1 - (1 - t) * (1 - t);
+                this.hero.y = this.mantleStartY + (this.mantleTargetY - this.mantleStartY) * yT;
+
+                // X: stays put until ~40% through, then accelerates onto ledge (delayed ease-in)
+                const xDelay = 0.4;
+                const xT = t < xDelay ? 0 : ((t - xDelay) / (1 - xDelay));
+                const xEased = xT * xT; // ease-in
+                this.hero.x = this.mantleStartX + (this.mantleTargetX - this.mantleStartX) * xEased;
             }
             this.hero.vx = 0;
             this.hero.vy = 0;
