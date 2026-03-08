@@ -108,6 +108,56 @@ const RockPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) 
     return <Container ref={containerRef}/>;
 };
 
+const RockChargePool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const spritePool = useRef<PIXI.AnimatedSprite[]>([]);
+    const manager = SpriteManager.getInstance();
+
+    useTick(() => {
+        if (!containerRef.current) return;
+        const currentCount = vm.entityCount;
+        const pool = spritePool.current;
+
+        if (currentCount > pool.length) {
+            for (let i = pool.length; i < currentCount; i++) {
+                let textures;
+                textures = manager.getAnimation('laser_charge_charge');
+                if (textures.length > 0) {
+                    const sprite = new PIXI.AnimatedSprite(textures);
+                    sprite.anchor.set(0.5);
+                    sprite.scale.set(.5);
+                    containerRef.current.addChild(sprite);
+                    pool.push(sprite);
+                }
+            }
+        } else if (currentCount < pool.length) {
+            for (let i = pool.length - 1; i >= currentCount; i--) {
+                const sprite = pool.pop();
+                if (sprite) { containerRef.current.removeChild(sprite); sprite.destroy(); }
+            }
+        }
+
+        for (let i = 0; i < currentCount; i++) {
+            const sprite = pool[i];
+            const data = vm.getRockAttackData(i);
+            const data2 = vm.getRockViewData(i);
+            if (!data || paused || data.primedMode !== 1 || data2.type === 3) {
+                if (sprite) sprite.visible = false;
+                continue;
+            }
+            sprite.visible = true;
+            sprite.x = data2.x;
+            sprite.y = data2.y;
+
+            if (sprite.textures.length > 0) {
+                const frameIndex = Math.floor(data2.currentFrame) % sprite.textures.length;
+                sprite.gotoAndStop(frameIndex);
+            }
+        }
+    });
+    return <Container ref={containerRef}/>;
+};
+
 const HeroArmPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
     const spritePool = useRef<PIXI.AnimatedSprite[]>([]);

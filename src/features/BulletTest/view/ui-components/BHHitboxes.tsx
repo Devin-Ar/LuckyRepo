@@ -4,10 +4,12 @@ import {Container, Graphics, useTick} from '@pixi/react';
 import {BHPresenter} from '../BHPresenter';
 import {GameSprite} from '../../../../components/GameSprite';
 import {DebugContext} from "../../../../App";
+import {SpriteManager} from "../../../../core/managers/SpriteManager";
 
 const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
     const graphicsPool = useRef<PIXI.Graphics[]>([]);
+    const manager = SpriteManager.getInstance();
 
     useEffect(() => {
         return () => {
@@ -44,7 +46,19 @@ const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
                 continue;
             }
             graphic.visible = true;
-            graphic.clear().lineStyle(10, 0xff0000, 0.2).moveTo(data2.x, data2.y).lineTo(data.endX, data.endY);
+            const midX = data2.x + data2.charge * (data.endX - data2.x);
+            const midY = data2.y + data2.charge * (data.endY - data2.y);
+            if (data2.charge >= 0.95) {
+                const texture = manager.getTexture('one_laser');
+                const matrix = new PIXI.Matrix().scale(1 / texture.width, 1 / texture.height);
+                graphic.clear()
+                    .lineTextureStyle({ width: 30, texture, color: 0xff0000, alpha: 1, matrix: matrix})
+                    .moveTo(data2.x, data2.y).lineTo(data.endX, data.endY);
+            } else {
+                graphic.clear().lineStyle(10, 0xff0000, .8).moveTo(data2.x, data2.y).lineTo(midX, midY)
+                    .lineStyle(10, 0xff0000, .2).moveTo(midX, midY).lineTo(data.endX, data.endY);
+            }
+
         }
     });
     return <Container ref={containerRef}/>;
@@ -78,9 +92,58 @@ const ProjPool: React.FC<{ vm: BHPresenter, paused: boolean, type: 'player' | 'e
             if (!data || paused) { if (graphic) graphic.visible = false; continue; }
             const color = type === 'player' ? 0x00ff00 : 0xff0000;
             graphic.visible = true;
+            graphic.beginTextureFill()
             graphic.clear().lineStyle(2, color).beginFill(color, 0.4)
                 .drawRect(data.x - (data.width || 10) / 2, data.y - (data.height || 10) / 2, data.width || 10, data.height || 10)
                 .endFill();
+        }
+    });
+    return <Container ref={containerRef}/>;
+};
+
+const ProjTestPool: React.FC<{ vm: BHPresenter, paused: boolean, type: 'player' | 'enemy' }> = ({vm, paused, type}) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const spritePool = useRef<PIXI.AnimatedSprite[]>([]);
+    const manager = SpriteManager.getInstance();
+    const animKey = type === 'player' ? 'bullet_proj_movement' : 'bullet_proj_movement';
+
+    useTick(() => {
+        if (!containerRef.current) return;
+        const currentCount = type === 'player' ? vm.projCount : vm.projEnemyCount;
+        const pool = spritePool.current;
+
+        if (currentCount > pool.length) {
+            for (let i = pool.length; i < currentCount; i++) {
+                const textures = manager.getAnimation(animKey);
+                if (textures.length > 0) {
+                    const sprite = new PIXI.AnimatedSprite(textures);
+                    sprite.anchor.set(0.5);
+                    sprite.scale.set(.8);
+                    containerRef.current.addChild(sprite);
+                    pool.push(sprite);
+                }
+            }
+        } else if (currentCount < pool.length) {
+            for (let i = pool.length - 1; i >= currentCount; i--) {
+                const sprite = pool.pop();
+                if (sprite) { containerRef.current.removeChild(sprite); sprite.destroy(); }
+            }
+        }
+
+        for (let i = 0; i < currentCount; i++) {
+            const sprite = pool[i];
+            const data2 = vm.getRockViewData(i);
+            const data = type === 'player' ? vm.getPlayerProjData(i) : vm.getEnemyProjData(i);
+            if (!data || paused) { if (sprite) sprite.visible = false; continue; }
+            sprite.visible = true;
+            sprite.rotation = data.direction + Math.PI;
+            sprite.x = data.x;
+            sprite.y = data.y;
+
+            if (sprite.textures.length > 0) {
+                const frameIndex = Math.floor(data2.currentFrame) % sprite.textures.length;
+                sprite.gotoAndStop(frameIndex);
+            }
         }
     });
     return <Container ref={containerRef}/>;
@@ -99,7 +162,6 @@ const DebugHitboxRenderer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm
         if (!graphicsRef.current || paused) return;
         const g = graphicsRef.current;
         g.clear();
-        console.log(debugModeRef.current);
         if (!debugModeRef.current) return;
         const hero = vm.heroVisuals;
         if (hero.width > 0) {
@@ -259,8 +321,8 @@ export const BHHitboxes: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, 
     return (
         <Container name="hitbox_layer">
             <RockAttackPool vm={vm} paused={paused}/>
-            <ProjPool vm={vm} paused={paused} type="player"/>
-            <ProjPool vm={vm} paused={paused} type="enemy"/>
+            <ProjTestPool vm={vm} paused={paused} type="player"/>
+            <ProjTestPool vm={vm} paused={paused} type="enemy"/>
             <BossRenderer vm={vm} paused={paused}/>
             <DebugHitboxRenderer vm={vm} paused={paused}/>
             <HealthBarLayer vm={vm} paused={paused}/>

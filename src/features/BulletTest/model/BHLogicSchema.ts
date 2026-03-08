@@ -74,7 +74,7 @@ export const BHMainLogicSchema: IBuffer = {
 };
 
 export const BHRocksLogicSchema: IBuffer = {
-    STRIDE: 12,
+    STRIDE: 13,
     FRAME: 8,
     HP: 10,
     MAX_HP: 11,
@@ -82,12 +82,12 @@ export const BHRocksLogicSchema: IBuffer = {
 };
 
 export const BHPProjLogicSchema: IBuffer = {
-    STRIDE: 5,
+    STRIDE: 6,
     BUFFER_SIZE: 500 // 100 projectiles * 5
 };
 
 export const BHEProjLogicSchema: IBuffer = {
-    STRIDE: 5,
+    STRIDE: 6,
     BUFFER_SIZE: 5000 // 1000 projectiles * 5
 };
 

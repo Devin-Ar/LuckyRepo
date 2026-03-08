@@ -71,7 +71,7 @@ export const BHMainViewSchema: IBuffer = {
 };
 
 export const BHRocksViewSchema: IBuffer = {
-    STRIDE: 12,
+    STRIDE: 13,
     FRAME: 8,
     HP: 10,
     MAX_HP: 11,
@@ -79,12 +79,12 @@ export const BHRocksViewSchema: IBuffer = {
 };
 
 export const BHPProjViewSchema: IBuffer = {
-    STRIDE: 5,
+    STRIDE: 6,
     BUFFER_SIZE: 500
 };
 
 export const BHEProjViewSchema: IBuffer = {
-    STRIDE: 5,
+    STRIDE: 6,
     BUFFER_SIZE: 5000
 };
 

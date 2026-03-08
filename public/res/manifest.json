@@ -38,6 +38,17 @@
         "static": ["hb_arm_0"]
       }
     },
+    "bullet_proj": {
+      "url": "res/sprite/sheets/bullet_both.png",
+      "frames": {
+        "bp_drift_0": {"x":0, "y":0, "w":64, "h":64},
+        "bp_drift_1": {"x":64, "y":0, "w":64, "h":64},
+        "bp_drift_2": {"x":128, "y":0, "w":64, "h":64}
+      },
+      "animations": {
+        "movement": ["bp_drift_0", "bp_drift_1", "bp_drift_2"]
+      }
+    },
     "laser_drone": {
       "url": "res/sprite/sheets/drone_laser_.png",
       "frames": {
@@ -47,6 +58,17 @@
       },
       "animations": {
         "movement": ["ld_drift_0", "ld_drift_1", "ld_drift_2"]
+      }
+    },
+    "laser_charge": {
+      "url": "res/sprite/sheets/laser_charge.png",
+      "frames": {
+        "lc_drift_0": {"x":0, "y":0, "w":128, "h":128},
+        "lc_drift_1": {"x":128, "y":0, "w":128, "h":128},
+        "lc_drift_2": {"x":256, "y":0, "w":128, "h":128}
+      },
+      "animations": {
+        "charge": ["lc_drift_0", "lc_drift_1", "lc_drift_2"]
       }
     },
     "shot_drone": {
@@ -118,7 +140,8 @@
     }
   },
   "images": {
-    "static_rock": "res/sprite/static/rock.png"
+    "static_rock": "res/sprite/static/rock.png",
+    "one_laser": "res/sprite/static/laser_1.png"
   },
   "audio": {
     "bgm_level1": {

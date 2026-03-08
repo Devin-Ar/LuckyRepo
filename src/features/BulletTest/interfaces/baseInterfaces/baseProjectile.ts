@@ -95,6 +95,7 @@ export class playerProjectile extends baseProjectile {
         sharedView[base + 2] = this.width;
         sharedView[base + 3] = this.height;
         sharedView[base + 4] = this.seed;
+        sharedView[base + 5] = this.playerRelative;
     }
 }
 
@@ -141,5 +142,6 @@ export class enemyProjectile extends baseProjectile {
         sharedView[base + 2] = this.width;
         sharedView[base + 3] = this.height;
         sharedView[base + 4] = this.seed;
+        sharedView[base + 5] = this.playerRelative;
     }
 }

@@ -60,6 +60,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
     wave: number = 0;
 
     private frameElapsed: number;
+    private untilFire: number;
     private atkBox: { eX: number, eY: number };
     private followRun: boolean;
     private primedMode: boolean;
@@ -79,6 +80,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         this.primedMode = false;
         this.active = true;
         this.type = "rock";
+        this.untilFire = 0;
     }
 
     applySpawnConfig(hp: number, moveSpeed: number, contactDamage: number, wave: number): void {
@@ -116,6 +118,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
         sharedView[base + 9] = 0; //contact
         sharedView[base + 10] = this.hp;
         sharedView[base + 11] = this.maxHp;
+        sharedView[base + 12] = this.untilFire;
     }
 
     private processRock(player: basePlayer, config: BHConfig): void {
@@ -163,6 +166,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
     private processRockAttacks(player: basePlayer, config: BHConfig): void {
         //3 frames per second
         const timeMili = (this.currentFrame - this.frameElapsed);
+        this.untilFire = (timeMili-15)/(21-15);
         if (timeMili > 15 && !this.primedMode) {
             this.primedMode = true;
             this.atkBox = { eX: player.x, eY: player.y };

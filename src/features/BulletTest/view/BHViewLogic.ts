@@ -73,6 +73,7 @@ export class BHViewLogic extends BaseViewLogic {
             vRocks[vBase + 7] = lRocks[lBase + 7];
             vRocks[vBase + 8] = lRocks[lBase + 8];
             vRocks[vBase + 9] = lRocks[lBase + 9];
+            vRocks[vBase + 12] = lRocks[lBase + 12];
         }
 
         // Projectiles
@@ -86,6 +87,7 @@ export class BHViewLogic extends BaseViewLogic {
             vPProjs[vBase + 2] = lPProjs[lBase + 2];
             vPProjs[vBase + 3] = lPProjs[lBase + 3];
             vPProjs[vBase + 4] = lPProjs[lBase + 4];
+            vPProjs[vBase + 5] = lPProjs[lBase + 5];
         }
 
         const eProjCount = lMain[LM.EPROJ_COUNT];
@@ -98,6 +100,7 @@ export class BHViewLogic extends BaseViewLogic {
             vEProjs[vBase + 2] = lEProjs[lBase + 2];
             vEProjs[vBase + 3] = lEProjs[lBase + 3];
             vEProjs[vBase + 4] = lEProjs[lBase + 4];
+            vEProjs[vBase + 5] = lEProjs[lBase + 5];
         }
 
         vMain[VM.CURRENT_WAVE] = lMain[LM.CURRENT_WAVE];

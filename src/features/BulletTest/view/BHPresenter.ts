@@ -199,6 +199,7 @@ export class BHPresenter extends BasePresenter {
             type: this.rocksView[offset + 9] || 0,
             hp: this.rocksView[offset + 10] || 0,
             maxHp: this.rocksView[offset + 11] || 0,
+            charge: this.rocksView[offset + 12] || 0,
         };
     }
 
@@ -219,6 +220,7 @@ export class BHPresenter extends BasePresenter {
             width: this.pProjsView[offset + 2] || 0,
             height: this.pProjsView[offset + 3] || 0,
             seed: this.pProjsView[offset + 4] || 0,
+            direction: this.pProjsView[offset + 5] || 0,
         };
     }
 
@@ -230,6 +232,7 @@ export class BHPresenter extends BasePresenter {
             width: this.eProjsView[offset + 2] || 0,
             height: this.eProjsView[offset + 3] || 0,
             seed: this.eProjsView[offset + 4] || 0,
+            direction: this.eProjsView[offset + 5] || 0,
         };
     }
 
