@@ -72,7 +72,7 @@ export const Game3Foreground: React.FC<{
                             <GameSprite
                                 imageName={assetName}
                                 anchor={[0.5, 1.0]}
-                                scale={1/32}
+                                scale={p.type === 3 ? p.width / 20 : 1/32}
                             />
                         )}
                     </Container>

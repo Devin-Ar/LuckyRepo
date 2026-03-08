@@ -125,7 +125,7 @@
     "NonOrganic BG": "res/sprite/static/bricksbgvn2.png",
     "Exit Door": "res/sprite/static/exit_door.png",
     "Void Pit": "res/sprite/static/void_pit.png",
-    "Spike Trap": "res/sprite/static/outofideas.png",
+    "Spike Trap": "res/sprite/static/Spike.png",
     "Portal Gate": "res/sprite/static/portal_gate.png"
   },
   "audio": {
