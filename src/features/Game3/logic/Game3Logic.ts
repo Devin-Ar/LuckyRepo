@@ -206,20 +206,25 @@ export class Game3Logic extends BaseLogic<Game3Config> {
                 this.mantleTimer = 0;
                 this.ledgeGrabCooldown = 30;
             } else {
-                // Smooth corner-hugging mantle:
-                // Y completes most of its travel early (ease-out)
-                // X stays near the wall until Y is mostly done, then swings over (ease-in)
-                // This keeps the hitbox tight to the corner throughout
+                // Slow-fast-slow-fast mantle rhythm using a double sine pulse.
+                // This creates two bursts of speed with pauses between,
+                // like: grab → heave up (fast) → brace (slow) → pull over (fast) → settle (slow)
+                const pulseT = (1 - Math.cos(t * Math.PI * 2)) / 2; // oscillates 0→1→0→1
+                // Integrate the pulse to get a position curve that accelerates/decelerates twice
+                // Approximation: blend linear t with the pulse integral
+                const eased = t + 0.15 * Math.sin(t * Math.PI * 2) / (Math.PI * 2);
+                // Normalize so eased goes from 0 to ~1
+                const normalizedT = eased / (1 + 0.15 * Math.sin(Math.PI * 2) / (Math.PI * 2));
 
-                // Y: fast start, arrives at top early (ease-out curve)
-                const yT = 1 - (1 - t) * (1 - t);
-                this.hero.y = this.mantleStartY + (this.mantleTargetY - this.mantleStartY) * yT;
+                // Y: rises with the slow-fast-slow-fast rhythm
+                this.hero.y = this.mantleStartY + (this.mantleTargetY - this.mantleStartY) * normalizedT;
 
-                // X: stays put until ~40% through, then accelerates onto ledge (delayed ease-in)
+                // X: stays near wall for first half, then moves onto ledge in second half
                 const xDelay = 0.4;
-                const xT = t < xDelay ? 0 : ((t - xDelay) / (1 - xDelay));
-                const xEased = xT * xT; // ease-in
-                this.hero.x = this.mantleStartX + (this.mantleTargetX - this.mantleStartX) * xEased;
+                const xRaw = t < xDelay ? 0 : ((t - xDelay) / (1 - xDelay));
+                const xEased = xRaw + 0.15 * Math.sin(xRaw * Math.PI * 2) / (Math.PI * 2);
+                const xNorm = xRaw > 0 ? xEased / (1 + 0.15 * Math.sin(Math.PI * 2) / (Math.PI * 2)) : 0;
+                this.hero.x = this.mantleStartX + (this.mantleTargetX - this.mantleStartX) * xNorm;
             }
             this.hero.vx = 0;
             this.hero.vy = 0;
@@ -333,8 +338,10 @@ export class Game3Logic extends BaseLogic<Game3Config> {
                 this.wallSideVisual = wallSide; // Track wall side for view layer only (doesn't affect jump logic)
 
                 // Cling Entry Logic
-                // Only enter cling if moving downwards or stationary vertically
-                const atTop = this.hero.y <= wallPlatform.y + 0.1;
+                // Only enter cling if hero's feet are near the top of the wall (within snap tolerance)
+                const heroBottom = this.hero.y + this.heroHeight;
+                const snapTolerance = 0.5; // half a tile of tolerance
+                const atTop = heroBottom >= wallPlatform.y && heroBottom <= wallPlatform.y + snapTolerance;
                 const canClingFallthrough = !wallPlatform.isFallthrough ||
                     (this.hero.vy >= 0 && !this.isAction('MOVE_DOWN'));
 

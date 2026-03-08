@@ -20,8 +20,8 @@ export class Game3Collision {
         const checkY = hero.y + height + 0.1;
 
         for (const p of platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
-                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit ||
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground ||
                 p.isNonOrganicForeground || p.isNonOrganicBackground || p.isCoinCollectable) continue;
 
             if (p.isFallthrough) {
@@ -89,10 +89,10 @@ export class Game3Collision {
     public isWallAbove(platform: PlatformData): boolean {
         const platforms = this.logic.platformList;
         return platforms.some(p => {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
-                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit ||
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground ||
                 p.isNonOrganicForeground || p.isNonOrganicBackground || p.isCoinCollectable) return false;
-            
+
             return Math.abs(p.x - platform.x) < 0.1 && Math.abs(p.y - (platform.y - platform.height)) < 0.1;
         });
     }
@@ -106,11 +106,13 @@ export class Game3Collision {
 
         // Horizontal Collision
         for (const p of platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
-                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit ||
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground ||
                 p.isNonOrganicForeground || p.isNonOrganicBackground || p.isCoinCollectable) continue;
 
             if (p.isFallthrough && hero.vy < 0) continue;
+            if (p.isFallthrough && this.logic.isAction('MOVE_DOWN')) continue;
+            if (p.isFallthrough && hero.y + height > p.y + 0.1) continue;
             if (!this.isFallthroughSideEligible(p, hero.y, height)) continue;
 
             if (nextX + width > p.x && nextX < p.x + p.width && hero.y + height > p.y && hero.y < p.y + p.height) {
@@ -127,8 +129,8 @@ export class Game3Collision {
         let verticalCollided = false;
 
         for (const p of platforms) {
-            if (p.isSpike || p.isPortal || p.isVoid || p.isExit || 
-                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground || 
+            if (p.isSpike || p.isPortal || p.isVoid || p.isExit ||
+                p.isDisplayWall || p.isGrassForeground || p.isGrassBackground ||
                 p.isNonOrganicForeground || p.isNonOrganicBackground || p.isCoinCollectable) continue;
 
             if (p.isFallthrough) {
