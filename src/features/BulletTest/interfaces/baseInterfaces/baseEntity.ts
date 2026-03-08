@@ -166,7 +166,7 @@ export class RockEntity extends baseEntity implements IContactEnemy {
     private processRockAttacks(player: basePlayer, config: BHConfig): void {
         //3 frames per second
         const timeMili = (this.currentFrame - this.frameElapsed);
-        this.untilFire = (timeMili-15)/(21-15);
+        this.untilFire = Math.min((timeMili-15)/(21-15), 1.0);
         if (timeMili > 15 && !this.primedMode) {
             this.primedMode = true;
             this.atkBox = { eX: player.x, eY: player.y };

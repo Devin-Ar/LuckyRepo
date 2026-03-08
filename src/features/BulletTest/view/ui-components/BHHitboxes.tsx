@@ -8,57 +8,63 @@ import {SpriteManager} from "../../../../core/managers/SpriteManager";
 
 const RockAttackPool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, paused}) => {
     const containerRef = useRef<PIXI.Container>(null);
-    const graphicsPool = useRef<PIXI.Graphics[]>([]);
+    const spritePool = useRef<PIXI.Sprite[]>([]);
     const manager = SpriteManager.getInstance();
 
     useEffect(() => {
         return () => {
-            graphicsPool.current.forEach(s => s && !s.destroyed && s.destroy());
-            graphicsPool.current = [];
+            spritePool.current.forEach(s => s && !s.destroyed && s.destroy());
+            spritePool.current = [];
         };
     }, []);
 
     useTick(() => {
         if (!containerRef.current) return;
         const currentCount = vm.entityCount;
-        const pool = graphicsPool.current;
+        const pool = spritePool.current;
 
         if (currentCount > pool.length) {
             for (let i = pool.length; i < currentCount; i++) {
-                const newGraphic = new PIXI.Graphics();
-                newGraphic.visible = false;
-                containerRef.current.addChild(newGraphic);
-                pool.push(newGraphic);
+                const s = new PIXI.Sprite();
+                s.anchor.set(0, 0.5);
+                s.visible = false;
+                containerRef.current.addChild(s);
+                pool.push(s);
             }
         } else if (currentCount < pool.length) {
             for (let i = pool.length - 1; i >= currentCount; i--) {
-                const oldGraphic = pool.pop();
-                if (oldGraphic) { containerRef.current.removeChild(oldGraphic); oldGraphic.destroy(); }
+                const s = pool.pop();
+                if (s) { containerRef.current.removeChild(s); s.destroy(); }
             }
         }
 
+        const animFrame = Math.floor(Date.now() / 60) % 4;
+
         for (let i = 0; i < currentCount; i++) {
-            const graphic = pool[i];
+            const sprite = pool[i];
             const data = vm.getRockAttackData(i);
             const data2 = vm.getRockViewData(i);
-            if (!data || paused || data.primedMode !== 1 || data2.type === 3) {
-                if (graphic) graphic.visible = false;
+
+            if (!data || paused || data.primedMode !== 1 || data2.type === 3 || data2.charge < 0.95) {
+                if (sprite) sprite.visible = false;
                 continue;
             }
-            graphic.visible = true;
-            const midX = data2.x + data2.charge * (data.endX - data2.x);
-            const midY = data2.y + data2.charge * (data.endY - data2.y);
-            if (data2.charge >= 0.95) {
-                const texture = manager.getTexture('one_laser');
-                const matrix = new PIXI.Matrix().scale(1 / texture.width, 1 / texture.height);
-                graphic.clear()
-                    .lineTextureStyle({ width: 30, texture, color: 0xff0000, alpha: 1, matrix: matrix})
-                    .moveTo(data2.x, data2.y).lineTo(data.endX, data.endY);
-            } else {
-                graphic.clear().lineStyle(10, 0xff0000, .8).moveTo(data2.x, data2.y).lineTo(midX, midY)
-                    .lineStyle(10, 0xff0000, .2).moveTo(midX, midY).lineTo(data.endX, data.endY);
-            }
 
+            const textures = manager.getAnimation('laser_beam_fire');
+            if (textures.length === 0) { sprite.visible = false; continue; }
+
+            const tex = textures[animFrame % textures.length];
+            const dx = data.endX - data2.x;
+            const dy = data.endY - data2.y;
+            const beamLength = Math.sqrt(dx * dx + dy * dy);
+            const FRAME_WIDTH = 32; // single frame width from spritesheet
+
+            sprite.texture = tex;
+            sprite.visible = true;
+            sprite.x = data2.x;
+            sprite.y = data2.y;
+            sprite.rotation = Math.atan2(dy, dx);
+            sprite.scale.set(beamLength / FRAME_WIDTH, 2);
         }
     });
     return <Container ref={containerRef}/>;

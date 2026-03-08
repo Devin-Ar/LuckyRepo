@@ -141,17 +141,26 @@ const RockChargePool: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
             const sprite = pool[i];
             const data = vm.getRockAttackData(i);
             const data2 = vm.getRockViewData(i);
-            if (!data || paused || data.primedMode !== 1 || data2.type === 3) {
+            // Hide if not primed, bash drone, or beam already firing (charge capped at 1.0)
+            if (!data || paused || data.primedMode !== 1 || data2.type === 3 || data2.charge >= 0.95) {
                 if (sprite) sprite.visible = false;
                 continue;
             }
             sprite.visible = true;
-            sprite.x = data2.x;
-            sprite.y = data2.y;
 
+            // Offset charge sprite from drone center toward beam target
+            const dx = data.endX - data2.x;
+            const dy = data.endY - data2.y;
+            const angle = Math.atan2(dy, dx);
+            const CHARGE_OFFSET = 32; // half the drone sprite size at scale 1.5
+            sprite.x = data2.x + Math.cos(angle) * CHARGE_OFFSET;
+            sprite.y = data2.y + Math.sin(angle) * CHARGE_OFFSET;
+            sprite.rotation = angle;
+
+            // Fast looping animation — cycles through all 3 frames rapidly
             if (sprite.textures.length > 0) {
-                const frameIndex = Math.floor(data2.currentFrame) % sprite.textures.length;
-                sprite.gotoAndStop(frameIndex);
+                const fastFrame = Math.floor(Date.now() / 80) % sprite.textures.length;
+                sprite.gotoAndStop(fastFrame);
             }
         }
     });
@@ -197,6 +206,7 @@ export const BHForeground: React.FC<{ vm: BHPresenter, paused: boolean, heroRef:
     return (
         <Container name="foreground">
             <RockPool vm={vm} paused={paused}/>
+            <RockChargePool vm={vm} paused={paused}/>
             <HeroSprite vm={vm} paused={paused} heroRef={heroRef} />
             <HeroArmPool vm={vm} paused={paused}/>
         </Container>
