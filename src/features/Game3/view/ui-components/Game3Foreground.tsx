@@ -1,9 +1,9 @@
 // src/features/Game3/view/ui-components/Game3Foreground.tsx
-import React, { useMemo } from 'react';
+import React, {useMemo, useRef} from 'react';
 import * as PIXI from 'pixi.js';
-import { Container } from '@pixi/react';
+import {Container, useTick} from '@pixi/react';
 import { Game3Presenter, ViewObject } from '../Game3Presenter';
-import { GameSprite } from "../../../../components/GameSprite";
+import {SpriteManager} from "../../../../core/managers/SpriteManager";
 
 /**
  * Walkable platform types that spikes orient toward (floors the player stands on).
@@ -69,13 +69,210 @@ function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: n
     return { rotation, offsetX, offsetY: 0 };
 }
 
+const ForegroundAnimated: React.FC<{
+    vm: Game3Presenter;
+    heroSprRef: React.RefObject<PIXI.Container>;
+}> = ({ vm, heroSprRef }) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const manager = SpriteManager.getInstance();
+
+    // Separate pools for each animated type
+    const coinPool = useRef<PIXI.AnimatedSprite[]>([]);
+    const voidPool = useRef<PIXI.AnimatedSprite[]>([]);
+    const portalPool = useRef<PIXI.AnimatedSprite[]>([]);
+    const heroSprite = useRef<PIXI.AnimatedSprite | null>(null);
+    const tickRef = useRef(0);
+
+    useTick(() => {
+        if (!containerRef.current) return;
+        tickRef.current++;
+
+        const coinFrame = Math.floor(tickRef.current / 15) % 2;
+        const voidFrame = Math.floor(tickRef.current / 10) % 3;
+        const portalFrame = Math.floor(tickRef.current / 8) % 4;
+
+        const objects = vm.objects;
+
+        // Gather objects by type
+        const coins = objects.filter(p => p.type === 14);
+        const voids = objects.filter(p => p.type === 2);
+        const portals = objects.filter(p => p.type === 4);
+
+        // --- Coin pool ---
+        while (coinPool.current.length < coins.length) {
+            const textures = manager.getAnimation('coin_spin');
+            const sprite = new PIXI.AnimatedSprite(textures);
+            sprite.anchor.set(0.5, 1.0);
+            sprite.scale.set(1/32);
+            containerRef.current.addChild(sprite);
+            coinPool.current.push(sprite);
+        }
+        while (coinPool.current.length > coins.length) {
+            const sprite = coinPool.current.pop();
+            if (sprite) { containerRef.current.removeChild(sprite); sprite.destroy(); }
+        }
+        for (let i = 0; i < coins.length; i++) {
+            const sprite = coinPool.current[i];
+            const p = coins[i];
+            sprite.visible = true;
+            sprite.x = p.x + p.width / 2;
+            sprite.y = p.y + p.height;
+            sprite.gotoAndStop(coinFrame % sprite.textures.length);
+        }
+
+        // --- Void pool ---
+        while (voidPool.current.length < voids.length) {
+            const textures = manager.getAnimation('void_pit_swirl');
+            const sprite = new PIXI.AnimatedSprite(textures);
+            sprite.anchor.set(0.5, 1.0);
+            sprite.scale.set(1/20);
+            containerRef.current.addChild(sprite);
+            voidPool.current.push(sprite);
+        }
+        while (voidPool.current.length > voids.length) {
+            const sprite = voidPool.current.pop();
+            if (sprite) { containerRef.current.removeChild(sprite); sprite.destroy(); }
+        }
+        for (let i = 0; i < voids.length; i++) {
+            const sprite = voidPool.current[i];
+            const p = voids[i];
+            sprite.visible = true;
+            sprite.x = p.x + p.width / 2;
+            sprite.y = p.y + p.height;
+            sprite.gotoAndStop(voidFrame % sprite.textures.length);
+        }
+
+        // --- Portal pool ---
+        while (portalPool.current.length < portals.length) {
+            const textures = manager.getAnimation('plat_portal_pulse');
+            const sprite = new PIXI.AnimatedSprite(textures);
+            sprite.anchor.set(0.5, 1.0);
+            containerRef.current.addChild(sprite);
+            portalPool.current.push(sprite);
+        }
+        while (portalPool.current.length > portals.length) {
+            const sprite = portalPool.current.pop();
+            if (sprite) { containerRef.current.removeChild(sprite); sprite.destroy(); }
+        }
+        for (let i = 0; i < portals.length; i++) {
+            const sprite = portalPool.current[i];
+            const p = portals[i];
+            sprite.visible = true;
+            sprite.x = p.x + p.width / 2;
+            sprite.y = p.y + p.height;
+            sprite.scale.set(p.width / 182 * 1.5);
+            sprite.gotoAndStop(portalFrame % sprite.textures.length);
+        }
+
+        // --- Hero sprite ---
+        const visuals = vm.heroVisuals;
+        if (visuals && heroSprRef.current) {
+            if (!heroSprite.current) {
+                const textures = manager.getAnimation(`${visuals.assetKey}_${visuals.animationName}`);
+                heroSprite.current = new PIXI.AnimatedSprite(textures);
+                heroSprite.current.anchor.set(0.5, 1.0);
+                heroSprite.current.scale.set(1/16);
+                heroSprRef.current.addChild(heroSprite.current);
+            }
+            const sprite = heroSprite.current;
+            const textures = manager.getAnimation(`${visuals.assetKey}_${visuals.animationName}`);
+            if (sprite.textures !== textures) sprite.textures = textures;
+            sprite.gotoAndStop(Math.floor(visuals.frame) % sprite.textures.length);
+        }
+    });
+
+    return (
+        <>
+            <Container ref={containerRef} name="foreground_animated" />
+            <Container ref={heroSprRef} name="hero_container" />
+        </>
+    );
+};
+
+const ForegroundStatic: React.FC<{
+    vm: Game3Presenter;
+    spikeLayouts: Map<number, { rotation: number; offsetX: number; offsetY: number }>;
+}> = ({ vm, spikeLayouts }) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const manager = SpriteManager.getInstance();
+    const built = useRef(false);
+
+    useTick(() => {
+        if (!containerRef.current || built.current) return;
+        built.current = true;
+
+        const objects = vm.objects;
+
+        for (let i = 0; i < objects.length; i++) {
+            const p = objects[i];
+            if (p.type === 14 || p.type === 2 || p.type === 4) continue;
+
+            let assetName = "";
+            switch(p.type) {
+                case 0: assetName = "Platform Floor"; break;
+                case 1: assetName = "Platform Length"; break;
+                case 3: assetName = "Spike Trap"; break;
+                case 5: assetName = "Exit Door"; break;
+                case 6: assetName = "Platform Floor"; break;
+                case 7: assetName = "Platform Floor"; break;
+                case 8: assetName = "Platform NonWall"; break;
+                case 9: assetName = "Platform Floor BG"; break;
+                case 10: assetName = "Grass FG"; break;
+                case 11: assetName = "Grass BG"; break;
+                case 12: assetName = "NonOrganic FG"; break;
+                case 13: assetName = "NonOrganic BG"; break;
+                default: continue;
+            }
+
+            const texture = manager.getTexture(assetName);
+            if (!texture) continue;
+
+            // Tiled floor
+            if (p.type === 6 && p.width > p.height) {
+                const tileSize = p.height || 1;
+                const tileCount = Math.max(1, Math.round(p.width / tileSize));
+                for (let idx = 0; idx < tileCount; idx++) {
+                    const sprite = new PIXI.Sprite(texture);
+                    sprite.anchor.set(0.5, 1.0);
+                    sprite.scale.set(1/32);
+                    sprite.x = p.x + (idx * tileSize) + (tileSize / 2);
+                    sprite.y = p.y + p.height;
+                    containerRef.current.addChild(sprite);
+                }
+                continue;
+            }
+
+            // Spike
+            if (p.type === 3) {
+                const layout = spikeLayouts.get(i);
+                if (!layout) continue;
+                const sprite = new PIXI.Sprite(texture);
+                sprite.anchor.set(0.5, 0.5);
+                sprite.scale.set(p.width / 20);
+                sprite.x = p.x + p.width / 2 + layout.offsetX;
+                sprite.y = p.y + p.height / 2 + layout.offsetY;
+                sprite.rotation = layout.rotation;
+                containerRef.current.addChild(sprite);
+                continue;
+            }
+
+            // Everything else
+            const sprite = new PIXI.Sprite(texture);
+            sprite.anchor.set(0.5, 1.0);
+            sprite.scale.set(1/32);
+            sprite.x = p.x + p.width / 2;
+            sprite.y = p.y + p.height;
+            containerRef.current.addChild(sprite);
+        }
+    }); // empty deps - build once on mount, never again
+
+    return <Container ref={containerRef} name="foreground_static" />;
+};
+
 export const Game3Foreground: React.FC<{
     vm: Game3Presenter;
     heroSprRef: React.RefObject<PIXI.Container>;
 }> = ({ vm, heroSprRef }) => {
-    const coinFrame = Math.floor(Date.now() / 250) % 2;
-    const voidFrame = Math.floor(Date.now() / 200) % 3;
-    const portalFrame = Math.floor(Date.now() / 150) % 4;
     const objects = vm.objects;
 
     // Pre-compute spike layout (rotation + wall offset) once per render frame
@@ -91,117 +288,8 @@ export const Game3Foreground: React.FC<{
 
     return (
         <Container name="foreground">
-            {/* Level Environment Sprites */}
-            {objects.map((p, i) => {
-                const isCoin = p.type === 14;
-                const isVoid = p.type === 2;
-                const isPortal = p.type === 4;
-                let assetName = "";
-                if (!isCoin && !isVoid && !isPortal) {
-                    switch(p.type) {
-                        case 0: assetName = "Platform Floor"; break; //normal floor
-                        case 1: assetName = "Platform Length"; break; //wall
-                        case 3: assetName = "Spike Trap"; break;
-                        case 5: assetName = "Exit Door"; break;
-                        case 6: assetName = "Platform Floor"; break; // fallthrough floor
-                        case 7: assetName = "Platform Floor"; break; //Another floor
-                        case 8: assetName = "Platform NonWall"; break; // other wall
-                        case 9: assetName = "Platform Floor BG"; break;
-                        case 10: assetName = "Grass FG"; break;
-                        case 11: assetName = "Grass BG"; break;
-                        case 12: assetName = "NonOrganic FG"; break;
-                        case 13: assetName = "NonOrganic BG"; break;
-                    }
-                }
-
-                if (!assetName && !isCoin && !isVoid && !isPortal) return null;
-
-                if (!isCoin && p.type === 6 && p.width > p.height) {
-                    const tileSize = p.height || 1;
-                    const tileCount = Math.max(1, Math.round(p.width / tileSize));
-                    const tiles = Array.from({ length: tileCount }, (_, idx) => (
-                        <Container
-                            key={`sprite-${i}-${idx}`}
-                            x={p.x + (idx * tileSize) + (tileSize / 2)}
-                            y={p.y + p.height}
-                        >
-                            <GameSprite
-                                imageName={assetName}
-                                anchor={[0.5, 1.0]}
-                                scale={1/32}
-                            />
-                        </Container>
-                    ));
-
-                    return <React.Fragment key={`sprite-${i}`}>{tiles}</React.Fragment>;
-                }
-
-                // Spike orientation: rotate around tile center, offset away from walls
-                const isSpike = p.type === 3;
-                const layout = isSpike ? spikeLayouts.get(i) : null;
-
-                if (isSpike && layout) {
-                    const cx = p.x + p.width / 2 + layout.offsetX;
-                    const cy = p.y + p.height / 2 + layout.offsetY;
-
-                    return (
-                        <Container key={`sprite-${i}`} x={cx} y={cy} rotation={layout.rotation}>
-                            <GameSprite
-                                imageName={assetName}
-                                anchor={[0.5, 0.5]}
-                                scale={p.width / 20}
-                            />
-                        </Container>
-                    );
-                }
-
-                return (
-                    <Container key={`sprite-${i}`} x={p.x + p.width / 2} y={p.y + p.height}>
-                        {isCoin ? (
-                            <GameSprite
-                                sheetName="coin"
-                                animationName="spin"
-                                currentFrame={coinFrame}
-                                anchor={[0.5, 1.0]}
-                                scale={1/32}
-                            />
-                        ) : isVoid ? (
-                            <GameSprite
-                                sheetName="void_pit"
-                                animationName="swirl"
-                                currentFrame={voidFrame}
-                                anchor={[0.5, 1.0]}
-                                scale={1/20}
-                            />
-                        ) : isPortal ? (
-                            <GameSprite
-                                sheetName="plat_portal"
-                                animationName="pulse"
-                                currentFrame={portalFrame}
-                                anchor={[0.5, 1.0]}
-                                scale={p.width / 182 * 1.5}
-                            />
-                        ) : (
-                            <GameSprite
-                                imageName={assetName}
-                                anchor={[0.5, 1.0]}
-                                scale={1/32}
-                            />
-                        )}
-                    </Container>
-                );
-            })}
-
-            {/* Hero Animated Sprite */}
-            <Container ref={heroSprRef}>
-                <GameSprite
-                    sheetName={vm.heroVisuals?.assetKey || "hero_body"}
-                    animationName={vm.heroVisuals?.animationName || "idle"}
-                    currentFrame={vm.heroVisuals?.frame || 0}
-                    anchor={[0.5, 1.0]}
-                    scale={1/16}
-                />
-            </Container>
+            <ForegroundStatic vm={vm} spikeLayouts={spikeLayouts} />
+            <ForegroundAnimated vm={vm} heroSprRef={heroSprRef} />
         </Container>
     );
 };
