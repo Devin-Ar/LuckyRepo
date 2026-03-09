@@ -1,5 +1,5 @@
 // src/features/Game3/view/ui-components/Game3Foreground.tsx
-import React, {useMemo, useRef} from 'react';
+import React, {MutableRefObject, useMemo, useRef} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, useTick} from '@pixi/react';
 import { Game3Presenter, ViewObject } from '../Game3Presenter';
@@ -196,10 +196,22 @@ const ForegroundStatic: React.FC<{
     const containerRef = useRef<PIXI.Container>(null);
     const manager = SpriteManager.getInstance();
     const built = useRef(false);
+    const working : MutableRefObject<boolean[]> = useRef([]);
 
     useTick(() => {
+        console.log(built.current);
         if (!containerRef.current || built.current) return;
-        built.current = true;
+        if (working.current.length != 0) {
+            let loadflag = true;
+            working.current.forEach((val, indx) => {
+                if (!val) {
+                    loadflag = false;
+                }
+            })
+            if (loadflag && vm.objects.length <= working.current.length) {
+                built.current = true;
+            }
+        }
 
         const objects = vm.objects;
 
@@ -239,6 +251,7 @@ const ForegroundStatic: React.FC<{
                     sprite.y = p.y + p.height;
                     containerRef.current.addChild(sprite);
                 }
+                working.current[i] = true;
                 continue;
             }
 
@@ -253,6 +266,7 @@ const ForegroundStatic: React.FC<{
                 sprite.y = p.y + p.height / 2 + layout.offsetY;
                 sprite.rotation = layout.rotation;
                 containerRef.current.addChild(sprite);
+                working.current[i] = true;
                 continue;
             }
 
@@ -263,6 +277,7 @@ const ForegroundStatic: React.FC<{
             sprite.x = p.x + p.width / 2;
             sprite.y = p.y + p.height;
             containerRef.current.addChild(sprite);
+            working.current[i] = true;
         }
     }); // empty deps - build once on mount, never again
 
