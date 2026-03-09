@@ -10,18 +10,43 @@
         "idle": ["h_idle_1", "h_idle_2"]
       }
     },
-    "gold_shipBH": {
-      "url": "res/sprite/sheets/goldshipspritesheetBH.png",
+    "hero_body": {
+      "url": "res/sprite/sheets/Hero.png",
       "frames": {
-        "h_walk_0": {"x":0, "y":64, "w":64, "h":64},
-        "h_walk_1": {"x":64, "y":64, "w":64, "h":64},
-        "h_walk_2": {"x":128, "y":64, "w":64, "h":64},
-        "h_idle_0": {"x":0, "y":129, "w":64, "h":63}
+        "hb_idle_0": {"x":0, "y":48, "w":48, "h":48},
+        "hb_idle_1": {"x":48, "y":48, "w":48, "h":48},
+        "hb_idle_2": {"x":96, "y":48, "w":48, "h":48},
+        "hb_idle_3": {"x":144, "y":48, "w":48, "h":48},
+        "hb_run_0": {"x":0, "y":192, "w":48, "h":48},
+        "hb_run_1": {"x":48, "y":192, "w":48, "h":48},
+        "hb_run_2": {"x":96, "y":192, "w":48, "h":48},
+        "hb_run_3": {"x":144, "y":192, "w":48, "h":48},
+        "hb_run_4": {"x":192, "y":192, "w":48, "h":48},
+        "hb_run_5": {"x":240, "y":192, "w":48, "h":48}
       },
       "animations": {
-        "walk": ["h_walk_0", "h_walk_1", "h_walk_2"],
-        "walk_r": ["h_walk_2", "h_walk_1", "h_walk_0"],
-        "idle": ["h_idle_0"]
+        "idle": ["hb_idle_0", "hb_idle_1", "hb_idle_2", "hb_idle_3"],
+        "walk": ["hb_run_0", "hb_run_1", "hb_run_2", "hb_run_3", "hb_run_4", "hb_run_5"]
+      }
+    },
+    "hero_arm": {
+      "url": "res/sprite/sheets/Hero.png",
+      "frames": {
+        "hb_arm_0": {"x":0, "y":0, "w":48, "h":48}
+      },
+      "animations": {
+        "static": ["hb_arm_0"]
+      }
+    },
+    "bullet_proj": {
+      "url": "res/sprite/sheets/bullet_both.png",
+      "frames": {
+        "bp_drift_0": {"x":0, "y":0, "w":64, "h":64},
+        "bp_drift_1": {"x":64, "y":0, "w":64, "h":64},
+        "bp_drift_2": {"x":128, "y":0, "w":64, "h":64}
+      },
+      "animations": {
+        "movement": ["bp_drift_0", "bp_drift_1", "bp_drift_2"]
       }
     },
     "laser_drone": {
@@ -35,6 +60,29 @@
         "movement": ["ld_drift_0", "ld_drift_1", "ld_drift_2"]
       }
     },
+    "laser_charge": {
+      "url": "res/sprite/sheets/laser_charge.png",
+      "frames": {
+        "lc_drift_0": {"x":0, "y":0, "w":128, "h":128},
+        "lc_drift_1": {"x":128, "y":0, "w":128, "h":128},
+        "lc_drift_2": {"x":256, "y":0, "w":128, "h":128}
+      },
+      "animations": {
+        "charge": ["lc_drift_0", "lc_drift_1", "lc_drift_2"]
+      }
+    },
+    "laser_beam": {
+      "url": "res/sprite/sheets/Laser.png",
+      "frames": {
+        "lb_0": {"x":0, "y":0, "w":32, "h":32},
+        "lb_1": {"x":32, "y":0, "w":32, "h":32},
+        "lb_2": {"x":64, "y":0, "w":32, "h":32},
+        "lb_3": {"x":96, "y":0, "w":32, "h":32}
+      },
+      "animations": {
+        "fire": ["lb_0", "lb_1", "lb_2", "lb_3"]
+      }
+    },
     "shot_drone": {
       "url": "res/sprite/sheets/shot_drone_c.png",
       "frames": {
@@ -45,14 +93,76 @@
       "animations": {
         "movement": ["sd_drift_0", "sd_drift_1", "sd_drift_2"]
       }
+    },
+    "bash_drone": {
+      "url": "res/sprite/sheets/bash_drone.png",
+      "frames": {
+        "bd_drift_0": {"x":0, "y":0, "w":128, "h":128},
+        "bd_drift_1": {"x":128, "y":0, "w":128, "h":128},
+        "bd_drift_2": {"x":256, "y":0, "w":128, "h":128},
+        "bd_push_0": {"x":0, "y":128, "w":128, "h":128},
+        "bd_push_1": {"x":128, "y":128, "w":128, "h":128},
+        "bd_push_2": {"x":256, "y":128, "w":128, "h":128}
+      },
+      "animations": {
+        "movement": ["bd_push_0", "bd_push_1", "bd_push_2"],
+        "idle": ["bd_drift_0", "bd_drift_1", "bd_drift_2"]
+      }
+    },
+    "boss_p12": {
+      "url": "res/sprite/sheets/BossP12.png",
+      "frames": {
+        "boss_p12_0": { "x": 0,  "y": 0, "w": 32, "h": 32 },
+        "boss_p12_1": { "x": 32, "y": 0, "w": 32, "h": 32 },
+        "boss_p12_2": { "x": 64, "y": 0, "w": 32, "h": 32 },
+        "boss_p12_3": { "x": 96, "y": 0, "w": 32, "h": 32 }
+      },
+      "animations": {
+        "idle": ["boss_p12_0", "boss_p12_1", "boss_p12_2", "boss_p12_3"]
+      }
+    },
+    "boss_p3": {
+      "url": "res/sprite/sheets/BossP3.png",
+      "frames": {
+        "boss_p3_0": { "x": 0,   "y": 0, "w": 32, "h": 32 },
+        "boss_p3_1": { "x": 32,  "y": 0, "w": 32, "h": 32 },
+        "boss_p3_2": { "x": 64,  "y": 0, "w": 32, "h": 32 },
+        "boss_p3_3": { "x": 96,  "y": 0, "w": 32, "h": 32 },
+        "boss_p3_4": { "x": 128, "y": 0, "w": 32, "h": 32 },
+        "boss_p3_5": { "x": 160, "y": 0, "w": 32, "h": 32 }
+      },
+      "animations": {
+        "idle": ["boss_p3_0", "boss_p3_1", "boss_p3_2", "boss_p3_3", "boss_p3_4", "boss_p3_5"]
+      }
+    },
+    "level_bg": {
+      "url": "res/sprite/sheets/Background.png",
+      "frames": {
+        "bg_lvl1": {"x":0, "y":0, "w":64, "h":64},
+        "bg_lvl2": {"x":64, "y":0, "w":64, "h":64},
+        "bg_lvl3": {"x":128, "y":0, "w":64, "h":64},
+        "bg_lvl4": {"x":192, "y":0, "w":64, "h":64}
+      },
+      "animations": {
+        "lvl1": ["bg_lvl1"],
+        "lvl2": ["bg_lvl2"],
+        "lvl3": ["bg_lvl3"],
+        "lvl4": ["bg_lvl4"]
+      }
     }
   },
   "images": {
     "static_rock": "res/sprite/static/rock.png",
-    "Gold Ship Gun": "res/sprite/static/goldshiparmwithgun.png"
+    "one_laser": "res/sprite/static/laser_1.png"
   },
   "audio": {
     "bgm_level1": {
+      "url": "res/audio/ost/dungeon_ambient.wav",
+      "type": "ost",
+      "loop": true,
+      "volume": 0.8
+    },
+    "bgm_boss": {
       "url": "res/audio/ost/dungeon_ambient.wav",
       "type": "ost",
       "loop": true,

@@ -47,53 +47,108 @@
         "walk": ["h_walk_0", "h_walk_1", "h_walk_2", "h_walk_3", "h_walk_4", "h_walk_5", "h_walk_6", "h_walk_7", "h_walk_8"]
       }
     },
-    "gol_sheet": {
-      "url": "res/sprite/sheets/GolSheet.png",
+    "hero_body": {
+      "url": "res/sprite/sheets/Hero.png",
       "frames": {
-        "h_walk_0": {"x":0, "y":0, "w":64, "h":63},
-        "h_walk_1": {"x":64, "y":0, "w":64, "h":63},
-        "h_walk_2": {"x":128, "y":0, "w":64, "h":63},
-        "h_walk_3": {"x":192, "y":0, "w":64, "h":63},
-        "h_walk_4": {"x":256, "y":0, "w":64, "h":63},
-        "h_walk_5": {"x":320, "y":0, "w":64, "h":63},
-        "h_jump_0": {"x":0, "y":64, "w":64, "h":63},
-        "h_slide_0": {"x":0, "y":128, "w":64, "h":63},
-        "h_slide_1": {"x":64, "y":128, "w":64, "h":63},
-        "h_slide_2": {"x":128, "y":128, "w":64, "h":63},
-        "h_idle_0": {"x":0, "y":192, "w":64, "h":63},
-        "h_idle_1": {"x":64, "y":192, "w":64, "h":63},
-        "h_idle_2": {"x":128, "y":192, "w":64, "h":63},
-        "h_idle_3": {"x":192, "y":192, "w":64, "h":63}
+        "hb_idle_0": {"x":0, "y":48, "w":48, "h":48},
+        "hb_idle_1": {"x":48, "y":48, "w":48, "h":48},
+        "hb_idle_2": {"x":96, "y":48, "w":48, "h":48},
+        "hb_idle_3": {"x":144, "y":48, "w":48, "h":48},
+        "hb_jump_0": {"x":0, "y":96, "w":48, "h":48},
+        "hb_jump_1": {"x":48, "y":96, "w":48, "h":48},
+        "hb_jump_2": {"x":96, "y":96, "w":48, "h":48},
+        "hb_jump_3": {"x":144, "y":96, "w":48, "h":48},
+        "hb_jump_4": {"x":192, "y":96, "w":48, "h":48},
+        "hb_jump_5": {"x":240, "y":96, "w":48, "h":48},
+        "hb_mantle_0": {"x":0, "y":144, "w":48, "h":48},
+        "hb_mantle_1": {"x":48, "y":144, "w":48, "h":48},
+        "hb_mantle_2": {"x":96, "y":144, "w":48, "h":48},
+        "hb_mantle_3": {"x":144, "y":144, "w":48, "h":48},
+        "hb_mantle_4": {"x":192, "y":144, "w":48, "h":48},
+        "hb_mantle_5": {"x":240, "y":144, "w":48, "h":48},
+        "hb_mantle_6": {"x":288, "y":144, "w":48, "h":48},
+        "hb_mantle_7": {"x":336, "y":144, "w":48, "h":48},
+        "hb_mantle_8": {"x":384, "y":144, "w":48, "h":48},
+        "hb_run_0": {"x":0, "y":192, "w":48, "h":48},
+        "hb_run_1": {"x":48, "y":192, "w":48, "h":48},
+        "hb_run_2": {"x":96, "y":192, "w":48, "h":48},
+        "hb_run_3": {"x":144, "y":192, "w":48, "h":48},
+        "hb_run_4": {"x":192, "y":192, "w":48, "h":48},
+        "hb_run_5": {"x":240, "y":192, "w":48, "h":48},
+        "hb_wallslide_0": {"x":0, "y":240, "w":48, "h":48},
+        "hb_wallslide_1": {"x":48, "y":240, "w":48, "h":48},
+        "hb_wallslide_2": {"x":96, "y":240, "w":48, "h":48},
+        "hb_wallslide_3": {"x":144, "y":240, "w":48, "h":48},
+        "hb_wallslide_4": {"x":192, "y":240, "w":48, "h":48},
+        "hb_wallslide_5": {"x":240, "y":240, "w":48, "h":48},
+        "hb_wallslide_6": {"x":288, "y":240, "w":48, "h":48}
       },
       "animations": {
-        "walk": ["h_walk_0", "h_walk_1", "h_walk_2", "h_walk_3", "h_walk_4", "h_walk_5"],
-        "jump": ["h_jump_0"],
-        "slide": ["h_slide_0", "h_slide_1", "h_slide_2"],
-        "idle": ["h_idle_0", "h_idle_1", "h_idle_2", "h_idle_3"]
+        "idle": ["hb_idle_0", "hb_idle_1", "hb_idle_2", "hb_idle_3"],
+        "jump": ["hb_jump_0", "hb_jump_1", "hb_jump_2", "hb_jump_3", "hb_jump_4", "hb_jump_5"],
+        "cling": ["hb_mantle_3"],
+        "mantle": ["hb_mantle_3", "hb_mantle_4", "hb_mantle_5", "hb_mantle_6", "hb_mantle_7", "hb_mantle_8"],
+        "walk": ["hb_run_0", "hb_run_1", "hb_run_2", "hb_run_3", "hb_run_4", "hb_run_5"],
+        "slide": ["hb_wallslide_2", "hb_wallslide_3", "hb_wallslide_4", "hb_wallslide_5", "hb_wallslide_6"]
       }
     },
-    "gold_shipBH": {
-      "url": "res/sprite/sheets/goldshipspritesheetBH.png",
+    "hero_arm": {
+      "url": "res/sprite/sheets/Hero.png",
       "frames": {
-        "h_walk_0": {"x":0, "y":64, "w":64, "h":64},
-        "h_walk_1": {"x":64, "y":64, "w":64, "h":64},
-        "h_walk_2": {"x":128, "y":64, "w":64, "h":64},
-        "h_idle_0": {"x":0, "y":128, "w":64, "h":64}
+        "hb_arm_0": {"x":0, "y":0, "w":48, "h":48}
       },
       "animations": {
-        "walk": ["h_walk_0", "h_walk_1", "h_walk_2"],
-        "idle": ["h_idle_0"]
+        "static": ["hb_arm_0"]
+      }
+    },
+    "coin": {
+      "url": "res/sprite/sheets/Coin.png",
+      "frames": {
+        "coin_0": {"x":0, "y":0, "w":32, "h":32},
+        "coin_1": {"x":32, "y":0, "w":32, "h":32}
+      },
+      "animations": {
+        "spin": ["coin_0", "coin_1"]
+      }
+    },
+    "void_pit": {
+      "url": "res/sprite/sheets/Void.png",
+      "frames": {
+        "void_0": {"x":0, "y":0, "w":32, "h":32},
+        "void_1": {"x":32, "y":0, "w":32, "h":32},
+        "void_2": {"x":64, "y":0, "w":32, "h":32}
+      },
+      "animations": {
+        "swirl": ["void_0", "void_1", "void_2"]
+      }
+    },
+    "plat_portal": {
+      "url": "res/sprite/sheets/PlatformerPortal.png",
+      "frames": {
+        "pp_0": {"x":0, "y":0, "w":182, "h":186},
+        "pp_1": {"x":182, "y":0, "w":182, "h":186},
+        "pp_2": {"x":364, "y":0, "w":182, "h":186},
+        "pp_3": {"x":546, "y":0, "w":182, "h":186}
+      },
+      "animations": {
+        "pulse": ["pp_0", "pp_1", "pp_2", "pp_3"]
       }
     }
   },
   "images": {
     "static_rock": "res/sprite/static/rock.png",
-    "Gold Ship Gun": "res/sprite/static/goldshiparmwithgun.png",
-    "Platform Floor": "res/sprite/static/Platform Floor.png",
-    "Platform Length": "res/sprite/static/Platform Length.png",
+    "Platform Floor": "res/sprite/static/bricks.png",
+    "Platform Floor BG": "res/sprite/static/bricksbg.png",
+    "Platform Length": "res/sprite/static/bricksrd.png",
+    "Platform Plat": "res/sprite/static/bricksrd2.png",
+    "Platform NonWall": "res/sprite/static/bricksrd2.png",
+    "Grass BG": "res/sprite/static/bricksbgvn1.png",
+    "Grass FG": "res/sprite/static/bricksbgvn2.png",
+    "NonOrganic FG": "res/sprite/static/bricksbgvn1.png",
+    "NonOrganic BG": "res/sprite/static/bricksbgvn2.png",
     "Exit Door": "res/sprite/static/exit_door.png",
     "Void Pit": "res/sprite/static/void_pit.png",
-    "Spike Trap": "res/sprite/static/spike_trap.png",
+    "Spike Trap": "res/sprite/static/Spike.png",
     "Portal Gate": "res/sprite/static/portal_gate.png"
   },
   "audio": {
