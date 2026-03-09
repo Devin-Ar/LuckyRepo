@@ -199,7 +199,6 @@ const ForegroundStatic: React.FC<{
     const working : MutableRefObject<boolean[]> = useRef([]);
 
     useTick(() => {
-        console.log(built.current);
         if (!containerRef.current || built.current) return;
         if (working.current.length != 0) {
             let loadflag = true;
