@@ -17,7 +17,7 @@
     "manifestPath": "res/three_manifest.json",
     "bgmKey": "bgm_level1",
     "backgroundKey": "Game3BG2",
-    "mapPath": "res/sprite/maps/MapTest2(updated).png",
+    "mapPath": "res/sprite/maps/Map2.png",
     "mapScale": 1,
     "heroWidth": 1,
     "heroHeight": 1,
