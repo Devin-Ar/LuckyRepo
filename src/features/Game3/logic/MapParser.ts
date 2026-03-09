@@ -12,6 +12,7 @@ export class MapParser {
             console.log(`[MapParser] Image loaded: ${width}x${height}`);
 
             const platforms: PlatformData[] = [];
+            const fallthroughMask = new Uint8Array(width * height);
             let playerStart: { x: number; y: number; width?: number; height?: number } | undefined;
             let unknownOpaque = 0;
             let coinCount = 0;
@@ -90,16 +91,9 @@ export class MapParser {
 
                     if (isKnown) {
                         if (isCoinCollectable) coinCount++;
-                        if (isFallthrough && platforms.length > 0) {
-                            const last = platforms[platforms.length - 1];
-                            const expectedX = x * mapScale;
-                            const expectedY = y * mapScale;
-                            if (last.isFallthrough &&
-                                Math.abs(last.y - expectedY) < 0.0001 &&
-                                Math.abs((last.x + last.width) - expectedX) < 0.0001) {
-                                last.width += 1 * mapScale;
-                                continue;
-                            }
+                        if (isFallthrough) {
+                            fallthroughMask[y * width + x] = 1;
+                            continue;
                         }
                         const tile: PlatformData = {
                             x: x * mapScale,
@@ -126,6 +120,33 @@ export class MapParser {
                         };
                         platforms.push(tile);
                     }
+                }
+            }
+
+            // Greedy merge fallthrough platforms horizontally per row
+            for (let y = 0; y < height; y++) {
+                let x = 0;
+                while (x < width) {
+                    const idx = y * width + x;
+                    if (fallthroughMask[idx] === 0) {
+                        x++;
+                        continue;
+                    }
+
+                    const startX = x;
+                    while (x < width && fallthroughMask[y * width + x] === 1) {
+                        x++;
+                    }
+                    const run = x - startX;
+
+                    platforms.push({
+                        x: startX * mapScale,
+                        y: y * mapScale,
+                        width: run * mapScale,
+                        height: 1 * mapScale,
+                        isFallthrough: true,
+                        assetKey: 'Platform Floor'
+                    });
                 }
             }
 

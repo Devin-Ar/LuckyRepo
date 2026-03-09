@@ -14,6 +14,7 @@ export interface Game3Config {
     initialHP: number;
     manifestPath: string;
     bgmKey: string;
+    backgroundKey?: string;
     mapPath?: string;
     mapScale?: number;
     heroWidth?: number;

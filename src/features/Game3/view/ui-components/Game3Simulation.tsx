@@ -147,8 +147,8 @@ export const Game3Simulation: React.FC<{
     return (
         <>
             <PixiForceResizer w={width} h={height} />
+            <Game3Background imageName={vm.backgroundKey} w={width} h={height} />
             <Container ref={worldContainerRef} scale={renderScale}>
-                <Game3Background />
                 <Game3Foreground vm={vm} heroSprRef={heroSprRef} />
                 <Game3Hitboxes vm={vm} levelRef={levelRef} heroRef={heroRef} />
                 <Graphics ref={healthBarRef} />

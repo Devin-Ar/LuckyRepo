@@ -11,6 +11,7 @@ export interface ViewObject {
 }
 
 export class Game3Presenter extends BasePresenter {
+    public backgroundKey?: string;
 
     public get objects(): ViewObject[] {
         const vMain = this._sharedViews.get('main');

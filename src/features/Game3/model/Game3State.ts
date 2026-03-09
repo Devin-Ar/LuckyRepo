@@ -14,6 +14,7 @@ import {InputManager} from "../../../core/managers/InputManager";
 export interface Game3Params {
     reset?: boolean;
     level?: Game3Level;
+    backgroundKey?: string;
 }
 
 export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, Game3Config> {
@@ -23,10 +24,12 @@ export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, G
     protected viewComponent = Game3View;
 
     private currentLevel: Game3Level;
+    private backgroundKey?: string;
 
     constructor(params: Game3Params = {}) {
         super(params.reset ?? false);
         this.currentLevel = params.level ?? Game3Level.Level1;
+        this.backgroundKey = params.backgroundKey;
     }
 
     protected getConfig(): Game3Config {
@@ -53,6 +56,7 @@ export class Game3State extends BaseGameState<Game3Presenter, Game3Controller, G
 
     protected initMVC(): void {
         this.vm = new Game3Presenter();
+        this.vm.backgroundKey = this.backgroundKey ?? this.getConfig().backgroundKey;
         this.controller = new Game3Controller(this.vm);
     }
 

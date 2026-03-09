@@ -73,6 +73,9 @@ const CrossGameCampaign: ICampaignStep[] = [
         name: "Level 2",
         stateId: FeatureEnum.GAME_3,
         presetLabel: "LVL 1",
+        params: {
+            backgroundKey: "Game3BG1"
+        },
         loadingConfig: {
             view: DemoLoadingView,
         }
@@ -89,6 +92,9 @@ const CrossGameCampaign: ICampaignStep[] = [
         name: "Level 4",
         stateId: FeatureEnum.GAME_3,
         presetLabel: "LVL 2",
+        params: {
+            backgroundKey: "Game3BG2"
+        },
         loadingConfig: {
             view: DemoLoadingView,
         }
@@ -105,6 +111,9 @@ const CrossGameCampaign: ICampaignStep[] = [
         name: "Level 6",
         stateId: FeatureEnum.GAME_3,
         presetLabel: "LVL 3",
+        params: {
+            backgroundKey: "Game3BG3"
+        },
         loadingConfig: {
             view: DemoLoadingView,
         }
