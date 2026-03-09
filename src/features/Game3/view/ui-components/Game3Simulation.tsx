@@ -5,7 +5,6 @@ import { Container, Graphics, useApp, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
 import { Game3Background } from './Game3Background';
 import { Game3Foreground } from './Game3Foreground';
-import { Game3Hitboxes } from './Game3Hitboxes';
 
 const PixiForceResizer: React.FC<{ w: number, h: number }> = ({ w, h }) => {
     const app = useApp();
@@ -31,8 +30,6 @@ export const Game3Simulation: React.FC<{
     height: number;
 }> = ({ vm, width, height }) => {
     const worldContainerRef = useRef<PIXI.Container>(null);
-    const heroRef = useRef<PIXI.Graphics>(null);
-    const levelRef = useRef<PIXI.Graphics>(null);
     const heroSprRef = useRef<PIXI.Container>(null);
     const healthBarRef = useRef<PIXI.Graphics>(null);
 
@@ -42,36 +39,9 @@ export const Game3Simulation: React.FC<{
     useTick(() => {
         const hero = vm.heroVisuals;
         const world = worldContainerRef.current;
-        const heroGfx = heroRef.current;
         const heroSpr = heroSprRef.current;
 
-        if (!world || !hero || !heroGfx) return;
-
-        heroGfx.x = hero.x;
-        heroGfx.y = hero.y;
-
-        const screenWidth = Math.round(hero.width * renderScale);
-        const screenHeight = Math.round(hero.height * renderScale);
-
-        const consistentWidth = screenWidth / renderScale;
-        const consistentHeight = screenHeight / renderScale;
-
-        heroGfx.clear();
-        let color = 0x27ae60;
-        if (hero.animState === 1) color = 0x2980b9;
-        if (hero.animState === 2) color = 0xc0392b;
-
-        heroGfx.beginFill(color, 1.0);
-        heroGfx.drawRect(0, 0, consistentWidth, consistentHeight);
-        heroGfx.endFill();
-
-        const indW = (Math.round(hero.width * 0.3 * renderScale)) / renderScale;
-        const indH = (Math.round(hero.height * 0.2 * renderScale)) / renderScale;
-        const indX = hero.flipX ? 0 : consistentWidth - indW;
-
-        heroGfx.beginFill(0xffffff, 0.5);
-        heroGfx.drawRect(indX, consistentHeight * 0.1, indW, indH);
-        heroGfx.endFill();
+        if (!world || !hero) return;
 
         if (heroSpr) {
             let sprX = hero.x + (hero.width / 2);
@@ -113,7 +83,7 @@ export const Game3Simulation: React.FC<{
             heroSpr.y = sprY;
         }
 
-        // Health bar — drawn here so it uses the exact same hero position as the hitbox
+        // Health bar above player's head
         const hpBar = healthBarRef.current;
         if (hpBar) {
             hpBar.clear();
@@ -150,7 +120,6 @@ export const Game3Simulation: React.FC<{
             <Game3Background imageName={vm.backgroundKey} w={width} h={height} />
             <Container ref={worldContainerRef} scale={renderScale}>
                 <Game3Foreground vm={vm} heroSprRef={heroSprRef} />
-                <Game3Hitboxes vm={vm} levelRef={levelRef} heroRef={heroRef} />
                 <Graphics ref={healthBarRef} />
             </Container>
         </>

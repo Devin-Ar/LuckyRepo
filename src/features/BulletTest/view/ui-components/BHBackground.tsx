@@ -40,21 +40,12 @@ export const BHBackground: React.FC<{
             return;
         }
 
-        // Tile the 64x64 texture across the full width and height
-        const tileW = texture.width;
-        const tileH = texture.height;
-        const cols = Math.ceil(w / tileW) + 1;
-        const rows = Math.ceil(h / tileH) + 1;
-
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < cols; col++) {
-                const sprite = new PIXI.Sprite(texture);
-                sprite.x = col * tileW;
-                sprite.y = row * tileH;
-                container.addChild(sprite);
-                spritesRef.current.push(sprite);
-            }
-        }
+        // Single sprite stretched to fill the entire area
+        const sprite = new PIXI.Sprite(texture);
+        sprite.width = w;
+        sprite.height = h;
+        container.addChild(sprite);
+        spritesRef.current.push(sprite);
     }, [w, h, levelIndex]);
 
     return <Container ref={containerRef} />;

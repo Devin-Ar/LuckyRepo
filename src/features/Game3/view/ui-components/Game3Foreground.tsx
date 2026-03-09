@@ -6,18 +6,28 @@ import { Game3Presenter, ViewObject } from '../Game3Presenter';
 import { GameSprite } from "../../../../components/GameSprite";
 
 /**
- * Solid platform types that spikes can orient toward.
- * Floor(0), Wall(1), Fallthrough(6), Plat(7), NonWall(8), DisplayWall(9)
+ * Walkable platform types that spikes orient toward (floors the player stands on).
+ * Floor(0), Fallthrough(6), Plat(7)
  */
-const SOLID_TYPES = new Set([0, 1, 6, 7, 8, 9]);
+const WALKABLE_TYPES = new Set([0, 6, 7]);
 
 /**
- * For a spike tile, determine how much to rotate it so the "pointy" side
- * faces toward an adjacent solid surface.
- * If no neighbor is found, defaults to 0 (points up).
+ * Wall types — used to nudge the spike sprite away from walls.
+ * Wall(1), NonWall(8), DisplayWall(9)
  */
-function getSpikeRotation(spike: ViewObject, objects: ViewObject[]): number {
-    const tolerance = 0.15; // world-unit tolerance for adjacency checks
+const WALL_TYPES = new Set([1, 8, 9]);
+
+/**
+ * For a spike tile, determine rotation and offset from adjacent walls.
+ *
+ * Default spike orientation: points UP (spikes on a floor).
+ *   - Walkable above → π (flip upside-down — points down from ceiling)
+ *   - Otherwise       → 0 (default — points up)
+ *
+ * Also returns an x/y offset to push the sprite away from adjacent walls.
+ */
+function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: number; offsetX: number; offsetY: number } {
+    const tolerance = 0.15;
     const sx = spike.x;
     const sy = spike.y;
     const sw = spike.width;
@@ -25,26 +35,38 @@ function getSpikeRotation(spike: ViewObject, objects: ViewObject[]): number {
 
     let hasAbove = false;
     let hasBelow = false;
+    let hasWallLeft = false;
+    let hasWallRight = false;
 
     for (const o of objects) {
-        if (!SOLID_TYPES.has(o.type)) continue;
+        const isWalkable = WALKABLE_TYPES.has(o.type);
+        const isWall = WALL_TYPES.has(o.type);
 
-        // Horizontal overlap check (needed for above/below)
+        // Horizontal overlap (for above/below checks)
         const hOverlap = o.x + o.width > sx + tolerance && o.x < sx + sw - tolerance;
+        // Vertical overlap (for left/right checks)
+        const vOverlap = o.y + o.height > sy + tolerance && o.y < sy + sh - tolerance;
 
-        // Check ABOVE: solid platform whose bottom edge touches spike's top edge
-        if (hOverlap && Math.abs((o.y + o.height) - sy) < tolerance) {
-            hasAbove = true;
+        if (isWalkable && hOverlap) {
+            if (Math.abs((o.y + o.height) - sy) < tolerance) hasAbove = true;
+            if (Math.abs(o.y - (sy + sh)) < tolerance) hasBelow = true;
         }
-        // Check BELOW: solid platform whose top edge touches spike's bottom edge
-        if (hOverlap && Math.abs(o.y - (sy + sh)) < tolerance) {
-            hasBelow = true;
+
+        if (isWall && vOverlap) {
+            if (Math.abs((o.x + o.width) - sx) < tolerance) hasWallLeft = true;
+            if (Math.abs(o.x - (sx + sw)) < tolerance) hasWallRight = true;
         }
     }
 
-    // Ceiling spikes flip upside-down; floor spikes stay default (points up).
-    if (hasAbove && !hasBelow) return Math.PI;        // flip upside down
-    return 0;
+    const rotation = (hasAbove && !hasBelow) ? Math.PI : 0;
+
+    // Nudge spike away from adjacent walls
+    const WALL_NUDGE = sw * 0.15;
+    let offsetX = 0;
+    if (hasWallLeft && !hasWallRight) offsetX = WALL_NUDGE;
+    else if (hasWallRight && !hasWallLeft) offsetX = -WALL_NUDGE;
+
+    return { rotation, offsetX, offsetY: 0 };
 }
 
 export const Game3Foreground: React.FC<{
@@ -52,14 +74,16 @@ export const Game3Foreground: React.FC<{
     heroSprRef: React.RefObject<PIXI.Container>;
 }> = ({ vm, heroSprRef }) => {
     const coinFrame = Math.floor(Date.now() / 250) % 2;
+    const voidFrame = Math.floor(Date.now() / 200) % 3;
+    const portalFrame = Math.floor(Date.now() / 150) % 4;
     const objects = vm.objects;
 
-    // Pre-compute spike rotations once per render frame
-    const spikeRotations = useMemo(() => {
-        const map = new Map<number, number>();
+    // Pre-compute spike layout (rotation + wall offset) once per render frame
+    const spikeLayouts = useMemo(() => {
+        const map = new Map<number, { rotation: number; offsetX: number; offsetY: number }>();
         for (let i = 0; i < objects.length; i++) {
             if (objects[i].type === 3) {
-                map.set(i, getSpikeRotation(objects[i], objects));
+                map.set(i, getSpikeLayout(objects[i], objects));
             }
         }
         return map;
@@ -70,14 +94,14 @@ export const Game3Foreground: React.FC<{
             {/* Level Environment Sprites */}
             {objects.map((p, i) => {
                 const isCoin = p.type === 14;
+                const isVoid = p.type === 2;
+                const isPortal = p.type === 4;
                 let assetName = "";
-                if (!isCoin) {
+                if (!isCoin && !isVoid && !isPortal) {
                     switch(p.type) {
                         case 0: assetName = "Platform Floor"; break; //normal floor
                         case 1: assetName = "Platform Length"; break; //wall
-                        //case 2: assetName = "Void Pit"; break;
                         case 3: assetName = "Spike Trap"; break;
-                        case 4: assetName = "Portal Gate"; break;
                         case 5: assetName = "Exit Door"; break;
                         case 6: assetName = "Platform Floor"; break; // fallthrough floor
                         case 7: assetName = "Platform Floor"; break; //Another floor
@@ -90,7 +114,7 @@ export const Game3Foreground: React.FC<{
                     }
                 }
 
-                if (!assetName && !isCoin) return null;
+                if (!assetName && !isCoin && !isVoid && !isPortal) return null;
 
                 if (!isCoin && p.type === 6 && p.width > p.height) {
                     const tileSize = p.height || 1;
@@ -112,18 +136,16 @@ export const Game3Foreground: React.FC<{
                     return <React.Fragment key={`sprite-${i}`}>{tiles}</React.Fragment>;
                 }
 
-                // Spike orientation: rotate the container around the tile center
+                // Spike orientation: rotate around tile center, offset away from walls
                 const isSpike = p.type === 3;
-                const spikeRot = isSpike ? (spikeRotations.get(i) ?? 0) : 0;
+                const layout = isSpike ? spikeLayouts.get(i) : null;
 
-                if (isSpike) {
-                    // Position at tile center, rotate, then offset the sprite
-                    // so anchor [0.5, 0.5] sits at the tile center
-                    const cx = p.x + p.width / 2;
-                    const cy = p.y + p.height / 2;
+                if (isSpike && layout) {
+                    const cx = p.x + p.width / 2 + layout.offsetX;
+                    const cy = p.y + p.height / 2 + layout.offsetY;
 
                     return (
-                        <Container key={`sprite-${i}`} x={cx} y={cy} rotation={spikeRot}>
+                        <Container key={`sprite-${i}`} x={cx} y={cy} rotation={layout.rotation}>
                             <GameSprite
                                 imageName={assetName}
                                 anchor={[0.5, 0.5]}
@@ -142,6 +164,22 @@ export const Game3Foreground: React.FC<{
                                 currentFrame={coinFrame}
                                 anchor={[0.5, 1.0]}
                                 scale={1/32}
+                            />
+                        ) : isVoid ? (
+                            <GameSprite
+                                sheetName="void_pit"
+                                animationName="swirl"
+                                currentFrame={voidFrame}
+                                anchor={[0.5, 1.0]}
+                                scale={1/20}
+                            />
+                        ) : isPortal ? (
+                            <GameSprite
+                                sheetName="plat_portal"
+                                animationName="pulse"
+                                currentFrame={portalFrame}
+                                anchor={[0.5, 1.0]}
+                                scale={p.width / 182 * 1.5}
                             />
                         ) : (
                             <GameSprite

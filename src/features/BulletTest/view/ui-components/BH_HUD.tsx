@@ -330,19 +330,6 @@ export const BH_HUD: React.FC<HUDProps> = ({
                                                onDamage, onJumpToG2, onLevel1, onLevel2, onLevel3, onLevel4, onResetG1,
                                                onUseItem
                                            }) => {
-    const btnStyle: React.CSSProperties = {
-        padding: '0.6cqw 1cqw',
-        cursor: 'pointer',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '0.4cqw',
-        fontWeight: 'bold',
-        fontFamily: 'monospace',
-        fontSize: '0.8cqw',
-        pointerEvents: 'auto',
-        textAlign: 'center'
-    };
-
     const getWaveStatusText = (): string => {
         if (isRoomCleared) return 'ROOM CLEARED!';
         if (waveState === 'DELAY') return `NEXT WAVE IN ${Math.ceil(waveDelayTimer / 60)}s`;
@@ -362,6 +349,30 @@ export const BH_HUD: React.FC<HUDProps> = ({
     return (
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', containerType: 'size' }}>
 
+            {/* Top-left: Points & Coins */}
+            <div style={{
+                position: 'absolute', top: '2cqh', left: '2cqw',
+                display: 'flex', alignItems: 'center', gap: '1.5cqw',
+                fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
+            }}>
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    color: '#f1c40f',
+                    textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
+                }}>
+                    <SpriteIcon src={POINT_SPRITE_PATH} />
+                    <span>{points.toLocaleString()}</span>
+                </div>
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    color: '#ffd700',
+                    textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
+                }}>
+                    <SpriteIcon src={COIN_SPRITE_PATH} />
+                    <span>{coins.toLocaleString()}</span>
+                </div>
+            </div>
+
             {/* Wave Info - Top Right */}
             <div style={{
                 position: 'absolute', top: '3cqh', right: '3cqw',
@@ -375,9 +386,6 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
                 <div style={{ color: getWaveStatusColor(), fontSize: '1cqw' }}>
                     {getWaveStatusText()}
-                </div>
-                <div style={{ color: '#888', fontSize: '0.8cqw', marginTop: '0.3cqh' }}>
-                    ENEMIES_ACTIVE: {rockCount}
                 </div>
             </div>
 
@@ -441,64 +449,12 @@ export const BH_HUD: React.FC<HUDProps> = ({
                 </div>
             )}
 
-            {/* Points, Coins & Inventory Slot - Bottom Left */}
+            {/* Bottom-left: Inventory Slot */}
             <div style={{
                 position: 'absolute', bottom: '3cqh', left: '3cqw',
-                display: 'flex', gap: '1.5cqw', alignItems: 'flex-end'
+                display: 'flex', alignItems: 'flex-end'
             }}>
-                {/* Inventory Slot */}
                 <InventorySlot itemId={heldItemId} onUse={onUseItem} />
-
-                {/* Economy counters */}
-                <div style={{
-                    display: 'flex', flexDirection: 'column', gap: '0.8cqh',
-                    fontFamily: 'monospace', fontSize: '1.4cqw', fontWeight: 'bold'
-                }}>
-                    <div style={{
-                        display: 'flex', alignItems: 'center',
-                        color: '#f1c40f',
-                        textShadow: '0 0 8px rgba(241, 196, 15, 0.4)'
-                    }}>
-                        <SpriteIcon src={POINT_SPRITE_PATH} />
-                        <span>{points.toLocaleString()}</span>
-                    </div>
-                    <div style={{
-                        display: 'flex', alignItems: 'center',
-                        color: '#ffd700',
-                        textShadow: '0 0 8px rgba(255, 215, 0, 0.4)'
-                    }}>
-                        <SpriteIcon src={COIN_SPRITE_PATH} />
-                        <span>{coins.toLocaleString()}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Dev Controls - Top Left */}
-            <div style={{
-                position: 'absolute', top: '3cqh', left: '3cqw',
-                display: 'flex', flexDirection: 'column', gap: '1cqh'
-            }}>
-                <button ref={damageBtnRef} onClick={onDamage}
-                        style={{ ...btnStyle, background: '#333', border: '0.1cqw solid #fff' }}>
-                    TAKE DAMAGE (-15)
-                </button>
-
-                <div style={{ display: 'flex', gap: '0.5cqw' }}>
-                    <button onClick={onLevel1} style={{ ...btnStyle, background: '#408240', flex: 1 }}>LVL 1</button>
-                    <button onClick={onLevel2} style={{ ...btnStyle, background: '#C29F19', flex: 1 }}>LVL 2</button>
-                    <button onClick={onLevel3} style={{ ...btnStyle, background: '#C21919', flex: 1 }}>LVL 3</button>
-                    <button onClick={onLevel4} style={{ ...btnStyle, background: '#8E44AD', flex: 1 }}>LVL 4</button>
-                </div>
-
-                <button onClick={onJumpToG2} style={{ ...btnStyle, background: '#2980b9' }}>
-                    Go to Game 2
-                </button>
-
-                <div style={{ display: 'flex', gap: '0.5cqw' }}>
-                    <button onClick={onResetG1} style={{ ...btnStyle, background: '#c0392b', flex: 1 }}>
-                        Quick Load
-                    </button>
-                </div>
             </div>
         </div>
     );
