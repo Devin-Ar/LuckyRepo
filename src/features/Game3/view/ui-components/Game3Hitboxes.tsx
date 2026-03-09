@@ -1,8 +1,9 @@
 // src/features/Game3/view/ui-components/Game3Hitboxes.tsx
-import React, { useEffect } from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import { Container, Graphics } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
+import {DebugContext} from "../../../../App";
 
 export const Game3Hitboxes: React.FC<{
     vm: Game3Presenter;
@@ -10,10 +11,18 @@ export const Game3Hitboxes: React.FC<{
     heroRef: React.RefObject<PIXI.Graphics>;
 }> = ({ vm, levelRef, heroRef }) => {
 
+    const debugMode = useContext(DebugContext);
+    const debugModeRef = useRef(debugMode);
+    const [opacity, setOpacity] = useState(0);
     useEffect(() => {
         const g = levelRef.current;
+        debugModeRef.current = debugMode;
         if (!g) return;
-
+        if (!debugModeRef.current) {
+            setOpacity(0);
+        } else {
+            setOpacity(0.5);
+        }
         g.clear();
         for (const p of vm.objects) {
             let color = 0x2c3e50;
@@ -39,10 +48,10 @@ export const Game3Hitboxes: React.FC<{
             g.drawRect(p.x, p.y, p.width, p.height);
             g.endFill();
         }
-    }, [vm.objects]);
+    }, [vm.objects, debugMode]);
 
     return (
-        <Container name="hitboxes" alpha={0.5}>
+        <Container name="hitboxes" alpha={opacity}>
             <Graphics ref={levelRef} />
             <Graphics ref={heroRef} />
         </Container>

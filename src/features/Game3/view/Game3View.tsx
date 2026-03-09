@@ -1,5 +1,5 @@
 // src/features/Game3/view/Game3View.tsx
-import React, { useMemo } from 'react';
+import React, {useContext, useMemo} from 'react';
 import { Stage } from '@pixi/react';
 import { Game3Presenter } from './Game3Presenter';
 import { Game3Controller } from './Game3Controller';
@@ -8,6 +8,7 @@ import { Game3Simulation } from './ui-components/Game3Simulation';
 import { Game3Minimap } from './ui-components/Game3Minimap';
 import { Game3Level } from '../model/Game3Config';
 import { IGameViewProps } from '../../../core/interfaces/IViewProps';
+import {DebugContext} from "../../../App";
 
 export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>> = ({
                                                                                          vm, controller, width = 960, height = 540
@@ -16,7 +17,8 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
     const [points, setPoints] = React.useState(0);
     const [coins, setCoins] = React.useState(0);
     const [heldItemId, setHeldItemId] = React.useState(0);
-
+    //debug
+    const debugging = useContext(DebugContext);
     React.useEffect(() => {
         const unsubscribe = vm.subscribe(() => {
             setTick(t => t + 1);
@@ -75,7 +77,9 @@ export const Game3View: React.FC<IGameViewProps<Game3Presenter, Game3Controller>
                     options={stageOptions}
                     style={stageStyle}
                 >
+                    <DebugContext.Provider value={debugging}>
                     <Game3Simulation vm={vm} width={width} height={height} />
+                    </DebugContext.Provider>
                 </Stage>
 
                 <div style={{
