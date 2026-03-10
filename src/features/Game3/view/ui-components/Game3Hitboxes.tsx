@@ -1,29 +1,29 @@
 // src/features/Game3/view/ui-components/Game3Hitboxes.tsx
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
-import { Container, Graphics } from '@pixi/react';
+import {Container, Graphics, useTick} from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
 import {DebugContext} from "../../../../App";
 
-export const Game3Hitboxes: React.FC<{
+const HitboxStatic: React.FC<{
     vm: Game3Presenter;
-    levelRef: React.RefObject<PIXI.Graphics>;
-    heroRef: React.RefObject<PIXI.Graphics>;
-}> = ({ vm, levelRef, heroRef }) => {
+}> = ({ vm }) => {
+    const containerRef = useRef<PIXI.Container>(null);
+    const built = useRef(false);
 
-    const debugMode = useContext(DebugContext);
-    const debugModeRef = useRef(debugMode);
-    const [opacity, setOpacity] = useState(0);
-    useEffect(() => {
-        const g = levelRef.current;
-        debugModeRef.current = debugMode;
-        if (!g) return;
-        if (!debugModeRef.current) {
-            setOpacity(0);
-        } else {
-            setOpacity(0.5);
-        }
-        g.clear();
+    useTick(() => {
+        if (!containerRef.current || built.current) return;
+        const objects = vm.objects;
+        if (!objects || objects.length === 0) return;
+        //I still don't understand how objects isn't initialized by this point...
+        const first = objects[0];
+        const last = objects[objects.length - 1];
+        if (first.width === 0 || last.width === 0) return;
+        built.current = true;
+
+        const g = new PIXI.Graphics();
+        containerRef.current.addChild(g);
+        //Craziest part is if we put a print statement here, it slows the process enough to load correctly.
         for (const p of vm.objects) {
             let color = 0x2c3e50;
             switch(p.type) {
@@ -42,18 +42,51 @@ export const Game3Hitboxes: React.FC<{
                 case 12: color = 0x434918; break; // Non-Organic FG (Dark Olive)
                 case 13: color = 0x98998d; break; // Non-Organic BG (Grey-Olive)
                 case 14: color = 0xffd700; break; // Coin (Gold)
-                default: color = 0xff00ff;       // Error/Unknown (Magenta)
+                default: color = 0xff00ff;        // Error/Unknown (Magenta)
             }
             g.beginFill(color, 1.0);
             g.drawRect(p.x, p.y, p.width, p.height);
             g.endFill();
         }
-    }, [vm.objects, debugMode]);
+    });
+
+    return <Container ref={containerRef} />;
+};
+
+const HitboxHero: React.FC<{
+    vm: Game3Presenter;
+}> = ({ vm }) => {
+    const boxbox = useRef<PIXI.Graphics>(null);
+    useTick(() => {
+        if (!boxbox.current) return;
+        const g = boxbox.current;
+        if (!g) return;
+        const hero = vm.heroVisuals;
+        g.clear();
+        if (!hero || (hero.x === 0 && hero.y === 0 && hero.width === 0 && hero.height === 0)) return;
+        g.beginFill(0x00ffff);
+        g.drawRect(hero.x, hero.y, hero.width, hero.height);
+        g.endFill();
+    });
+    return <Graphics ref={boxbox} />;
+};
+
+export const Game3Hitboxes: React.FC<{
+    vm: Game3Presenter;
+}> = ({ vm }) => {
+    const debugMode = useContext(DebugContext);
+    const containerRef = useRef<PIXI.Container>(null);
+    const [opacity, setOpacity] = useState(0);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        setOpacity(debugMode ? 0.5 : 0);
+    }, [debugMode]);
 
     return (
-        <Container name="hitboxes" alpha={opacity}>
-            <Graphics ref={levelRef} />
-            <Graphics ref={heroRef} />
+        <Container ref={containerRef} name="hitboxes" alpha={opacity}>
+            <HitboxStatic vm={vm} />
+            <HitboxHero vm={vm}/>
         </Container>
     );
 };

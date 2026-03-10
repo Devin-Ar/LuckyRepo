@@ -1,5 +1,5 @@
 // src/features/Game3/view/ui-components/Game3Foreground.tsx
-import React, {MutableRefObject, useMemo, useRef} from 'react';
+import React, {MutableRefObject, useRef} from 'react';
 import * as PIXI from 'pixi.js';
 import {Container, useTick} from '@pixi/react';
 import { Game3Presenter, ViewObject } from '../Game3Presenter';
@@ -191,8 +191,7 @@ const ForegroundAnimated: React.FC<{
 
 const ForegroundStatic: React.FC<{
     vm: Game3Presenter;
-    spikeLayouts: Map<number, { rotation: number; offsetX: number; offsetY: number }>;
-}> = ({ vm, spikeLayouts }) => {
+}> = ({ vm }) => {
     const containerRef = useRef<PIXI.Container>(null);
     const manager = SpriteManager.getInstance();
     const built = useRef(false);
@@ -213,6 +212,13 @@ const ForegroundStatic: React.FC<{
         }
 
         const objects = vm.objects;
+
+        const spikeLayouts = new Map<number, { rotation: number; offsetX: number; offsetY: number }>();
+        for (let i = 0; i < objects.length; i++) {
+            if (objects[i].type === 3) {
+                spikeLayouts.set(i, getSpikeLayout(objects[i], objects));
+            }
+        }
 
         for (let i = 0; i < objects.length; i++) {
             const p = objects[i];
@@ -257,7 +263,10 @@ const ForegroundStatic: React.FC<{
             // Spike
             if (p.type === 3) {
                 const layout = spikeLayouts.get(i);
-                if (!layout) continue;
+                if (!layout) {
+                    working.current[i] = false;
+                    continue;
+                }
                 const sprite = new PIXI.Sprite(texture);
                 sprite.anchor.set(0.5, 0.5);
                 sprite.scale.set(p.width / 20);
@@ -287,22 +296,9 @@ export const Game3Foreground: React.FC<{
     vm: Game3Presenter;
     heroSprRef: React.RefObject<PIXI.Container>;
 }> = ({ vm, heroSprRef }) => {
-    const objects = vm.objects;
-
-    // Pre-compute spike layout (rotation + wall offset) once per render frame
-    const spikeLayouts = useMemo(() => {
-        const map = new Map<number, { rotation: number; offsetX: number; offsetY: number }>();
-        for (let i = 0; i < objects.length; i++) {
-            if (objects[i].type === 3) {
-                map.set(i, getSpikeLayout(objects[i], objects));
-            }
-        }
-        return map;
-    }, [objects]);
-
     return (
         <Container name="foreground">
-            <ForegroundStatic vm={vm} spikeLayouts={spikeLayouts} />
+            <ForegroundStatic vm={vm} />
             <ForegroundAnimated vm={vm} heroSprRef={heroSprRef} />
         </Container>
     );

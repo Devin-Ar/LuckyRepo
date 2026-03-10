@@ -5,6 +5,7 @@ import { Container, Graphics, useApp, useTick } from '@pixi/react';
 import { Game3Presenter } from '../Game3Presenter';
 import { Game3Background } from './Game3Background';
 import { Game3Foreground } from './Game3Foreground';
+import {Game3Hitboxes} from "./Game3Hitboxes";
 
 const PixiForceResizer: React.FC<{ w: number, h: number }> = ({ w, h }) => {
     const app = useApp();
@@ -120,6 +121,7 @@ export const Game3Simulation: React.FC<{
             <Game3Background imageName={vm.backgroundKey} w={width} h={height} />
             <Container ref={worldContainerRef} scale={renderScale}>
                 <Game3Foreground vm={vm} heroSprRef={heroSprRef} />
+                <Game3Hitboxes vm={vm} />
                 <Graphics ref={healthBarRef} />
             </Container>
         </>
