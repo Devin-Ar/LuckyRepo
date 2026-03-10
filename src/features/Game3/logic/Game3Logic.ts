@@ -307,7 +307,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
                         this.wallJumpTimer = 15;
                     }
                     this.isClinging = false;
-                    this.wallJumpCooldown = 20; // elay
+                    this.wallJumpCooldown = 25; // Delay
                     return;
                 }
                 return; // Staying in cling

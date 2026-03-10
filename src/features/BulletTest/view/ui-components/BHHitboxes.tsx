@@ -288,29 +288,61 @@ const HealthBarLayer: React.FC<{ vm: BHPresenter, paused: boolean }> = ({vm, pau
             g.endFill();
         }
 
-        // --- Boss health bar ---
+        // --- Boss health bar (3-phase segmented) ---
+        // Total boss HP = 1000, split into 3 equal visual segments:
+        //   Segment 3 (right):  HP 667–1000  → phase 1 damage zone
+        //   Segment 2 (middle): HP 333–667   → phase 2 damage zone
+        //   Segment 1 (left):   HP 0–333     → phase 3 damage zone
         if (vm.bossActive && vm.bossHp > 0) {
+            const BOSS_MAX_HP = 1000;
             const bossX = vm.bossPos.x;
             const bossY = vm.bossPos.y;
             const bossW = vm.bossWidth || 200;
-            const bossH = vm.bossHeight || 200;
 
             const bossBarWidth = bossW * 1.2;
             const bossBarHeight = 8;
             const bossBarX = bossX + bossW / 2 - bossBarWidth / 2;
             const bossBarY = bossY - BAR_OFFSET - bossBarHeight;
-            const bossHpRatio = Math.max(0, Math.min(1, vm.bossHp / 300));
 
-            // Background
+            const segmentWidth = bossBarWidth / 3;
+            const segmentGap = 2; // pixel gap between segments
+            const bossHp = vm.bossHp;
+
+            // Phase thresholds matching BHTestLogic
+            const thresholds = [0, 333, 667, BOSS_MAX_HP];
+
+            // Background for entire bar
             g.beginFill(0x000000, 0.7);
             g.drawRect(bossBarX - 1, bossBarY - 1, bossBarWidth + 2, bossBarHeight + 2);
             g.endFill();
 
-            // Fill — red when vulnerable, grey when protected
-            const bossColor = vm.bossVulnerable ? 0xe74c3c : 0x666666;
-            g.beginFill(bossColor, 0.9);
-            g.drawRect(bossBarX, bossBarY, bossBarWidth * bossHpRatio, bossBarHeight);
-            g.endFill();
+            // Draw 3 segments left to right (segment 0 = phase 3 zone, segment 2 = phase 1 zone)
+            for (let seg = 0; seg < 3; seg++) {
+                const segX = bossBarX + seg * segmentWidth;
+                const drawWidth = segmentWidth - segmentGap;
+
+                // HP range for this segment
+                const segMin = thresholds[seg];   // 0, 333, 667
+                const segMax = thresholds[seg + 1]; // 333, 667, 1000
+                const segRange = segMax - segMin;
+
+                // How full this segment is (0..1)
+                const segHp = Math.max(0, Math.min(segRange, bossHp - segMin));
+                const segRatio = segHp / segRange;
+
+                // Segment background (dark)
+                g.beginFill(0x222222, 0.6);
+                g.drawRect(segX, bossBarY, drawWidth, bossBarHeight);
+                g.endFill();
+
+                if (segRatio > 0) {
+                    // Color: red when vulnerable, phase-tinted grey otherwise
+                    const segColor = vm.bossVulnerable ? 0xe74c3c : 0x666666;
+                    g.beginFill(segColor, 0.9);
+                    g.drawRect(segX, bossBarY, drawWidth * segRatio, bossBarHeight);
+                    g.endFill();
+                }
+            }
 
             // Border glow when vulnerable
             if (vm.bossVulnerable) {

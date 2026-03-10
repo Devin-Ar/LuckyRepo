@@ -27,6 +27,14 @@ const MINION_COIN_MIN = 0;
 const MINION_COIN_MAX = 5;
 const BOSS_COIN_REWARD = 25;
 
+// Boss HP constants
+const BOSS_MAX_HP = 1000;
+// Phase thresholds: boss is vulnerable until HP drops to this target, then goes invulnerable
+// Phase 1: 1000 → 667  (bar shows 3/3 → 2/3)
+// Phase 2: 667 → 333   (bar shows 2/3 → 1/3)
+// Phase 3: 333 → 0     (bar shows 1/3 → 0)
+const BOSS_PHASE_THRESHOLDS = [667, 333, 0];
+
 // Item drop pickup radius
 const ITEM_PICKUP_RADIUS = 40;
 
@@ -41,7 +49,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     // Boss system
     private boss: BossEntity | null = null;
     private bossLevel: boolean = false;
-    private bossTargetHp: number = 3;
+    private bossTargetHp: number = BOSS_PHASE_THRESHOLDS[0];
     private bossRewardGiven: boolean = false;
 
     // Wave system
@@ -128,7 +136,7 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         this.bossRewardGiven = false;
         if (this.bossLevel) {
             this.boss = new BossEntity(config.width / 2 - 100, 50);
-            this.bossTargetHp = 200;
+            this.bossTargetHp = BOSS_PHASE_THRESHOLDS[0]; // 667 — first vulnerable window
         } else {
             this.boss = null;
         }
@@ -355,7 +363,13 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
                     this.boss.vulnerable = true;
                 } else if (this.boss.vulnerable) {
                     this.boss.vulnerable = false;
-                    this.bossTargetHp -= 100;
+                    // Advance to next phase threshold
+                    const currentPhaseIndex = BOSS_PHASE_THRESHOLDS.indexOf(this.bossTargetHp);
+                    if (currentPhaseIndex >= 0 && currentPhaseIndex + 1 < BOSS_PHASE_THRESHOLDS.length) {
+                        this.bossTargetHp = BOSS_PHASE_THRESHOLDS[currentPhaseIndex + 1];
+                    } else {
+                        this.bossTargetHp = 0;
+                    }
                     if (waveState === 'CLEARED') {
                         this.waveManager.nextWave();
                     }

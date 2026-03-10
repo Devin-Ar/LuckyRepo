@@ -35,7 +35,7 @@ export class BossEntity extends baseEntity implements IBossEnemy {
         this.y = y;
         this.width = 200;
         this.height = 200;
-        this.health = 300;
+        this.health = 1000;
         this.active = true;
         this.type = "boss";
     }

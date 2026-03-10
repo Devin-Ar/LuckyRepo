@@ -35,12 +35,12 @@ function register(item: ItemDefinition) {
 register({
     id: ITEM_HEALTH_POTION,
     name: "Health Potion",
-    description: "Restores 30 HP when consumed.",
+    description: "Restores 50 HP when consumed.",
     spriteKey: "res/sprite/sheets/HealthPotion.png",
     cost: 50,
     onUse: (ctx) => {
         if (ctx.hp >= ctx.maxHp) return null; // Already full, don't consume
-        return { hpDelta: 30 };
+        return { hpDelta: 50 };
     }
 });
 
@@ -60,12 +60,12 @@ register({
 register({
     id: ITEM_MYSTERY_POTION,
     name: "Mystery Potion",
-    description: "A gamble! Randomly heals 50 HP or damages you for 20 HP.",
+    description: "A gamble! Randomly heals 35 HP or damages you for 20 HP.",
     spriteKey: "res/sprite/sheets/mystery_potion.png",
     cost: 25,
     onUse: (_ctx) => {
         const lucky = Math.random() < 0.5;
-        return { hpDelta: lucky ? 50 : -20 };
+        return { hpDelta: lucky ? 35 : -20 };
     }
 });
 

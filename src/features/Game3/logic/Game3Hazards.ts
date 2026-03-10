@@ -12,7 +12,7 @@ export class Game3Hazards {
         const currentlyInSpike = this.collision.checkHazardCollision('isSpike');
         if (currentlyInSpike) {
             if (!this.logic.inSpike || this.logic.spikeTimer <= 0) {
-                this.logic.modifyHP(-10);
+                this.logic.modifyHP(-5);
                 this.logic.spikeTimer = 120;
             }
         }
