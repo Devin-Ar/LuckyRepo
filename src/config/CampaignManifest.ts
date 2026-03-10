@@ -13,6 +13,9 @@ const StoryCampaign: ICampaignStep[] = [
         name: "Prologue: The Awakening",
         stateId: FeatureEnum.GAME_1,
         presetLabel: "LVL 1",
+        params: {
+            backgroundKey: "Game3BG1"
+        },
         loadingConfig: {
             view: LoreLoadingView,
             props: { message: "System initializing. Hostiles detected in Sector 7. Engage immediately." }
@@ -23,6 +26,9 @@ const StoryCampaign: ICampaignStep[] = [
         name: "Chapter 1: The Descent",
         stateId: FeatureEnum.GAME_1,
         presetLabel: "LVL 2",
+        params: {
+            backgroundKey: "Game3BG2"
+        },
         loadingConfig: {
             view: LoreLoadingView,
             props: { message: "Surface cleared. Descending into the sub-levels. Energy signatures rising." }
@@ -32,6 +38,9 @@ const StoryCampaign: ICampaignStep[] = [
         name: "Intermission: Resupply",
         stateId: FeatureEnum.GAME_2,
         presetLabel: "LVL 1",
+        params: {
+            backgroundKey: "Game3BG3"
+        },
         loadingConfig: {
             view: DemoLoadingView,
             props: { message: "Returning to Base..." }

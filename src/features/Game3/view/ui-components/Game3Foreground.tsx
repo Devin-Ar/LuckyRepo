@@ -12,19 +12,22 @@ import { GameSprite } from "../../../../components/GameSprite";
 const WALKABLE_TYPES = new Set([0, 6, 7]);
 
 /**
- * Wall types — used to nudge the spike sprite away from walls.
- * Wall(1), NonWall(8), DisplayWall(9)
+ * Collidable wall types — walls the player can collide with.
+ * Wall(1), NonWall(8)
+ * DisplayWall(9) is purely visual so spikes should NOT orient toward it.
  */
-const WALL_TYPES = new Set([1, 8, 9]);
+const COLLIDABLE_WALL_TYPES = new Set([1, 8]);
 
 /**
- * For a spike tile, determine rotation and offset from adjacent walls.
+ * For a spike tile, determine rotation and offset from adjacent geometry.
  *
- * Default spike orientation: points UP (spikes on a floor).
- *   - Walkable above → π (flip upside-down — points down from ceiling)
- *   - Otherwise       → 0 (default — points up)
+ * Priority logic (first match wins):
+ *   1. Collidable wall to the LEFT  → π/2   (spike points RIGHT, away from wall)
+ *   2. Collidable wall to the RIGHT → -π/2  (spike points LEFT,  away from wall)
+ *   3. Walkable surface ABOVE       → π     (spike points DOWN from ceiling)
+ *   4. Default                      → 0     (spike points UP from floor)
  *
- * Also returns an x/y offset to push the sprite away from adjacent walls.
+ * Wall-adjacent spikes also get a small nudge away from the wall.
  */
 function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: number; offsetX: number; offsetY: number } {
     const tolerance = 0.15;
@@ -33,14 +36,14 @@ function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: n
     const sw = spike.width;
     const sh = spike.height;
 
-    let hasAbove = false;
-    let hasBelow = false;
-    let hasWallLeft = false;
-    let hasWallRight = false;
+    let hasWalkableAbove = false;
+    let hasWalkableBelow = false;
+    let hasCollidableWallLeft = false;
+    let hasCollidableWallRight = false;
 
     for (const o of objects) {
         const isWalkable = WALKABLE_TYPES.has(o.type);
-        const isWall = WALL_TYPES.has(o.type);
+        const isCollidableWall = COLLIDABLE_WALL_TYPES.has(o.type);
 
         // Horizontal overlap (for above/below checks)
         const hOverlap = o.x + o.width > sx + tolerance && o.x < sx + sw - tolerance;
@@ -48,25 +51,47 @@ function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: n
         const vOverlap = o.y + o.height > sy + tolerance && o.y < sy + sh - tolerance;
 
         if (isWalkable && hOverlap) {
-            if (Math.abs((o.y + o.height) - sy) < tolerance) hasAbove = true;
-            if (Math.abs(o.y - (sy + sh)) < tolerance) hasBelow = true;
+            if (Math.abs((o.y + o.height) - sy) < tolerance) hasWalkableAbove = true;
+            if (Math.abs(o.y - (sy + sh)) < tolerance) hasWalkableBelow = true;
         }
 
-        if (isWall && vOverlap) {
-            if (Math.abs((o.x + o.width) - sx) < tolerance) hasWallLeft = true;
-            if (Math.abs(o.x - (sx + sw)) < tolerance) hasWallRight = true;
+        if (isCollidableWall && vOverlap) {
+            if (Math.abs((o.x + o.width) - sx) < tolerance) hasCollidableWallLeft = true;
+            if (Math.abs(o.x - (sx + sw)) < tolerance) hasCollidableWallRight = true;
         }
     }
 
-    const rotation = (hasAbove && !hasBelow) ? Math.PI : 0;
-
-    // Nudge spike away from adjacent walls
-    const WALL_NUDGE = sw * 0.15;
+    // Determine rotation — wall-mounted spikes take priority over floor/ceiling
+    let rotation = 0;
     let offsetX = 0;
-    if (hasWallLeft && !hasWallRight) offsetX = WALL_NUDGE;
-    else if (hasWallRight && !hasWallLeft) offsetX = -WALL_NUDGE;
+    let offsetY = 0;
 
-    return { rotation, offsetX, offsetY: 0 };
+    const WALL_NUDGE = sw * 0.05;
+
+// PRIORITY: floor / ceiling first
+    if (hasWalkableAbove && !hasWalkableBelow) {
+        // Ceiling spike
+        rotation = Math.PI;
+    }
+    else if (hasWalkableBelow && !hasWalkableAbove) {
+        // Floor spike
+        rotation = 0;
+    }
+    else if (hasCollidableWallLeft && !hasCollidableWallRight) {
+        // Wall on left → spike points right
+        rotation = Math.PI / 2;
+        offsetX = -WALL_NUDGE; // move closer to wall
+    }
+    else if (hasCollidableWallRight && !hasCollidableWallLeft) {
+        // Wall on right → spike points left
+        rotation = -Math.PI / 2;
+        offsetX = WALL_NUDGE; // move closer to wall
+    }
+    else {
+        rotation = 0;
+    }
+
+    return { rotation, offsetX, offsetY };
 }
 
 export const Game3Foreground: React.FC<{
@@ -103,7 +128,7 @@ export const Game3Foreground: React.FC<{
                         case 1: assetName = "Platform Length"; break; //wall
                         case 3: assetName = "Spike Trap"; break;
                         case 5: assetName = "Exit Door"; break;
-                        case 6: assetName = "Platform Floor"; break; // fallthrough floor
+                        case 6: assetName = "Platform FallThrough"; break; // fallthrough floor
                         case 7: assetName = "Platform Floor"; break; //Another floor
                         case 8: assetName = "Platform NonWall"; break; // other wall
                         case 9: assetName = "Platform Floor BG"; break;

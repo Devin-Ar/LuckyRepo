@@ -136,8 +136,12 @@
     }
   },
   "images": {
+    "Game3BG1": "res/sprite/static/Game3BG1.png",
+    "Game3BG2": "res/sprite/static/Game3BG2.png",
+    "Game3BG3": "res/sprite/static/Game3BG3.png",
     "static_rock": "res/sprite/static/rock.png",
     "Platform Floor": "res/sprite/static/bricks.png",
+    "Platform FallThrough": "res/sprite/static/FallThrough.png",
     "Platform Floor BG": "res/sprite/static/bricksbg.png",
     "Platform Length": "res/sprite/static/bricksrd.png",
     "Platform Plat": "res/sprite/static/bricksrd2.png",
