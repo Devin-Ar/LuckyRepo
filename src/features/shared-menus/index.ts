@@ -32,5 +32,11 @@ export const SharedMenuFeatures: StateDefinition[] = [
         displayName: "Game Over",
         type: 'UTILITY',
         loader: () => import('./states/GameOverState').then(m => m.GameOverState),
+    },
+    {
+        id: FeatureEnum.SCORE_SCREEN,
+        displayName: "Score Screen",
+        type: 'UTILITY',
+        loader: () => import('./states/ScoreScreenState').then(m => m.ScoreScreenState),
     }
 ];

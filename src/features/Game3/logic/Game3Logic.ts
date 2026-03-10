@@ -45,6 +45,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     private isJumpingFromGround = false;
     private hasCompletedLevel = false;
     private spawnPoint = { x: 0, y: 0 };
+    private isDead = false;
 
     // Config
     private heroWidth = 1.0;
@@ -83,6 +84,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.playerOffsetY = config.playerOffsetY || 0;
         this.heroWidth = config.heroWidth || 1.0;
         this.heroHeight = config.heroHeight || 2.0;
+        this.isDead = false;
 
         // Restore economy from config if provided (session overrides flow through config)
         if ((config as any).initialPoints !== undefined) {
@@ -106,6 +108,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
         this.hero.vx = 0;
         this.hero.vy = 0;
         this.hasCompletedLevel = false;
+        this.isDead = false;
 
         if (data.playerStart.width && data.playerStart.height) {
             this.heroWidth = data.playerStart.width;
@@ -163,7 +166,7 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     }
 
     protected onUpdate(sharedView: Float32Array, intView: Int32Array, frameCount: number, fps: number): void {
-        if (!this.config || !this.isInitialized) return;
+        if (!this.config || !this.isInitialized || this.isDead) return;
 
         this.isOnGround = this.collision.checkIsOnGround();
 
@@ -545,18 +548,14 @@ export class Game3Logic extends BaseLogic<Game3Config> {
     public modifyHP(amount: number) {
         this.hp = Math.max(0, Math.min(100, this.hp + amount));
         if (this.hp <= 0) {
-            // Try passive revive (Life Totem) before resetting to spawn
+            // Try passive revive (Life Totem) before dying
             if (this.tryPassiveRevive()) {
-                // Revived — don't reset position, just keep playing with restored HP
+                // Revived — don't die, just keep playing with restored HP
                 return;
             }
-            // No revive — reset to spawn with full HP
-            this.hp = 100;
-            this.hero.x = this.spawnPoint.x;
-            this.hero.y = this.spawnPoint.y;
-            this.hero.vx = 0;
-            this.hero.vy = 0;
-            this.clearMovementStates();
+            // No revive — player is dead, fire event to controller
+            this.isDead = true;
+            self.postMessage({ type: 'EVENT', name: 'PLAYER_DEAD' });
         }
     }
 

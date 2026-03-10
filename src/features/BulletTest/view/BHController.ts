@@ -9,6 +9,8 @@ import {SaveManager} from "../../../core/managers/SaveManager";
 import {InputManager} from "../../../core/managers/InputManager";
 import {StateRegistry} from "../../../core/registry/StateRegistry";
 import {FeatureEnum} from "../../FeatureEnum";
+import {SharedSession} from "../../../core/session/SharedSession";
+import {GLOBAL_SESSION_MAP} from "../../../core/session/GlobalSessionMap";
 
 export class BHController extends BaseController<BHPresenter> {
     private isDead: boolean = false;
@@ -87,11 +89,28 @@ export class BHController extends BaseController<BHPresenter> {
     }
 
     private handlePlayerDeath(): void {
+        // Sync economy to session BEFORE failing so score screen shows correct values
+        this.syncSessionBeforeTransition();
         CampaignManager.getInstance().failCurrentStep();
     }
 
     private handleExitDoor(): void {
+        // Sync economy to session BEFORE completing so score screen shows correct values
+        this.syncSessionBeforeTransition();
         CampaignManager.getInstance().completeCurrentStep();
+    }
+
+    /**
+     * Write the presenter's current points/coins/hp/heldItem to SharedSession
+     * so they are available to the score screen before BaseGameState.destroy() runs.
+     */
+    private syncSessionBeforeTransition(): void {
+        const session = SharedSession.getInstance();
+        const vm = this.vm as BHPresenter;
+        session.set(GLOBAL_SESSION_MAP.points, vm.points);
+        session.set(GLOBAL_SESSION_MAP.coins, vm.coins);
+        session.set(GLOBAL_SESSION_MAP.hp, vm.hp);
+        session.set(GLOBAL_SESSION_MAP.heldItem, vm.heldItem);
     }
 
     private async openPauseMenu() {

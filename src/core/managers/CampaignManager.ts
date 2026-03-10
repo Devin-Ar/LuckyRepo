@@ -1,10 +1,10 @@
 // src/core/managers/CampaignManager.ts
-// This in the long term beyond this class needs to handle branching and be a general flow manager, not just games.
 import { SharedSession } from "../session/SharedSession";
 import { CampaignRegistry } from "../registry/CampaignRegistry";
 import { StateManager } from "./StateManager";
 import { ICampaignDefinition } from "../interfaces/ICampaign";
 import { StateRegistry } from "../registry/StateRegistry";
+import { FeatureEnum } from "../../features/FeatureEnum";
 
 export class CampaignManager {
     private static instance: CampaignManager;
@@ -83,7 +83,6 @@ export class CampaignManager {
     public failCurrentStep(context?: any) {
         const session = SharedSession.getInstance();
         const campaignId = session.get<string>('campaign_id');
-        const index = session.get<number>('campaign_step_index');
 
         if (!campaignId) {
             console.error("No active campaign to fail.");
@@ -91,18 +90,16 @@ export class CampaignManager {
             return;
         }
 
-        const def = CampaignRegistry.get(campaignId);
-        const step = def?.steps[index ?? -1];
-        const factory = step?.failFactory || def?.failFactory;
+        // Read current points/coins from session (controllers sync these before calling fail)
+        const points = session.get<number>('global_points') ?? 0;
+        const coins = session.get<number>('global_coins') ?? 0;
 
-        if (factory) {
-            console.log(`[CampaignManager] Campaign Failed. Loading Fail State.`);
-            const failState = factory(context);
-            StateManager.getInstance().replace(failState);
-        } else {
-            console.warn("No failFactory defined for this campaign. Quitting.");
-            this.quitCampaign();
-        }
+        console.log(`[CampaignManager] Campaign Failed. Showing death score screen (pts=${points}, coins=${coins}).`);
+        StateRegistry.create(FeatureEnum.SCORE_SCREEN, {
+            points, coins, reason: 'death'
+        }).then(state => {
+            StateManager.getInstance().replace(state);
+        });
     }
 
     public quitCampaign() {
@@ -119,9 +116,18 @@ export class CampaignManager {
         const step = def.steps[index];
         console.log(`[CampaignManager] Loading Step ${index}: ${step.name}`);
 
+        // For victory score screen steps, inject current points/coins from session
+        let finalParams = step.params || {};
+        if (step.isVictoryScore) {
+            const session = SharedSession.getInstance();
+            const points = session.get<number>('global_points') ?? 0;
+            const coins = session.get<number>('global_coins') ?? 0;
+            finalParams = { ...finalParams, points, coins };
+        }
+
         const nextState = await StateRegistry.create(
             step.stateId,
-            step.params || {},
+            finalParams,
             step.presetLabel
         );
 

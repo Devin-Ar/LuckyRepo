@@ -11,10 +11,13 @@ import { ParsedMapData } from "../logic/Game3MapData";
 import { InputManager } from "../../../core/managers/InputManager";
 import { StateRegistry } from "../../../core/registry/StateRegistry";
 import { FeatureEnum } from "../../FeatureEnum";
+import { SharedSession } from "../../../core/session/SharedSession";
+import { GLOBAL_SESSION_MAP } from "../../../core/session/GlobalSessionMap";
 
 export class Game3Controller extends BaseController<Game3Presenter> {
     private currentLevel: Game3Level = Game3Level.Level1;
     private hasCompleted: boolean = false;
+    private isDead: boolean = false;
 
     constructor(vm: Game3Presenter) {
         super(vm, FeatureEnum.GAME_3);
@@ -27,6 +30,17 @@ export class Game3Controller extends BaseController<Game3Presenter> {
                     this.hasCompleted = true;
                     this.handleLevelComplete();
                 }
+                break;
+
+            case 'PLAYER_DEAD':
+                if (!this.isDead) {
+                    this.isDead = true;
+                    this.handlePlayerDeath();
+                }
+                break;
+
+            case 'PLAYER_REVIVED':
+                // Life Totem triggered — keep playing
                 break;
 
             case 'MAP_DATA_PRODUCED':
@@ -53,6 +67,7 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     public async initialize(config: any, level: Game3Level = Game3Level.Level1) {
         this.currentLevel = level;
         this.hasCompleted = false;
+        this.isDead = false;
 
         InputManager.getInstance().refreshBindings("Game3");
 
@@ -97,7 +112,28 @@ export class Game3Controller extends BaseController<Game3Presenter> {
     }
 
     private handleLevelComplete(): void {
+        // Sync economy to session before advancing so score screen can read it
+        this.syncSessionBeforeTransition();
         CampaignManager.getInstance().completeCurrentStep();
+    }
+
+    private handlePlayerDeath(): void {
+        // Sync economy to session before failing so score screen shows correct values
+        this.syncSessionBeforeTransition();
+        CampaignManager.getInstance().failCurrentStep();
+    }
+
+    /**
+     * Write the presenter's current points/coins/hp/heldItem to SharedSession
+     * so they are available to the score screen before BaseGameState.destroy() runs.
+     */
+    private syncSessionBeforeTransition(): void {
+        const session = SharedSession.getInstance();
+        const vm = this.vm as Game3Presenter;
+        session.set(GLOBAL_SESSION_MAP.points, vm.points);
+        session.set(GLOBAL_SESSION_MAP.coins, vm.coins);
+        session.set(GLOBAL_SESSION_MAP.hp, vm.hp);
+        session.set(GLOBAL_SESSION_MAP.heldItem, vm.heldItem);
     }
 
     private async openPauseMenu() {

@@ -10,6 +10,8 @@ export interface ICampaignStep {
     params?: any;
     loadingConfig?: ILoadingConfig;
     failFactory?: (context?: any) => State | Promise<State>;
+    /** If true, this step is a victory score screen — points/coins are injected from session */
+    isVictoryScore?: boolean;
 }
 
 export interface ICampaignDefinition {

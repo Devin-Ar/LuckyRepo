@@ -137,6 +137,14 @@ const CrossGameCampaign: ICampaignStep[] = [
             view: DemoLoadingView,
         }
     },
+    {
+        name: "Final Score",
+        stateId: FeatureEnum.SCORE_SCREEN,
+        isVictoryScore: true,
+        params: {
+            reason: 'victory'
+        },
+    },
 ];
 
 const MainMenuFlow: ICampaignStep[] = [
