@@ -149,7 +149,11 @@
     "Exit Door": "res/sprite/static/exit_door.png",
     "Void Pit": "res/sprite/static/void_pit.png",
     "Spike Trap": "res/sprite/static/Spike.png",
-    "Portal Gate": "res/sprite/static/portal_gate.png"
+    "FallThrough Platform": "res/sprite/static/FallThrough.png",
+    "Portal Gate": "res/sprite/static/portal_gate.png",
+    "Game3BG1": "res/sprite/static/Game3BG1.png",
+    "Game3BG2": "res/sprite/static/Game3BG2.png",
+    "Game3BG3": "res/sprite/static/Game3BG3.png"
   },
   "audio": {
     "bgm_level1": {
