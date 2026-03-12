@@ -18,13 +18,7 @@ const WALKABLE_TYPES = new Set([0, 6, 7]);
 const COLLIDABLE_WALL_TYPES = new Set([1, 8]);
 
 /**
- * All wall types — used for visual nudge when spike is floor/ceiling oriented.
- * Wall(1), NonWall(8), DisplayWall(9)
- */
-const WALL_TYPES = new Set([1, 8, 9]);
-
-/**
- * For a spike tile, determine rotation and offset from adjacent surfaces.
+ * For a spike tile, determine rotation based on adjacent surfaces.
  *
  * Priority logic:
  *   1. Walkable below → 0 (points UP from floor, default)
@@ -33,10 +27,15 @@ const WALL_TYPES = new Set([1, 8, 9]);
  *   4. Collidable wall to right → -π/2 (points LEFT from right wall)
  *   5. Fallback → 0
  *
- * When floor/ceiling oriented, nudge sprite away from adjacent walls.
+ * No positional nudge — the sprite always stays centred on its hitbox tile.
  */
 function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: number; offsetX: number; offsetY: number } {
-    const tolerance = 0.15;
+    // Tolerance for adjacency: tiles are 1 unit, so neighbouring edges are
+    // exactly 0 apart.  Use a generous tolerance to handle float drift.
+    const adjTol = 0.55;
+    // Overlap tolerance for checking horizontal/vertical shared span
+    const overlapTol = 0.1;
+
     const sx = spike.x;
     const sy = spike.y;
     const sw = spike.width;
@@ -46,53 +45,41 @@ function getSpikeLayout(spike: ViewObject, objects: ViewObject[]): { rotation: n
     let hasWalkableBelow = false;
     let hasCollidableWallLeft = false;
     let hasCollidableWallRight = false;
-    let hasAnyWallLeft = false;
-    let hasAnyWallRight = false;
 
     for (const o of objects) {
+        if (o === spike) continue;
+
         const isWalkable = WALKABLE_TYPES.has(o.type);
         const isCollidableWall = COLLIDABLE_WALL_TYPES.has(o.type);
-        const isAnyWall = WALL_TYPES.has(o.type);
 
         // Horizontal overlap (for above/below checks)
-        const hOverlap = o.x + o.width > sx + tolerance && o.x < sx + sw - tolerance;
+        const hOverlap = o.x + o.width > sx + overlapTol && o.x < sx + sw - overlapTol;
         // Vertical overlap (for left/right checks)
-        const vOverlap = o.y + o.height > sy + tolerance && o.y < sy + sh - tolerance;
+        const vOverlap = o.y + o.height > sy + overlapTol && o.y < sy + sh - overlapTol;
 
         if (isWalkable && hOverlap) {
-            if (Math.abs((o.y + o.height) - sy) < tolerance) hasWalkableAbove = true;
-            if (Math.abs(o.y - (sy + sh)) < tolerance) hasWalkableBelow = true;
+            // Check if walkable surface bottom edge touches spike top edge
+            if (Math.abs((o.y + o.height) - sy) < adjTol) hasWalkableAbove = true;
+            // Check if walkable surface top edge touches spike bottom edge
+            if (Math.abs(o.y - (sy + sh)) < adjTol) hasWalkableBelow = true;
         }
 
-        if (vOverlap) {
-            if (isCollidableWall) {
-                if (Math.abs((o.x + o.width) - sx) < tolerance) hasCollidableWallLeft = true;
-                if (Math.abs(o.x - (sx + sw)) < tolerance) hasCollidableWallRight = true;
-            }
-            if (isAnyWall) {
-                if (Math.abs((o.x + o.width) - sx) < tolerance) hasAnyWallLeft = true;
-                if (Math.abs(o.x - (sx + sw)) < tolerance) hasAnyWallRight = true;
-            }
+        if (isCollidableWall && vOverlap) {
+            if (Math.abs((o.x + o.width) - sx) < adjTol) hasCollidableWallLeft = true;
+            if (Math.abs(o.x - (sx + sw)) < adjTol) hasCollidableWallRight = true;
         }
     }
 
-    // Determine orientation: floor/ceiling takes priority over wall attachment
+    // Priority: floor/ceiling orientation wins over wall attachment.
+    // No nudge offsets — sprite always stays centred on its hitbox tile.
     if (hasWalkableBelow) {
         // Points UP from floor (default)
-        const WALL_NUDGE = sw * 0.15;
-        let offsetX = 0;
-        if (hasAnyWallLeft && !hasAnyWallRight) offsetX = WALL_NUDGE;
-        else if (hasAnyWallRight && !hasAnyWallLeft) offsetX = -WALL_NUDGE;
-        return { rotation: 0, offsetX, offsetY: 0 };
+        return { rotation: 0, offsetX: 0, offsetY: 0 };
     }
 
     if (hasWalkableAbove) {
         // Points DOWN from ceiling
-        const WALL_NUDGE = sw * 0.15;
-        let offsetX = 0;
-        if (hasAnyWallLeft && !hasAnyWallRight) offsetX = WALL_NUDGE;
-        else if (hasAnyWallRight && !hasAnyWallLeft) offsetX = -WALL_NUDGE;
-        return { rotation: Math.PI, offsetX, offsetY: 0 };
+        return { rotation: Math.PI, offsetX: 0, offsetY: 0 };
     }
 
     // No walkable above or below — check for sideways wall attachment
@@ -301,7 +288,7 @@ const ForegroundStatic: React.FC<{
                 continue;
             }
 
-            // Spike
+            // Spike — centred on hitbox, no positional offset
             if (p.type === 3) {
                 const layout = spikeLayouts.get(i);
                 if (!layout) {
@@ -311,8 +298,10 @@ const ForegroundStatic: React.FC<{
                 const sprite = new PIXI.Sprite(texture);
                 sprite.anchor.set(0.5, 0.5);
                 sprite.scale.set(p.width / 20);
-                sprite.x = p.x + p.width / 2 + layout.offsetX;
-                sprite.y = p.y + p.height / 2 + layout.offsetY;
+
+                // Position exactly at tile centre — no offset
+                sprite.x = p.x + p.width / 2;
+                sprite.y = p.y + p.height / 2;
                 sprite.rotation = layout.rotation;
                 containerRef.current.addChild(sprite);
                 working.current[i] = true;
