@@ -195,10 +195,36 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
     public override loadSnapshot(data: any): void {
         if (!data) return;
         this.config = data.config;
-        this.player = data.player;
-        this.entities = data.entities;
-        this.playerProjectiles = data.playerProjectiles;
-        this.enemyProjectiles = data.enemyProjectiles;
+
+        if (data.player) {
+            Object.assign(this.player, data.player);
+        }
+
+        if (data.entities) {
+            this.entities = data.entities.map((eData: any) => {
+                const prototype = eData.type === "singleShot"
+                    ? ShotEntity.prototype
+                    : baseEntity.prototype;
+
+                const entity = Object.create(prototype);
+                return Object.assign(entity, eData);
+            });
+        }
+
+        if (data.playerProjectiles) {
+            this.playerProjectiles = data.playerProjectiles.map((pData: any) => {
+                const proj = Object.create(playerProjectile.prototype);
+                return Object.assign(proj, pData);
+            });
+        }
+
+        if (data.enemyProjectiles) {
+            this.enemyProjectiles = data.enemyProjectiles.map((pData: any) => {
+                const proj = Object.create(enemyProjectile.prototype);
+                return Object.assign(proj, pData);
+            });
+        }
+
         this.currentFrame = data.currentFrame ?? 0;
         this.wavesStarted = data.wavesStarted ?? false;
         this.points = data.points ?? 0;
