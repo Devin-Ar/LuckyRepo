@@ -5,7 +5,7 @@ import { BaseDispatcher } from '../../../core/templates/BaseDispatcher';
 import { BHCommands } from './BHCommands';
 import { BHConfig } from '../model/BHConfig';
 import { basePlayer } from '../interfaces/baseInterfaces/basePlayer';
-import {baseEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
+import {baseEntity, BashEntity, RockEntity, ShotEntity} from '../interfaces/baseInterfaces/baseEntity';
 import {BossEntity} from '../interfaces/baseInterfaces/BossEntity';
 import {enemyProjectile, playerProjectile} from '../interfaces/baseInterfaces/baseProjectile';
 import { WaveManager } from './WaveManager';
@@ -169,6 +169,10 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
         return {
             player: { ...this.player },
             entities: [...this.entities],
+            boss: this.boss ? { ...this.boss } : null,
+            bossLevel: this.bossLevel,
+            bossTargetHp: this.bossTargetHp,
+            bossRewardGiven: this.bossRewardGiven,
             playerProjectiles: [...this.playerProjectiles],
             enemyProjectiles: [...this.enemyProjectiles],
             currentFrame: this.currentFrame,
@@ -200,15 +204,43 @@ export class BHTestLogic extends BaseLogic<BHConfig> {
             Object.assign(this.player, data.player);
         }
 
+        if (data.boss) {
+            this.boss = Object.assign(Object.create(BossEntity.prototype), data.boss);
+            this.bossLevel = data.bossLevel ?? false;
+            this.bossTargetHp = data.bossTargetHp ?? 0;
+            this.bossRewardGiven = data.bossRewardGiven ?? false;
+        } else {
+            this.boss = null;
+            this.bossLevel = false;
+        }
+
         if (data.entities) {
             this.entities = data.entities.map((eData: any) => {
-                const prototype = eData.type === "singleShot"
-                    ? ShotEntity.prototype
-                    : baseEntity.prototype;
+                let proto;
+                switch (eData.type) {
+                    case "rock":
+                        proto = RockEntity.prototype;
+                        break;
+                    case "singleShot":
+                        proto = ShotEntity.prototype;
+                        break;
+                    case "bash":
+                        proto = BashEntity.prototype;
+                        break;
+                    default:
+                        console.warn(`Unknown entity type: ${eData.type}`);
+                        proto = RockEntity.prototype;
+                }
 
-                const entity = Object.create(prototype);
-                return Object.assign(entity, eData);
+                return Object.assign(Object.create(proto), eData);
             });
+        }
+
+        if (data.boss) {
+            this.boss = Object.assign(Object.create(BossEntity.prototype), data.boss);
+            this.bossLevel = data.bossLevel ?? true;
+            this.bossTargetHp = data.bossTargetHp ?? 0;
+            this.bossRewardGiven = data.bossRewardGiven ?? false;
         }
 
         if (data.playerProjectiles) {
