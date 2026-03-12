@@ -76,7 +76,7 @@ export const PauseView: React.FC<PauseViewProps> = ({onResume, onSaveMenu, onSet
                     onClick={onQuit}
                     style={{...buttonBaseStyle, backgroundColor: '#c0392b'}}
                 >
-                    QUIT TO SWITCHBOARD
+                    QUIT TO MAIN MENU
                 </button>
             </div>
         </div>

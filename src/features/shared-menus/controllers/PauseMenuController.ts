@@ -20,7 +20,7 @@ export class PauseMenuController extends BaseMenuController {
 
     public async onQuit(): Promise<void> {
         this.stateManager.pop();
-        const target = await StateRegistry.create(FeatureEnum.DEV_MENU);
+        const target = await StateRegistry.create(FeatureEnum.MAIN_MENU);
         this.stateManager.replace(target);
     }
 }
