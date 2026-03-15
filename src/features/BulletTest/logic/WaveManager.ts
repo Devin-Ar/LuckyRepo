@@ -75,9 +75,21 @@ export class WaveManager {
         waveIndex: number
     ): baseEntity[] {
         const entities: baseEntity[] = [];
-        for (const spawn of spawns) {
-            const x = spawn.spawnX * config.width;
-            const y = spawn.spawnY * config.height;
+
+        // Corner positions with a small inset so entities aren't clipped
+        const INSET = 60;
+        const corners = [
+            { x: INSET,                y: INSET },                 // top-left
+            { x: config.width - INSET, y: INSET },                // top-right
+            { x: config.width - INSET, y: config.height - INSET },// bottom-right
+            { x: INSET,                y: config.height - INSET } // bottom-left
+        ];
+
+        for (let idx = 0; idx < spawns.length; idx++) {
+            const spawn = spawns[idx];
+            const corner = corners[idx % corners.length];
+            const x = corner.x;
+            const y = corner.y;
 
             if (spawn.damageType === 'contact') {
                 const contactSpawn = spawn as IContactEnemySpawn;
